@@ -1,0 +1,78 @@
+.home-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.navbar {
+  background-color: #eca306;
+  color: rgb(17, 4, 4);
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero h2 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.hero h2 span {
+  color: #f3cb08;
+}
+
+.hero p {
+  color: #555;
+  margin-top: 1rem;
+  font-size: 1rem;
+}
+
+.explore-btn {
+  margin-top: 1.5rem;
+  background-color: #e0a70d;
+  color: rgb(168, 147, 147);
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.explore-btn:hover {
+  background-color: #e12205;
+}
+
+.footer {
+  background-color: #f1f1f1;
+  text-align: center;
+  padding: 0.8rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h2 {
+    font-size: 1.6rem;
+  }
+
+  .hero p {
+    font-size: 0.9rem;
+  }
+
+  .explore-btn {
+    font-size: 0.9rem;
+  }
+}
