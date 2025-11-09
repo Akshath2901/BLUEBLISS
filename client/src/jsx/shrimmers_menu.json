@@ -1,0 +1,89 @@
+[
+  {
+    "category": "VEG BURGERS",
+    "items": [
+      {"name": "CRISPY POTATO", "price": 59, "rating": 4.2, "img": "/images/crispy_potato.jpg", "desc": "Crispy and flavorful potato patty burger"},
+      {"name": "VEG MAKHANI", "price": 99, "rating": 4.3, "img": "/images/veg_makhani.jpg", "desc": "Rich makhani sauce with fresh veggies"},
+      {"name": "TWIN CLUB", "price": 169, "rating": 4.4, "img": "/images/twin_club.jpg", "desc": "Double-layered veg burger"},
+      {"name": "PERI PERI PANEER", "price": 209, "rating": 4.6, "img": "/images/peri_peri_paneer.jpg", "desc": "Spicy peri peri paneer burger"},
+      {"name": "TANDOORI PANEER", "price": 209, "rating": 4.6, "img": "/images/tandoori_paneer.jpg", "desc": "Tandoori flavored paneer burger"},
+      {"name": "PANEER GRILLED BURGER", "price": 199, "rating": 4.5, "img": "/images/paneer_grilled_burger.jpg", "desc": "Grilled paneer with special sauce"},
+      {"name": "CHEESE BURST BURGER", "price": 219, "rating": 4.7, "img": "/images/cheese_burst_burger.jpg", "desc": "Cheesy delight bursting with flavor"},
+      {"name": "TANDOORI CHEESE BURST", "price": 219, "rating": 4.7, "img": "/images/tandoori_cheese_burst.jpg", "desc": "Cheesy tandoori flavor explosion"},
+      {"name": "DOUBLE CHEESE BURST", "price": 319, "rating": 4.8, "img": "/images/double_cheese_burst.jpg", "desc": "Loaded with double cheese layers"},
+      {"name": "PERI PERI GRILLED BURGER", "price": 219, "rating": 4.5, "img": "/images/peri_peri_grilled_burger.jpg", "desc": "Grilled burger with peri peri twist"},
+      {"name": "PANEER TORNADO BURGER", "price": 219, "rating": 4.6, "img": "/images/paneer_tornado_burger.jpg", "desc": "Paneer tornado-style spicy burger"},
+      {"name": "MIX VEG CHEESE BURST BURGER", "price": 239, "rating": 4.5, "img": "/images/mix_veg_cheese_burst_burger.jpg", "desc": "Loaded with veggies and cheese"}
+    ]
+  },
+  {
+    "category": "NON-VEG BURGERS",
+    "items": [
+      {"name": "AUTHENTIC CHICKEN BURGER", "price": 279, "rating": 4.5, "img": "/images/authentic_chicken_burger.jpg", "desc": "Classic juicy chicken burger"},
+      {"name": "CRISPY CHICKEN", "price": 119, "rating": 4.2, "img": "/images/crispy_chicken.jpg", "desc": "Crispy and flavorful chicken patty"},
+      {"name": "TANDOORI CHICKEN CHUNKS BURGER", "price": 209, "rating": 4.4, "img": "/images/tandoori_chicken_chunks_burger.jpg", "desc": "Tandoori chicken chunks burger"},
+      {"name": "CHICKEN CHEESE CHUNKS", "price": 269, "rating": 4.6, "img": "/images/chicken_cheese_chunks.jpg", "desc": "Cheesy chicken chunks burger"},
+      {"name": "AUTHENTIC LAMB BURGER", "price": 379, "rating": 4.7, "img": "/images/authentic_lamb_burger.jpg", "desc": "Tender lamb patty with special sauce"},
+      {"name": "AUTHENTIC LAMB BURGER (SPICY)", "price": 399, "rating": 4.8, "img": "/images/authentic_lamb_burger_spicy.jpg", "desc": "Spicy version of our lamb burger"},
+      {"name": "SMOKED WHOLE MEAT BURGER", "price": 299, "rating": 4.6, "img": "/images/smoked_whole_meat_burger.jpg", "desc": "Smoked meat burger with BBQ flavor"},
+      {"name": "CRISPY DOUBLE CHICKEN BURGER", "price": 189, "rating": 4.5, "img": "/images/crispy_double_chicken_burger.jpg", "desc": "Double chicken patties, crispy and rich"},
+      {"name": "PERI PERI CHICKEN CHUNKS BURGER", "price": 229, "rating": 4.6, "img": "/images/peri_peri_chicken_chunks_burger.jpg", "desc": "Peri peri chicken chunks burger"}
+    ]
+  },
+  {
+    "category": "SANDWICH",
+    "items": [
+      {"name": "CORN CHEESE GRILLED SANDWICH", "price": 139, "rating": 4.3, "img": "/images/corn_cheese_sandwich.jpg", "desc": "Cheesy corn grilled sandwich"},
+      {"name": "TANDOORI PANEER GRILLED SANDWICH", "price": 169, "rating": 4.5, "img": "/images/tandoori_paneer_sandwich.jpg", "desc": "Paneer sandwich with tandoori twist"},
+      {"name": "PERI PERI PANEER GRILLED SANDWICH", "price": 169, "rating": 4.5, "img": "/images/peri_peri_paneer_sandwich.jpg", "desc": "Spicy peri peri paneer grilled sandwich"},
+      {"name": "TANDOORI CHICKEN GRILLED SANDWICH", "price": 189, "rating": 4.6, "img": "/images/tandoori_chicken_sandwich.jpg", "desc": "Chicken sandwich with tandoori flavor"},
+      {"name": "PERI PERI CHICKEN GRILLED SANDWICH", "price": 189, "rating": 4.6, "img": "/images/peri_peri_chicken_sandwich.jpg", "desc": "Grilled sandwich with peri peri chicken"}
+    ]
+  },
+  {
+    "category": "WRAPS",
+    "items": [
+      {"name": "WHOLE MEAT CHICKEN WRAP", "price": 229, "rating": 4.4, "img": "/images/whole_meat_wrap.jpg", "desc": "Juicy whole meat chicken wrap"},
+      {"name": "TANDOORI CHICKEN CHUNKS WRAP", "price": 199, "rating": 4.4, "img": "/images/tandoori_chicken_wrap.jpg", "desc": "Tandoori chicken chunks in a wrap"},
+      {"name": "TWIN CLUB WRAP", "price": 159, "rating": 4.2, "img": "/images/twin_club_wrap.jpg", "desc": "Veg twin club wrap"},
+      {"name": "TANDOORI PANEER WRAP", "price": 179, "rating": 4.4, "img": "/images/tandoori_paneer_wrap.jpg", "desc": "Tandoori paneer wrapped in soft roll"},
+      {"name": "PERI PERI PANEER WRAP", "price": 179, "rating": 4.4, "img": "/images/peri_peri_paneer_wrap.jpg", "desc": "Spicy peri peri paneer wrap"}
+    ]
+  },
+  {
+    "category": "FRIES",
+    "items": [
+      {"name": "SALTED FRIES", "price": 79, "rating": 4.2, "img": "/images/salted_fries.jpg", "desc": "Classic salted crispy fries"},
+      {"name": "PERI PERI FRIES", "price": 89, "rating": 4.3, "img": "/images/peri_peri_fries.jpg", "desc": "Spicy peri peri fries"},
+      {"name": "CAJUN FRIES", "price": 89, "rating": 4.3, "img": "/images/cajun_fries.jpg", "desc": "Seasoned Cajun-style fries"},
+      {"name": "CHEESY FRIES", "price": 189, "rating": 4.5, "img": "/images/cheesy_fries.jpg", "desc": "Fries loaded with creamy cheese"},
+      {"name": "PANEER LOADED FRIES", "price": 199, "rating": 4.6, "img": "/images/paneer_loaded_fries.jpg", "desc": "Paneer and cheese loaded fries"},
+      {"name": "CHICKEN LOADED FRIES", "price": 209, "rating": 4.6, "img": "/images/chicken_loaded_fries.jpg", "desc": "Chicken-loaded fries with sauces"}
+    ]
+  },
+  {
+    "category": "SHAKES",
+    "items": [
+      {"name": "PEANUT BUTTER", "price": 159, "rating": 4.4, "img": "/images/peanut_butter_shake.jpg", "desc": "Creamy peanut butter shake"},
+      {"name": "COLD COFFEE", "price": 139, "rating": 4.3, "img": "/images/cold_coffee.jpg", "desc": "Chilled and refreshing cold coffee"},
+      {"name": "MANGO", "price": 159, "rating": 4.5, "img": "/images/mango_shake.jpg", "desc": "Fresh mango milkshake"},
+      {"name": "CHOCOLATE", "price": 159, "rating": 4.6, "img": "/images/chocolate_shake.jpg", "desc": "Rich chocolate milkshake"},
+      {"name": "STRAWBERRY", "price": 159, "rating": 4.5, "img": "/images/strawberry_shake.jpg", "desc": "Sweet and smooth strawberry shake"},
+      {"name": "BUTTERSCOTCH", "price": 159, "rating": 4.4, "img": "/images/butterscotch_shake.jpg", "desc": "Butterscotch flavored milkshake"},
+      {"name": "OREO", "price": 159, "rating": 4.6, "img": "/images/oreo_shake.jpg", "desc": "Crushed Oreo milkshake"},
+      {"name": "BELGIUM CHOCOLATE", "price": 159, "rating": 4.7, "img": "/images/belgium_chocolate_shake.jpg", "desc": "Belgian chocolate milkshake"},
+      {"name": "HALLOWEEN SHAKE", "price": 189, "rating": 4.5, "img": "/images/halloween_shake.jpg", "desc": "Special Halloween themed shake"}
+    ]
+  },
+  {
+    "category": "MOJITOS",
+    "items": [
+      {"name": "LIME N MINT", "price": 109, "rating": 4.3, "img": "/images/lime_mint_mojito.jpg", "desc": "Classic lime and mint mojito"},
+      {"name": "BLUE CORACOA", "price": 109, "rating": 4.3, "img": "/images/blue_coracoa_mojito.jpg", "desc": "Blue coracoa flavored mojito"},
+      {"name": "SPICY MANGO", "price": 119, "rating": 4.4, "img": "/images/spicy_mango_mojito.jpg", "desc": "Spicy and tangy mango mojito"},
+      {"name": "MANGO SLUSHER", "price": 119, "rating": 4.4, "img": "/images/mango_slasher_mojito.jpg", "desc": "Mango flavored slushy mojito"},
+      {"name": "WATERMELON SLUSHER", "price": 109, "rating": 4.3, "img": "/images/watermelon_slasher_mojito.jpg", "desc": "Refreshing watermelon mojito"},
+      {"name": "GREEN APPLE", "price": 119, "rating": 4.3, "img": "/images/green_apple_mojito.jpg", "desc": "Sweet and crisp green apple mojito"}
+    ]
+  }
+]
