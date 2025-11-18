@@ -1,0 +1,36 @@
+.billing-container {
+  max-width: 450px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.billing-card {
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.bill-item,
+.bill-row,
+.bill-total {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.pay-btn {
+  width: 100%;
+  padding: 14px;
+  background: #fc8019;
+  color: white;
+  border: none;
+  font-size: 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+
+.pay-btn:hover {
+  background: #e46f13;
+}

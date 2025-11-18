@@ -274,40 +274,8 @@ function Home() {
         </div>
       </section>
 
-      {/* Swiggy & Zomato Links Section */}
-      <section className="delivery-links">
-        <h2>Find Us On</h2>
-        <p>Order your favorite meals from your preferred platforms</p>
 
-        <div className="delivery-buttons">
-          <a
-            href="https://www.zomato.com/hyderabad/shrimmers-padmarao-nagar-secunderabad/order"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="zomato-btn"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/commons/7/75/Zomato_logo.png"
-              alt="Zomato"
-            />
-            Order on Zomato
-          </a>
-
-          <a
-            href="https://www.swiggy.com/city/hyderabad/shrimmers-chilakalguda-padmarao-nagar-rest713034"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="swiggy-btn"
-          >
-            <img
-              src="https://upload.wikimedia.org/wikipedia/en/1/12/Swiggy_logo.svg"
-              alt="Swiggy"
-            />
-            Order on Swiggy
-          </a>
-        </div>
-      </section>
-
+    
       <Footer />
     </div>
   );

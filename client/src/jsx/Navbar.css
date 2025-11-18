@@ -314,3 +314,17 @@
     padding: 8px 20px;
   }
 }
+.btn-cart {
+  background: #fc8019;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  margin-left: 10px;
+}
+
+.btn-cart:hover {
+  background: #e56f15;
+}

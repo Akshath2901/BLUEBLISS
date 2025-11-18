@@ -14,7 +14,7 @@ function SwiggyStyleMenu() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "menu"));
+        const snapshot = await getDocs(collection(db, "Pmenu"));
         const categories = [];
         snapshot.forEach((doc) => categories.push(doc.data()));
         setMenuData(categories);
