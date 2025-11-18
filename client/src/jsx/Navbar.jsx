@@ -17,7 +17,7 @@ function Navbar() {
   const currentRoute = useLocation().pathname;
   const navigate = useNavigate();
 
-  // ✅ Detect location
+  // Detect location
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -45,7 +45,7 @@ function Navbar() {
     }
   }, []);
 
-  // ✅ Firebase Auth state listener
+  // Firebase Auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -53,7 +53,6 @@ function Navbar() {
     return () => unsubscribe();
   }, [auth]);
 
-  // ✅ Logout handler
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -64,7 +63,6 @@ function Navbar() {
     }
   };
 
-  // ✅ Search handler
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -72,9 +70,7 @@ function Navbar() {
     }
   };
 
-  // ✅ Signup success callback
   const handleSignupSuccess = (user) => {
-    console.log("Signup successful:", user);
     setUser(user);
   };
 
@@ -82,6 +78,7 @@ function Navbar() {
     <>
       <nav className="navbar">
         <div className="navbar-container">
+
           {/* Left Section - Logo */}
           <div className="navbar-left">
             <Link to="/" className="logo">
@@ -120,14 +117,16 @@ function Navbar() {
                   About
                 </Link>
               </li>
+
               <li>
                 <Link
-                  to="/explore"
-                  className={currentRoute === "/explore" ? "active" : ""}
+                  to="/explore-menu"
+                  className={currentRoute === "/explore-menu" ? "active" : ""}
                 >
                   Explore
                 </Link>
               </li>
+
               <li>
                 <Link
                   to="/contact"
@@ -136,9 +135,19 @@ function Navbar() {
                   Contact
                 </Link>
               </li>
+
+              {/* 🛒 FIXED CART BUTTON */}
+              <li>
+                <button
+                  className="btn-cart"
+                  onClick={() => navigate("/cart")}
+                >
+                  🛒 Cart
+                </button>
+              </li>
             </ul>
 
-            {/* ✅ Auth Buttons Section */}
+            {/* Auth Section */}
             <div className="auth-buttons">
               {user ? (
                 <>
@@ -170,7 +179,7 @@ function Navbar() {
         </div>
       </nav>
 
-      {/* ✅ Show modals conditionally */}
+      {/* Modals */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
       {showSignup && (
         <SignupModal

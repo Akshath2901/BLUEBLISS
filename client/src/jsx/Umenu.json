@@ -1,0 +1,160 @@
+[
+  {
+    "category": "VEG WRAPS",
+    "items": [
+      { "name": "CLASSIC POTATO WRAP", "price": 149, "desc": "Classic seasoned potato wrap", "img": "/images/potato_wrap.jpg", "rating": 4.3 },
+      { "name": "PERI PERI POTATO WRAP", "price": 159, "desc": "Spicy peri peri potato wrap", "img": "/images/periperi_potato_wrap.jpg", "rating": 4.4 },
+      { "name": "TANDOORI POTATO WRAP", "price": 159, "desc": "Tandoori-flavoured potato wrap", "img": "/images/tandoori_potato_wrap.jpg", "rating": 4.4 },
+      { "name": "MAKHANI WRAP", "price": 169, "desc": "Creamy makhani-style wrap", "img": "/images/makhani_wrap.jpg", "rating": 4.5 },
+      { "name": "CLASSIC TWIN CLUB WRAP", "price": 179, "desc": "Double-layered veggie wrap", "img": "/images/twin_club_wrap.jpg", "rating": 4.3 },
+      { "name": "PERI PERI TWIN CLUB WRAP", "price": 189, "desc": "Spicy peri peri twin wrap", "img": "/images/periperi_twin_wrap.jpg", "rating": 4.4 },
+      { "name": "TANDOORI TWIN CLUB WRAP", "price": 189, "desc": "Tandoori flavoured dual wrap", "img": "/images/tandoori_twin_wrap.jpg", "rating": 4.4 },
+      { "name": "CLASSIC PANEER WRAP", "price": 199, "desc": "Paneer-filled classic wrap", "img": "/images/classic_paneer_wrap.jpg", "rating": 4.5 },
+      { "name": "PERI PERI PANEER WRAP", "price": 209, "desc": "Peri peri spiced paneer wrap", "img": "/images/periperi_paneer_wrap.jpg", "rating": 4.6 },
+      { "name": "TANDOORI PANEER WRAP", "price": 209, "desc": "Tandoori paneer wrap", "img": "/images/tandoori_paneer_wrap.jpg", "rating": 4.6 },
+      { "name": "PANEER TIKKA WRAP", "price": 219, "desc": "Paneer tikka cooked in tandoor", "img": "/images/paneer_tikka_wrap.jpg", "rating": 4.7 },
+      { "name": "CLASSIC MUSHROOM WRAP", "price": 209, "desc": "Classic mushroom & cheese wrap", "img": "/images/mushroom_wrap.jpg", "rating": 4.4 },
+      { "name": "PERI PERI MUSHROOM WRAP", "price": 219, "desc": "Peri peri mushroom wrap", "img": "/images/periperi_mushroom_wrap.jpg", "rating": 4.5 },
+      { "name": "TANDOORI MUSHROOM WRAP", "price": 219, "desc": "Tandoori mushroom wrap", "img": "/images/tandoori_mushroom_wrap.jpg", "rating": 4.6 },
+      { "name": "MARVELOUS WRAP", "price": 229, "desc": "Special signature veg wrap", "img": "/images/marvelous_wrap.jpg", "rating": 4.7 },
+      { "name": "JACKFRUIT WRAP", "price": 229, "desc": "Soft jackfruit loaded veg wrap", "img": "/images/jackfruit_wrap.jpg", "rating": 4.5 }
+    ]
+  },
+
+  {
+    "category": "NON-VEG WRAPS",
+    "items": [
+      { "name": "EGG WRAP", "price": 159, "desc": "Classic egg wrap", "img": "/images/egg_wrap.jpg", "rating": 4.3 },
+      { "name": "CLASSIC CHICKEN WRAP", "price": 199, "desc": "Juicy chicken wrap", "img": "/images/classic_chicken_wrap.jpg", "rating": 4.5 },
+      { "name": "PERI PERI CHICKEN WRAP", "price": 209, "desc": "Peri peri chicken wrap", "img": "/images/periperi_chicken_wrap.jpg", "rating": 4.6 },
+      { "name": "TANDOORI CHICKEN WRAP", "price": 209, "desc": "Tandoori grilled chicken wrap", "img": "/images/tandoori_chicken_wrap.jpg", "rating": 4.6 },
+      { "name": "CLASSIC CHICKEN ZINGER WRAP", "price": 209, "desc": "Crispy zinger-style chicken wrap", "img": "/images/chicken_zinger.jpg", "rating": 4.7 },
+      { "name": "TANDOORI CHICKEN ZINGER WRAP", "price": 219, "desc": "Zinger wrap with tandoori twist", "img": "/images/tandoori_zinger.jpg", "rating": 4.7 },
+      { "name": "PERI PERI CHICKEN ZINGER WRAP", "price": 219, "desc": "Zinger wrap with peri peri flavour", "img": "/images/periperi_zinger.jpg", "rating": 4.6 },
+      { "name": "CLASSIC CHICKEN CHUNKS WRAP", "price": 209, "desc": "Chunky chicken-filled wrap", "img": "/images/chicken_chunks.jpg", "rating": 4.5 },
+      { "name": "PERI PERI CHICKEN CHUNKS WRAP", "price": 219, "desc": "Peri peri flavoured chicken chunks", "img": "/images/periperi_chunks.jpg", "rating": 4.6 },
+      { "name": "TANDOORI CHICKEN CHUNKS WRAP", "price": 219, "desc": "Tandoori grilled chunks wrap", "img": "/images/tandoori_chunks.jpg", "rating": 4.6 },
+      { "name": "CHICKEN TIKKA WRAP", "price": 219, "desc": "Tikka-marinated chicken wrap", "img": "/images/chicken_tikka_wrap.jpg", "rating": 4.7 },
+      { "name": "CLASSIC MUTTON WRAP", "price": 229, "desc": "Soft mutton wrap", "img": "/images/mutton_wrap.jpg", "rating": 4.6 },
+      { "name": "PERI PERI MUTTON WRAP", "price": 239, "desc": "Peri peri mutton wrap", "img": "/images/periperi_mutton.jpg", "rating": 4.7 },
+      { "name": "TANDOORI MUTTON WRAP", "price": 239, "desc": "Tandoori spiced mutton wrap", "img": "/images/tandoori_mutton.jpg", "rating": 4.7 },
+      { "name": "NON-VEG MIXED WRAP", "price": 249, "desc": "Mixed chicken + mutton wrap", "img": "/images/mixed_wrap.jpg", "rating": 4.8 }
+    ]
+  },
+
+  {
+    "category": "SANDWICHES",
+    "items": [
+      { "name": "CORN CHEESE GRILLED SANDWICH", "price": 139, "desc": "Corn & cheese grilled sandwich", "img": "/images/corn_cheese_sandwich.jpg", "rating": 4.4 },
+      { "name": "TANDOORI PANEER CHEESE SANDWICH", "price": 169, "desc": "Tandoori paneer grilled sandwich", "img": "/images/tandoori_paneer_sandwich.jpg", "rating": 4.6 },
+      { "name": "PERI PERI PANEER CHEESE SANDWICH", "price": 169, "desc": "Peri peri paneer sandwich", "img": "/images/periperi_paneer_sandwich.jpg", "rating": 4.5 },
+      { "name": "PANEER TIKKA CHEESE SANDWICH", "price": 189, "desc": "Paneer tikka grilled sandwich", "img": "/images/paneer_tikka_sandwich.jpg", "rating": 4.7 },
+      { "name": "CHICKEN TIKKA CHEESE SANDWICH", "price": 189, "desc": "Chicken tikka cheese sandwich", "img": "/images/chicken_tikka_sandwich.jpg", "rating": 4.7 },
+      { "name": "TANDOORI CHICKEN CHEESE SANDWICH", "price": 189, "desc": "Tandoori chicken grilled sandwich", "img": "/images/tandoori_chicken_sandwich.jpg", "rating": 4.6 },
+      { "name": "PERI PERI CHICKEN CHEESE SANDWICH", "price": 189, "desc": "Peri peri spiced chicken sandwich", "img": "/images/periperi_chicken_sandwich.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "FRIES",
+    "items": [
+      { "name": "SALTED CRINKLE FRIES", "price": 79, "desc": "Salted crispy crinkle fries", "img": "/images/salted_crinkle.jpg", "rating": 4.2 },
+      { "name": "PERI PERI CRINKLE FRIES", "price": 89, "desc": "Spicy peri peri crinkle fries", "img": "/images/periperi_crinkle.jpg", "rating": 4.3 },
+      { "name": "CAJUN CRINKLE FRIES", "price": 89, "desc": "Cajun seasoned crinkle fries", "img": "/images/cajun_crinkle.jpg", "rating": 4.3 },
+      { "name": "CHEESY CRINKLE FRIES", "price": 189, "desc": "Cheese-loaded crinkle fries", "img": "/images/cheesy_crinkle.jpg", "rating": 4.6 },
+      { "name": "PANEER LOADED FRIES", "price": 199, "desc": "Paneer-loaded fries", "img": "/images/paneer_loaded_fries.jpg", "rating": 4.6 },
+      { "name": "CHICKEN LOADED FRIES", "price": 209, "desc": "Chicken-loaded fries", "img": "/images/chicken_loaded_fries.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "MOJITOS",
+    "items": [
+      { "name": "LIME N MINT", "price": 119, "desc": "Refreshing lime mint mojito", "img": "/images/lime_mint.jpg", "rating": 4.5 },
+      { "name": "BLUE CURACAO", "price": 119, "desc": "Tangy blue mojito", "img": "/images/blue_curacao.jpg", "rating": 4.5 },
+      { "name": "MANGO SLUSHER", "price": 119, "desc": "Chilled mango slush", "img": "/images/mango_slusher.jpg", "rating": 4.4 },
+      { "name": "WATERMELON SLUSHER", "price": 119, "desc": "Fresh watermelon mojito", "img": "/images/watermelon_slusher.jpg", "rating": 4.5 },
+      { "name": "GREEN APPLE", "price": 119, "desc": "Green apple mojito", "img": "/images/green_apple.jpg", "rating": 4.4 },
+      { "name": "SPICY MANGO", "price": 119, "desc": "Spicy mango mojito", "img": "/images/spicy_mango.jpg", "rating": 4.4 }
+    ]
+  },
+
+  {
+    "category": "MILKSHAKES",
+    "items": [
+      { "name": "BELGIUM CHOCOLATE MILKSHAKE", "price": 169, "desc": "Rich Belgian chocolate shake", "img": "/images/belgian_milkshake.jpg", "rating": 4.7 },
+      { "name": "BUTTERSCOTCH MILKSHAKE", "price": 159, "desc": "Cold butterscotch shake", "img": "/images/butterscotch_milkshake.jpg", "rating": 4.5 },
+      { "name": "CHOCOLATE MILKSHAKE", "price": 159, "desc": "Classic chocolate shake", "img": "/images/choco_milkshake.jpg", "rating": 4.6 },
+      { "name": "COLD COFFEE", "price": 159, "desc": "Cold brew coffee shake", "img": "/images/cold_coffee.jpg", "rating": 4.5 },
+      { "name": "HALLOWEEN MILKSHAKE", "price": 189, "desc": "Special spooky shake", "img": "/images/halloween_shake.jpg", "rating": 4.7 },
+      { "name": "MANGO MILKSHAKE", "price": 159, "desc": "Sweet mango shake", "img": "/images/mango_milkshake.jpg", "rating": 4.4 },
+      { "name": "OREO MILKSHAKE", "price": 159, "desc": "Crushed oreo shake", "img": "/images/oreo_milkshake.jpg", "rating": 4.6 },
+      { "name": "PEANUT BUTTER MILKSHAKE", "price": 159, "desc": "Peanut butter blended shake", "img": "/images/peanut_milkshake.jpg", "rating": 4.6 },
+      { "name": "STRAWBERRY MILKSHAKE", "price": 159, "desc": "Sweet strawberry shake", "img": "/images/strawberry_milkshake.jpg", "rating": 4.5 },
+      { "name": "BISCOFF MILKSHAKE", "price": 169, "desc": "Lotus biscoff flavour shake", "img": "/images/biscoff_milkshake.jpg", "rating": 4.7 },
+      { "name": "VANILLA MILKSHAKE", "price": 159, "desc": "Classic vanilla shake", "img": "/images/vanilla_milkshake.jpg", "rating": 4.4 }
+    ]
+  },
+
+  {
+    "category": "GARLIC BREAD",
+    "items": [
+      { "name": "PLAIN GARLIC BREAD", "price": 129, "desc": "Classic garlic bread", "img": "/images/plain_garlic.jpg", "rating": 4.3 },
+      { "name": "PANEER TIKKA STUFFED GARLIC BREAD", "price": 179, "desc": "Paneer tikka stuffed garlic bread", "img": "/images/paneer_tikka_garlic.jpg", "rating": 4.6 },
+      { "name": "CORN & CHEESE STUFFED GARLIC BREAD", "price": 179, "desc": "Corn and cheese stuffing", "img": "/images/corn_cheese_garlic.jpg", "rating": 4.5 },
+      { "name": "CHICKEN TIKKA GARLIC BREAD", "price": 179, "desc": "Chicken tikka stuffed bread", "img": "/images/chicken_tikka_garlic.jpg", "rating": 4.6 },
+      { "name": "GRILLED CHICKEN STUFFED GARLIC BREAD", "price": 179, "desc": "Grilled chicken filling", "img": "/images/grilled_chicken_garlic.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "WINGS",
+    "items": [
+      { "name": "CAJUN WINGS", "price": 199, "desc": "Spicy cajun wings", "img": "/images/cajun_wings.jpg", "rating": 4.5 },
+      { "name": "PERI PERI WINGS", "price": 199, "desc": "Fiery peri peri wings", "img": "/images/periperi_wings.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "NUGGETS",
+    "items": [
+      { "name": "VEG NUGGETS", "price": 69, "desc": "Crispy veg nuggets", "img": "/images/veg_nuggets.jpg", "rating": 4.3 },
+      { "name": "CHICKEN NUGGETS", "price": 89, "desc": "Crunchy chicken nuggets", "img": "/images/chicken_nuggets.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "VEG PASTA",
+    "items": [
+      { "name": "AMERICAN WHITE SAUCE PASTA VEG", "price": 185, "desc": "Creamy white sauce pasta", "img": "/images/white_pasta_veg.jpg", "rating": 4.5 },
+      { "name": "INDIAN PASTA VEG", "price": 185, "desc": "Indian spiced pasta", "img": "/images/indian_pasta_veg.jpg", "rating": 4.4 },
+      { "name": "ITALIAN PASTA VEG", "price": 185, "desc": "Italian-style pasta", "img": "/images/italian_pasta_veg.jpg", "rating": 4.4 },
+      { "name": "MEXICAN RED SAUCE PASTA VEG", "price": 185, "desc": "Spicy red sauce pasta", "img": "/images/red_pasta_veg.jpg", "rating": 4.5 }
+    ]
+  },
+
+  {
+    "category": "NON-VEG PASTA",
+    "items": [
+      { "name": "AMERICAN WHITE SAUCE PASTA NON VEG", "price": 215, "desc": "Creamy white chicken pasta", "img": "/images/white_pasta_nonveg.jpg", "rating": 4.6 },
+      { "name": "INDIAN PASTA NON VEG", "price": 215, "desc": "Indian chicken pasta", "img": "/images/indian_pasta_nonveg.jpg", "rating": 4.5 },
+      { "name": "ITALIAN PASTA NON VEG", "price": 215, "desc": "Italian chicken pasta", "img": "/images/italian_pasta_nonveg.jpg", "rating": 4.5 },
+      { "name": "MEXICAN RED SAUCE PASTA NON VEG", "price": 215, "desc": "Spicy red sauce chicken pasta", "img": "/images/red_pasta_nonveg.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "DESSERTS",
+    "items": [
+      { "name": "CHOCO LAVA", "price": 115, "desc": "Hot choco lava cake", "img": "/images/choco_lava.jpg", "rating": 4.7 }
+    ]
+  },
+
+  {
+    "category": "SOFT DRINKS",
+    "items": [
+      { "name": "250ML", "price": 25, "desc": "Cool drink 250ml", "img": "/images/softdrink_250.jpg", "rating": 4.2 },
+      { "name": "500ML", "price": 50, "desc": "Cool drink 500ml", "img": "/images/softdrink_500.jpg", "rating": 4.3 }
+    ]
+  }
+]

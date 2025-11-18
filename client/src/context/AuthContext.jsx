@@ -1,7 +1,7 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from './firebase'; // Update path based on your project
+import { auth } from '../lib/firebase'; // Update path based on your project
 
 const AuthContext = createContext(undefined);
 

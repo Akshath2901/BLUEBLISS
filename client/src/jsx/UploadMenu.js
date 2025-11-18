@@ -20,13 +20,13 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // ✅ Step 3: Read your JSON file (shrimmers_menu.json must be in the same folder)
-const menuData = JSON.parse(fs.readFileSync("./shrimmers_menu.json", "utf-8"));
+const menuData = JSON.parse(fs.readFileSync("./Umenu.json", "utf-8"));
 
 // ✅ Step 4: Upload each category as a Firestore document
 async function uploadMenu() {
   for (const category of menuData) {
     const docId = category.category.replace(/\s+/g, "_").toLowerCase(); // e.g. "VEG BURGERS" → "veg_burgers"
-    const docRef = doc(collection(db, "menu"), docId);
+    const docRef = doc(collection(db, "Umenu"), docId);
     await setDoc(docRef, category);
     console.log(`✅ Uploaded: ${category.category}`);
   }
