@@ -32,17 +32,17 @@ function SwiggyStyleMenu() {
 
       {/* -------------- RESTAURANT HEADER -------------- */}
       <div className="restaurant-header">
-        <h1 className="rest-name">Urban Wrap</h1>
+        <h1 className="rest-name">Shrimmers</h1>
 
         <div className="rest-info">
           <div className="rest-left">
-            <p className="rest-rating">⭐ 4.5 (3.8k+ ratings)</p>
+            <p className="rest-rating">⭐ 4.1 (3.8k+ ratings) on Zomato and Swiggy</p>
             <p className="rest-price">₹300 for two</p>
-            <p className="rest-category">Wraps • Fries • Drinks</p>
+            <p className="rest-category">Burgers • Fries • Sandwiches</p>
           </div>
 
           <div className="rest-right">
-            <p className="rest-outlet">Outlet: Tolichowki</p>
+            <p className="rest-outlet">Outlet: Secunderabad</p>
             <p className="rest-time">30–35 mins</p>
           </div>
         </div>

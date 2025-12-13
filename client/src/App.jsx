@@ -1,53 +1,119 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
-import Home from "./jsx/home";
-import SearchResults from "./jsx/SearchResults";
+// ---------------- USER COMPONENTS ----------------
 import Navbar from "./jsx/Navbar";
+import Home from "./jsx/home";
 import About from "./jsx/About";
-import ExploreMenu from "./jsx/ExploreMenu";
 import Contact from "./jsx/Contact";
-import SwiggyStyleMenu from "./jsx/SwiggyStyleMenu";
-import PeppaStyleMenu from "./jsx/Peppapage";
-import UrbanStyleMenu from "./jsx/Urbanpage"; // 🍽️ Sample Restaurant Menu
-
-import CartPage from "./jsx/CartPage";         // 🛒 Cart Page
-import Billing from "./jsx/Billing";           // 🧾 Billing Page
-import PaymentGateway from "./jsx/PaymentGateway"; // 💳 Payment Page
+import SearchResults from "./jsx/SearchResults";
+import CartPage from "./jsx/CartPage";
+import Billing from "./jsx/Billing";
+import PaymentGateway from "./jsx/PaymentGateway";
+import Payment from "./jsx/Payment";
+import PaymentSuccess from "./jsx/PaymentSuccess";
+import OrderTracking from "./jsx/OrderTracking";
 import ProtectedRoute from "./jsx/ProtectedRoute";
 
-function App() {
+// ---------------- USER PROFILE COMPONENTS ----------------
+import UserProfile from "./jsx/UserProfile";
+import MyOrders from "./jsx/profile/MyOrders";
+import OrderDetails from "./jsx/profile/OrderDetails";
+import MyRatings from "./jsx/profile/MyRatings";
+import Help from "./jsx/profile/Help";
+
+// ---------------- ADMIN COMPONENTS ----------------
+import AdminLogin from "./jsx/admin/AdminLogin";
+import AdminProtectedRoute from "./jsx/admin/AdminProtectedRoute";
+import AdminLayout from "./jsx/admin/AdminLayout";
+import AdminDashboard from "./jsx/admin/AdminDashboard";
+import AdminOrders from "./jsx/admin/AdminOrders";
+import AdminOrderDetails from "./jsx/admin/AdminOrdersDetails";
+import AdminSales from "./jsx/admin/AdminSales";
+import AdminSettings from "./jsx/admin/AdminSettings";
+import SwiggyStyleMenu from "./jsx/SwiggyStyleMenu";
+import Peppa from "./jsx/Peppapage";
+import UrbanWrap from "./jsx/Urbanpage";
+
+// ---------------- LAYOUT (HIDE NAVBAR IN ADMIN) ----------------
+function Layout({ children }) {
+  const location = useLocation();
+
+  const hideNavbarRoutes = [
+    "/admin-login",
+  ];
+
+  // Hide navbar for all /admin..
+  if (location.pathname.startsWith("/admin")) {
+    return <>{children}</>;
+  }
+
   return (
-    <Router>
+    <>
       <Navbar />
-
-      <Routes>
-        {/* Home */}
-        <Route path="/" element={<Home />} />
-
-        {/* Main Navigation Pages */}
-        <Route path="/about" element={<About />} />
-        <Route path="/explore-menu" element={<ExploreMenu />} />
-        <Route path="/contact" element={<Contact />} />
-
-        {/* Search Results */}
-        <Route path="/search" element={<SearchResults />} />
-
-        {/* Cart System */}
-        <Route path="/cart" element={<ProtectedRoute><CartPage/></ProtectedRoute>} />
-        <Route path="/billing" element={<Billing />} />
-        <Route path="/payment-gateway" element={<PaymentGateway />} />
-
-        {/* You can add more restaurant menu routes here later */}
-  
-            <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
-            <Route path="/menu/peppanizze" element={<PeppaStyleMenu />} />
-            <Route path="/menu/urbanwrap" element={<UrbanStyleMenu />} />
-
-        
-      </Routes>
-    </Router>
+      {children}
+    </>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+
+          {/* ---------------- USER ROUTES ---------------- */}
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/search" element={<SearchResults />} />
+
+          <Route
+            path="/cart"
+            element={
+              <ProtectedRoute>
+                <CartPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/billing" element={<Billing />} />
+          <Route path="/payment-gateway" element={<PaymentGateway />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+          <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
+          <Route path="/menu/peppanizze" element={<Peppa/>} />
+          <Route path="/menu/urbanwrap" element={<UrbanWrap />} />
+
+          {/* ---------------- USER PROFILE ROUTES ---------------- */}
+          <Route path="/profile" element={<UserProfile />} />
+          <Route path="/my-orders" element={<MyOrders />} />
+          <Route path="/order-details/:id" element={<OrderDetails />} />
+          <Route path="/my-ratings" element={<MyRatings />} />
+          <Route path="/help" element={<Help />} />
+
+          {/* ---------------- ADMIN LOGIN ---------------- */}
+          <Route path="/admin-login" element={<AdminLogin />} />
+
+          {/* ---------------- ADMIN ROUTES (PROTECTED) ---------------- */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="order/:id" element={<AdminOrderDetails />} />
+            <Route path="sales" element={<AdminSales />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}

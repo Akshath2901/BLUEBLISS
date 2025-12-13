@@ -4,36 +4,45 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import LoginModal from "./LoginModal";
 import SignupModal from "./Signupmodal";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { db } from "../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import "./Navbar.css";
 
 function Navbar() {
   const [userLocation, setUserLocation] = useState("Detecting...");
-  const [searchQuery, setSearchQuery] = useState("");
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [user, setUser] = useState(null);
-  const auth = getAuth();
+  const [role, setRole] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
+  const auth = getAuth();
   const currentRoute = useLocation().pathname;
   const navigate = useNavigate();
 
-  // Detect location
+  // ---------------------- LOCATION DETECTOR ----------------------
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
           const { latitude, longitude } = position.coords;
+
           try {
             const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
+              {
+                headers: {
+                  "User-Agent": "bluebliss/1.0",
+                  "Accept-Language": "en",
+                },
+              }
             );
+
             const data = await res.json();
-            const city =
-              data.address.city ||
-              data.address.town ||
-              data.address.village ||
-              data.address.state_district;
-            setUserLocation(city || "Location unavailable");
+            const address =
+              `${data.address.road || ""}, ${data.address.suburb || ""}, ${data.address.city || ""}`.trim();
+
+            setUserLocation(address || "Location unavailable");
           } catch (err) {
             setUserLocation("Error fetching location");
           }
@@ -45,69 +54,85 @@ function Navbar() {
     }
   }, []);
 
-  // Firebase Auth listener
+  // ---------------------- AUTH STATE LISTENER ----------------------
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+
+      if (currentUser) {
+        const ref = doc(db, "users", currentUser.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          setRole(snap.data().role); // admin / user
+        }
+      } else {
+        setRole(null);
+      }
     });
+
     return () => unsubscribe();
-  }, [auth]);
+  }, []);
 
+  // ---------------------- LOGOUT ----------------------
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-      alert("Logged out successfully");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+    await signOut(auth);
+    setUser(null);
+    setRole(null);
+    navigate("/");
   };
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
+  // ---------------------- ADMIN NAVBAR ----------------------
+  if (role === "admin") {
+    return (
+      <nav className="navbar admin-navbar">
+        <div className="navbar-container">
+          <div className="navbar-left">
+            <Link to="/admin" className="logo">Admin Panel</Link>
+          </div>
 
-  const handleSignupSuccess = (user) => {
-    setUser(user);
-  };
+          <div className="navbar-right">
+            <button className="btn-cart" onClick={() => navigate("/admin")}>
+              📊 Dashboard
+            </button>
 
+            <span className="user-email">
+              Admin ({user?.email})
+            </span>
+
+            <button className="btn-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        </div>
+      </nav>
+    );
+  }
+
+  // ---------------------- USER NAVBAR ----------------------
   return (
     <>
       <nav className="navbar">
         <div className="navbar-container">
 
-          {/* Left Section - Logo */}
+          {/* Left: Logo */}
           <div className="navbar-left">
-            <Link to="/" className="logo">
-              bluebliss
-            </Link>
+            <Link to="/" className="logo">bluebliss</Link>
           </div>
 
-          {/* Center Section */}
+          {/* Center: Location */}
           <div className="navbar-center">
             <div className="location-section">
               <span className="location-icon">📍</span>
               <span className="location-text">{userLocation}</span>
               <span className="location-dropdown">▼</span>
             </div>
-
-            <form onSubmit={handleSearch} className="search-section">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Search for restaurant, cuisine or a dish"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </form>
           </div>
 
           {/* Right Section */}
           <div className="navbar-right">
+
+            {/* About / Contact */}
             <ul className="nav-links">
               <li>
                 <Link
@@ -120,59 +145,59 @@ function Navbar() {
 
               <li>
                 <Link
-                  to="/explore-menu"
-                  className={currentRoute === "/explore-menu" ? "active" : ""}
-                >
-                  Explore
-                </Link>
-              </li>
-
-              <li>
-                <Link
                   to="/contact"
                   className={currentRoute === "/contact" ? "active" : ""}
                 >
                   Contact
                 </Link>
               </li>
-
-              {/* 🛒 FIXED CART BUTTON */}
-              <li>
-                <button
-                  className="btn-cart"
-                  onClick={() => navigate("/cart")}
-                >
-                  🛒 Cart
-                </button>
-              </li>
             </ul>
 
-            {/* Auth Section */}
+            {/* Cart button */}
+            <button className="btn-cart" onClick={() => navigate("/cart")}>
+              🛒 Cart
+            </button>
+
+            {/* Auth / Profile */}
             <div className="auth-buttons">
-              {user ? (
+              {!user ? (
                 <>
-                  <span className="user-email">
-                    Hi, {user.email.split("@")[0]}
-                  </span>
-                  <button className="btn-logout" onClick={handleLogout}>
-                    Logout
-                  </button>
+                  <button className="btn-login" onClick={() => setShowLogin(true)}>Log in</button>
+                  <button className="btn-signup" onClick={() => setShowSignup(true)}>Sign up</button>
                 </>
               ) : (
-                <>
-                  <button
-                    className="btn-login"
-                    onClick={() => setShowLogin(true)}
+                <div className="profile-dropdown-container">
+                  <div
+                    className="user-section"
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                   >
-                    Log in
-                  </button>
-                  <button
-                    className="btn-signup"
-                    onClick={() => setShowSignup(true)}
-                  >
-                    Sign up
-                  </button>
-                </>
+                    <span className="user-name">
+                      Hi, {user.email.split("@")[0]}
+                    </span>
+
+                    <div className="user-icon">
+                      {user.email.charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+
+                  {showProfileDropdown && (
+                    <div className="profile-dropdown">
+                      <Link to="/my-orders">My Orders</Link>
+                      <Link to="/my-ratings">My Ratings</Link>
+
+                      <div className="profile-divider"></div>
+
+                      <Link to="/help">Help</Link>
+
+                      <a
+                        onClick={handleLogout}
+                        style={{ color: "red", cursor: "pointer" }}
+                      >
+                        Logout
+                      </a>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -181,12 +206,7 @@ function Navbar() {
 
       {/* Modals */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
-      {showSignup && (
-        <SignupModal
-          onClose={() => setShowSignup(false)}
-          onSignupSuccess={handleSignupSuccess}
-        />
-      )}
+      {showSignup && <SignupModal onClose={() => setShowSignup(false)} />}
     </>
   );
 }

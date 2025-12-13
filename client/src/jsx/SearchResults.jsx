@@ -13,12 +13,13 @@ function SearchResults() {
 
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState("all");
 
-  const { addToCart } = useContext(CartContext);
+  const { addToCart, increaseQty, decreaseQty, getItemQty } = useContext(CartContext);
 
-  // ---------------- Fetch menu data from all 3 collections ----------------
+  // Fetch all menu items
   const fetchAllMenuItems = async () => {
-    const collections = ["menu", "Pmenu", "Umenu"]; // your THREE menus
+    const collections = ["menu", "Pmenu", "Umenu"];
     let allItems = [];
 
     for (const col of collections) {
@@ -35,6 +36,8 @@ function SearchResults() {
             price: item.price,
             img: item.img,
             desc: item.desc,
+            rating: item.rating || "4.2",
+            isVeg: item.isVeg !== false,
           }));
 
           allItems = [...allItems, ...formattedItems];
@@ -45,7 +48,6 @@ function SearchResults() {
     return allItems;
   };
 
-  // ---------------- SEARCH LOGIC ----------------
   useEffect(() => {
     const performSearch = async () => {
       setLoading(true);
@@ -80,103 +82,159 @@ function SearchResults() {
     navigate("/");
   };
 
+  const filteredResults = results.filter((item) => {
+    if (activeFilter === "veg") return item.isVeg;
+    if (activeFilter === "nonveg") return !item.isVeg;
+    return true;
+  });
+
   return (
     <div className="search-results-container">
-      {/* Header */}
       <header className="search-header">
         <div className="header-content">
-          <h1 className="brand" onClick={handleBackHome}>
-            BlueBliss Foods & Technologies
+          <button className="back-btn-search" onClick={handleBackHome}>
+            ← Back
+          </button>
+          <h1 className="brand-search" onClick={handleBackHome}>
+            BlueBliss
           </h1>
-
-          <SearchBar
-            onSearch={handleSearch}
-            placeholder="Search for dishes..."
-          />
+          <SearchBar onSearch={handleSearch} placeholder="Search for dishes..." />
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="results-main">
         <div className="results-info">
           {query && (
-            <h2>
-              Search results for:{" "}
-              <span className="query-text">"{query}"</span>
+            <h2 className="results-title">
+              Search results for <span className="query-highlight">"{query}"</span>
             </h2>
           )}
 
           {!loading && (
-            <p className="results-count">
-              {results.length} {results.length === 1 ? "item" : "items"} found
-            </p>
+            <div className="results-meta">
+              <p className="results-count">
+                {filteredResults.length} {filteredResults.length === 1 ? "dish" : "dishes"} found
+              </p>
+
+              <div className="filter-chips">
+                <button
+                  className={`filter-chip ${activeFilter === "all" ? "active" : ""}`}
+                  onClick={() => setActiveFilter("all")}
+                >
+                  All Items
+                </button>
+                <button
+                  className={`filter-chip ${activeFilter === "veg" ? "active" : ""}`}
+                  onClick={() => setActiveFilter("veg")}
+                >
+                  🟢 Veg
+                </button>
+                <button
+                  className={`filter-chip ${activeFilter === "nonveg" ? "active" : ""}`}
+                  onClick={() => setActiveFilter("nonveg")}
+                >
+                  🔴 Non-Veg
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
         {loading ? (
           <div className="loading-container">
-            <div className="spinner"></div>
-            <p>Searching...</p>
+            <div className="loading-animation">
+              <div className="food-loader">
+                <div className="plate"></div>
+                <div className="food-item"></div>
+                <div className="food-item"></div>
+                <div className="food-item"></div>
+              </div>
+              <p className="loading-text">Finding delicious dishes...</p>
+            </div>
           </div>
         ) : (
           <>
-            {results.length > 0 ? (
+            {filteredResults.length > 0 ? (
               <div className="results-grid">
-                {results.map((item) => (
-                  <div key={item.id} className="result-card">
-                    <img
-                      src={item.img}
-                      alt={item.name}
-                      className="card-image-img"
-                    />
+                {filteredResults.map((item) => {
+                  const qty = getItemQty(item.id);
+                  
+                  return (
+                    <div key={item.id} className="dish-card">
+                      <div className="dish-image-wrapper">
+                        <img src={item.img} alt={item.name} className="dish-image" />
+                        <span className={`veg-badge ${item.isVeg ? "veg" : "nonveg"}`}>
+                          {item.isVeg ? "🟢" : "🔴"}
+                        </span>
+                      </div>
 
-                    <div className="card-content">
-                      <span className="card-category">{item.category}</span>
+                      <div className="dish-content">
+                        <span className="dish-category">{item.category}</span>
+                        <h3 className="dish-name">{item.name}</h3>
+                        <p className="dish-description">{item.desc}</p>
 
-                      <h3 className="card-title">{item.name}</h3>
+                        <div className="dish-meta">
+                          <span className="dish-rating">⭐ {item.rating}</span>
+                        </div>
 
-                      <p className="card-description">{item.desc}</p>
+                        <div className="dish-footer">
+                          <span className="dish-price">₹{item.price}</span>
 
-                      <div className="card-footer">
-                        <span className="card-price">₹{item.price}</span>
-
-                        <button
-                          className="add-btn"
-                          onClick={() =>
-                            addToCart({
-                              id: item.id,
-                              name: item.name,
-                              price: item.price,
-                              img: item.img,
-                            })
-                          }
-                        >
-                          Add to Cart
-                        </button>
+                          {qty === 0 ? (
+                            <button
+                              className="add-to-cart-btn"
+                              onClick={() =>
+                                addToCart({
+                                  id: item.id,
+                                  name: item.name,
+                                  price: item.price,
+                                  img: item.img,
+                                })
+                              }
+                            >
+                              Add to Cart
+                            </button>
+                          ) : (
+                            <div className="quantity-controls">
+                              <button
+                                className="qty-btn-minus"
+                                onClick={() => decreaseQty(item.id)}
+                              >
+                                −
+                              </button>
+                              <span className="qty-display">{qty}</span>
+                              <button
+                                className="qty-btn-plus"
+                                onClick={() => increaseQty(item.id)}
+                              >
+                                +
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="no-results">
-                <div className="no-results-icon">🔍</div>
-                <h3>No results found</h3>
-                <p>Try searching for something else or browse menu</p>
-
-                <button className="browse-btn" onClick={handleBackHome}>
-                  Browse Menu
+                <div className="no-results-animation">
+                  <div className="empty-plate">🍽️</div>
+                  <div className="search-magnifier">🔍</div>
+                </div>
+                <h3 className="no-results-title">No dishes found</h3>
+                <p className="no-results-text">
+                  We couldn't find any dishes matching "{query}"
+                </p>
+                <button className="browse-menu-btn" onClick={handleBackHome}>
+                  Browse Full Menu
                 </button>
               </div>
             )}
           </>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="footer">
-        <p>© 2025 BlueBliss | Crafted with ❤️</p>
-      </footer>
     </div>
   );
 }

@@ -266,12 +266,13 @@
 }
 
 .category-circle:hover .category-icon {
-  box-shadow: 0 12px 32px rgba(218, 165, 32, 0.3);
+  box-shadow: 0 12px 32px rgba(17, 15, 10, 0.3);
   transform: scale(1.1);
 }
 
 .category-circle:nth-child(1) .category-icon {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  background-image: "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg ";
+ /* background: linear-gradient(135deg, #0f0e09 0%, #ffed4e 100%); */
 }
 
 .category-circle:nth-child(2) .category-icon {
@@ -292,6 +293,62 @@
   color: #1c1c1c;
   margin: 0;
 }
+/* Categories Slider */
+.categories-slider-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.categories-slider {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 30px;
+  padding: 10px;
+}
+
+.categories-slider::-webkit-scrollbar {
+  display: none;
+}
+
+/* Buttons */
+.cat-nav-btn {
+  background: #000;
+  color: white;
+  border: none;
+  font-size: 32px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  position: absolute;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: 0.2s ease;
+}
+
+.cat-nav-btn:hover {
+  transform: scale(1.1);
+}
+
+.cat-nav-btn.left {
+  left: -20px;
+}
+
+.cat-nav-btn.right {
+  right: -20px;
+}
+
+/* Category card adjustments for slider */
+.category-circle {
+  min-width: 150px;
+  flex-shrink: 0;
+}
+
 
 /* Offers Slider Section */
 .offers-section {
@@ -900,4 +957,48 @@
     justify-content: center;
     padding: 14px 25px;
   }
+}
+.brand-card {
+  width: 320px;
+  height: 200px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.brand-card:hover {
+  transform: scale(1.03);
+}
+
+.brand-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45); /* Faded effect */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  color: white;
+}
+
+.brand-overlay h2 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.brand-overlay .tagline {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.brand-overlay .desc {
+  font-size: 13px;
+  margin-top: 4px;
+  opacity: 0.7;
 }
