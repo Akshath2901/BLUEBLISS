@@ -1,24 +1,33 @@
-import React, { useState } from "react";
+// src/jsx/ProtectedRoute.jsx
+import React from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import LoginModal from "../jsx/LoginModal"; // adjust path if needed
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
-  const [showModal, setShowModal] = useState(false);
+  const location = useLocation();
 
-  if (loading) return <div>Loading...</div>;
-
-  // If user NOT logged in → show login modal
-  if (!user) {
-    if (!showModal) setShowModal(true);
+  // Wait until Firebase auth state is resolved
+  if (loading) {
     return (
-      <>
-        {showModal && <LoginModal onClose={() => setShowModal(false)} />}
-      </>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        Loading...
+      </div>
     );
   }
 
-  // If logged in → show protected page
+  // If NOT logged in → redirect to login page
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location.pathname }}
+      />
+    );
+  }
+
+  // If logged in → allow access
   return children;
 }
 

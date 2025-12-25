@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 
-// ---------------- USER COMPONENTS ----------------
+/* ---------------- USER COMPONENTS ---------------- */
 import Navbar from "./jsx/Navbar";
 import Home from "./jsx/home";
 import About from "./jsx/About";
@@ -15,14 +15,18 @@ import PaymentSuccess from "./jsx/PaymentSuccess";
 import OrderTracking from "./jsx/OrderTracking";
 import ProtectedRoute from "./jsx/ProtectedRoute";
 
-// ---------------- USER PROFILE COMPONENTS ----------------
+/* ---------------- AUTH PAGES ---------------- */
+import LoginPage from "./jsx/LoginPage";
+import SignupPage from "./jsx/SignupPage";
+
+/* ---------------- USER PROFILE ---------------- */
 import UserProfile from "./jsx/UserProfile";
 import MyOrders from "./jsx/profile/MyOrders";
 import OrderDetails from "./jsx/profile/OrderDetails";
 import MyRatings from "./jsx/profile/MyRatings";
 import Help from "./jsx/profile/Help";
 
-// ---------------- ADMIN COMPONENTS ----------------
+/* ---------------- ADMIN ---------------- */
 import AdminLogin from "./jsx/admin/AdminLogin";
 import AdminProtectedRoute from "./jsx/admin/AdminProtectedRoute";
 import AdminLayout from "./jsx/admin/AdminLayout";
@@ -31,20 +35,22 @@ import AdminOrders from "./jsx/admin/AdminOrders";
 import AdminOrderDetails from "./jsx/admin/AdminOrdersDetails";
 import AdminSales from "./jsx/admin/AdminSales";
 import AdminSettings from "./jsx/admin/AdminSettings";
+
+/* ---------------- MENU ---------------- */
 import SwiggyStyleMenu from "./jsx/SwiggyStyleMenu";
 import Peppa from "./jsx/Peppapage";
 import UrbanWrap from "./jsx/Urbanpage";
 
-// ---------------- LAYOUT (HIDE NAVBAR IN ADMIN) ----------------
+/* ---------------- LAYOUT ---------------- */
 function Layout({ children }) {
   const location = useLocation();
 
-  const hideNavbarRoutes = [
-    "/admin-login",
-  ];
-
-  // Hide navbar for all /admin..
-  if (location.pathname.startsWith("/admin")) {
+  // Hide navbar on admin & auth pages
+  if (
+    location.pathname.startsWith("/admin") ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup"
+  ) {
     return <>{children}</>;
   }
 
@@ -62,12 +68,21 @@ export default function App() {
       <Layout>
         <Routes>
 
-          {/* ---------------- USER ROUTES ---------------- */}
+          {/* ================= PUBLIC ROUTES ================= */}
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/search" element={<SearchResults />} />
 
+          <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
+          <Route path="/menu/peppanizze" element={<Peppa />} />
+          <Route path="/menu/urbanwrap" element={<UrbanWrap />} />
+
+          {/* ================= AUTH ROUTES ================= */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* ================= PROTECTED USER ROUTES ================= */}
           <Route
             path="/cart"
             element={
@@ -77,26 +92,99 @@ export default function App() {
             }
           />
 
-          <Route path="/billing" element={<Billing />} />
-          <Route path="/payment-gateway" element={<PaymentGateway />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="/track-order" element={<OrderTracking />} />
-          <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
-          <Route path="/menu/peppanizze" element={<Peppa/>} />
-          <Route path="/menu/urbanwrap" element={<UrbanWrap />} />
+          <Route
+            path="/billing"
+            element={
+              <ProtectedRoute>
+                <Billing />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* ---------------- USER PROFILE ROUTES ---------------- */}
-          <Route path="/profile" element={<UserProfile />} />
-          <Route path="/my-orders" element={<MyOrders />} />
-          <Route path="/order-details/:id" element={<OrderDetails />} />
-          <Route path="/my-ratings" element={<MyRatings />} />
-          <Route path="/help" element={<Help />} />
+          <Route
+            path="/payment-gateway"
+            element={
+              <ProtectedRoute>
+                <PaymentGateway />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* ---------------- ADMIN LOGIN ---------------- */}
+          <Route
+            path="/payment"
+            element={
+              <ProtectedRoute>
+                <Payment />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/payment-success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccess />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/track-order"
+            element={
+              <ProtectedRoute>
+                <OrderTracking />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-orders"
+            element={
+              <ProtectedRoute>
+                <MyOrders />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/order-details/:id"
+            element={
+              <ProtectedRoute>
+                <OrderDetails />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-ratings"
+            element={
+              <ProtectedRoute>
+                <MyRatings />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/help"
+            element={
+              <ProtectedRoute>
+                <Help />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ================= ADMIN ================= */}
           <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* ---------------- ADMIN ROUTES (PROTECTED) ---------------- */}
           <Route
             path="/admin"
             element={

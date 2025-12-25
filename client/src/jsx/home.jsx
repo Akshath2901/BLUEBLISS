@@ -176,9 +176,14 @@ function Home() {
     <h2 className="categories-title">What's on your mind?</h2>
 
     <div className="categories-slider-wrapper">
-      <button className="cat-nav-btn left" onClick={() => {
-        document.querySelector(".categories-slider").scrollBy({ left: -200, behavior: "smooth" });
-      }}>
+      <button
+        className="cat-nav-btn left"
+        onClick={() =>
+          document
+            .querySelector(".categories-slider")
+            .scrollBy({ left: -300, behavior: "smooth" })
+        }
+      >
         ‹
       </button>
 
@@ -188,22 +193,26 @@ function Home() {
             key={category.id}
             className="category-circle"
             onClick={() => handleCategoryClick(category.query)}
-          > 
+          >
             <div className="category-icon">{category.emoji}</div>
             <p className="category-name">{category.name}</p>
           </div>
         ))}
       </div>
 
-      <button className="cat-nav-btn right" onClick={() => {
-        document.querySelector(".categories-slider").scrollBy({ left: 200, behavior: "smooth" });
-      }}>
+      <button
+        className="cat-nav-btn right"
+        onClick={() =>
+          document
+            .querySelector(".categories-slider")
+            .scrollBy({ left: 300, behavior: "smooth" })
+        }
+      >
         ›
       </button>
-    </div>
+    </div>;
   </div>
 </section>
-
 
       {/* OFFERS */}
       <section className="offers-section">
@@ -251,6 +260,67 @@ function Home() {
           </div>
         </div>
       </section>
+{/* REVIEWS SECTION */}
+<section className="reviews-section">
+  <h2 className="reviews-title">⭐ What Customers Say</h2>
+
+  <div className="reviews-slider">
+    <div className="reviews-track">
+      {[
+        {
+          name: "Akash R",
+          review: "Best burgers in Hyderabad. Super juicy and fresh!",
+          rating: "⭐⭐⭐⭐⭐"
+        },
+        {
+          name: "Sneha K",
+          review: "Loved the wraps. Packaging & taste both top notch.",
+          rating: "⭐⭐⭐⭐⭐"
+        },
+        {
+          name: "Rahul M",
+          review: "Fast delivery and premium quality food!",
+          rating: "⭐⭐⭐⭐"
+        },
+        {
+          name: "Priya S",
+          review: "Black & gold vibe + amazing food. 10/10.",
+          rating: "⭐⭐⭐⭐⭐"
+        },
+
+        /* DUPLICATE FOR SMOOTH INFINITE SCROLL */
+        {
+          name: "Akash R",
+          review: "Best burgers in Hyderabad. Super juicy and fresh!",
+          rating: "⭐⭐⭐⭐⭐"
+        },
+        {
+          name: "Sneha K",
+          review: "Loved the wraps. Packaging & taste both top notch.",
+          rating: "⭐⭐⭐⭐⭐"
+        },
+        {
+          name: "Rahul M",
+          review: "Fast delivery and premium quality food!",
+          rating: "⭐⭐⭐⭐"
+        },
+        {
+          name: "Priya S",
+          review: "Black & gold vibe + amazing food. 10/10.",
+          rating: "⭐⭐⭐⭐⭐"
+        }
+      ].map((item, index) => (
+        <div key={index} className="review-card">
+          <p className="review-text">“{item.review}”</p>
+          <div className="review-footer">
+            <span className="review-name">{item.name}</span>
+            <span className="review-rating">{item.rating}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* ⭐⭐⭐ UPDATED BRAND SECTION ⭐⭐⭐ */}
       <section className="brands-section">

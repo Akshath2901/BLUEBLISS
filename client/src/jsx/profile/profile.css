@@ -466,3 +466,34 @@
   color: #444;
   font-weight: 500;
 }
+.orders-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.orders-filter {
+  display: flex;
+  gap: 10px;
+}
+
+.orders-filter button {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.orders-filter button.active {
+  background: #ffd700;
+  border-color: #ffd700;
+  font-weight: 600;
+}
+
+.orders-filter button:hover {
+  background: #fff6c2;
+}

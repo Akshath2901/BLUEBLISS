@@ -1,304 +1,248 @@
-import React, { useEffect, useState, useRef } from "react";
+// src/admin/AdminOrders.jsx - COMPLETE WORKING VERSION
+import React, { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Link } from "react-router-dom";
-import { Clock, CheckCircle, AlertCircle, TrendingUp, Phone, MapPin, ChefHat } from "lucide-react";
 import "./admin.css";
 
-export default function AdminDashboard() {
+export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState("new");
-  const alarmRef = useRef(null);
-  const prevPlacedCount = useRef(0);
+  const [activeTab, setActiveTab] = useState("pending");
+  const [loading, setLoading] = useState(true);
 
-  // Initialize alarm
-  useEffect(() => {
-    alarmRef.current = new Audio("/alarm-beep.mp3");
-    alarmRef.current.volume = 0.7;
-  }, []);
+ // ✅ REAL-TIME LISTENER FOR ALL ORDERS (DEDUPED)
+const listenerAttached = React.useRef(false);
 
-  // Real-time orders listener
-  useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snap) => {
-      const list = [];
-      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
-      setOrders(list);
+useEffect(() => {
+  if (listenerAttached.current) {
+    console.log("⚠️ Orders listener already attached, skipping...");
+    return;
+  }
 
-      // Play alarm for new orders
-      const newOrders = list.filter((o) => o.status === "pending");
-      if (newOrders.length > prevPlacedCount.current && prevPlacedCount.current !== 0) {
-        try {
-          alarmRef.current.play();
-        } catch (e) {
-          console.log("Autoplay blocked");
+  listenerAttached.current = true;
+  console.log("🔄 Setting up orders listener (ONE TIME)");
+
+  const q = query(
+    collection(db, "orders"),
+    orderBy("createdAt", "desc")
+  );
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      // 🔥 DEDUPE USING UNIQUE orderId
+      const uniqueOrdersMap = new Map();
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        if (!data.orderId) {
+          console.warn("⚠️ Order missing orderId:", docSnap.id);
+          return;
         }
-      }
-      prevPlacedCount.current = newOrders.length;
-    });
 
-    return () => unsub();
-  }, []);
+        // Use orderId as the unique key
+        uniqueOrdersMap.set(data.orderId, {
+          id: docSnap.id,      // Firestore document ID
+          ...data,
+        });
+      });
 
-  // Stats calculation
-  const stats = {
-    newOrders: orders.filter(o => o.status === "pending").length,
-    preparing: orders.filter(o => o.status === "preparing").length,
-    ready: orders.filter(o => o.status === "ready").length,
-    completed: orders.filter(o => o.status === "delivered").length,
-    todayRevenue: orders
-      .filter(o => {
-        if (!o.createdAt) return false;
-        const orderDate = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
-        return orderDate.toDateString() === new Date().toDateString() && o.status === "delivered";
-      })
-      .reduce((sum, o) => sum + (o.total || 0), 0),
+      const uniqueOrders = Array.from(uniqueOrdersMap.values());
+
+      console.log("✅ Unique orders loaded:", uniqueOrders.length);
+
+      setOrders(uniqueOrders);
+      setLoading(false);
+    },
+    (error) => {
+      console.error("❌ Error loading orders:", error);
+      setLoading(false);
+    }
+  );
+
+  return () => {
+    console.log("🔴 Cleaning up orders listener");
+    unsubscribe();
+    listenerAttached.current = false;
   };
+}, []);
+// ✅ Dedupe orders at render time using unique orderId
+const dedupeOrdersByOrderId = (orders) => {
+  const uniqueMap = new Map();
 
-  // Filter orders by tab
-  const filteredOrders = orders.filter(o => {
-    if (activeTab === "new") return o.status === "pending";
-    if (activeTab === "preparing") return o.status === "preparing";
-    if (activeTab === "ready") return o.status === "ready";
-    if (activeTab === "completed") return o.status === "delivered";
-    return true;
+  orders.forEach((order) => {
+    if (!order.orderId) return;
+
+    // latest occurrence wins (because list is ordered by createdAt desc)
+    if (!uniqueMap.has(order.orderId)) {
+      uniqueMap.set(order.orderId, order);
+    }
   });
 
-  // Update order status
-  const updateOrderStatus = async (orderId, newStatus) => {
+  return Array.from(uniqueMap.values());
+};
+
+  // Filter orders by active tab
+  // 🔥 Deduped orders (render-time)
+const dedupedOrders = dedupeOrdersByOrderId(orders);
+
+// 🔥 Then filter by tab
+const filteredOrders = dedupedOrders.filter(
+  (order) => order.status === activeTab
+);
+
+
+  // ✅ UPDATE ORDER STATUS - Uses Firestore document ID
+  const updateOrderStatus = async (firestoreDocId, newStatus) => {
     try {
-      await updateDoc(doc(db, "orders", orderId), { status: newStatus });
-      console.log(`✅ Order ${orderId} updated to ${newStatus}`);
+      console.log(`🔄 Updating order ${firestoreDocId} to ${newStatus}...`);
+      
+      await updateDoc(doc(db, "orders", firestoreDocId), {
+        status: newStatus,
+        updatedAt: new Date(),
+      });
+      
+      console.log(`✅ Order ${firestoreDocId} updated to ${newStatus}`);
     } catch (error) {
-      console.error("Error updating order:", error);
+      console.error("❌ Error updating order:", error);
+      alert("Failed to update order status. Please try again.");
     }
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case "pending": return "#ff6b6b";
-      case "preparing": return "#ffd700";
-      case "ready": return "#51cf66";
-      case "delivered": return "#4caf50";
-      default: return "#999";
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case "pending": return "📋";
-      case "preparing": return "👨‍🍳";
-      case "ready": return "✅";
-      case "delivered": return "🎉";
-      default: return "📦";
-    }
-  };
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px" }}>
+        <h2>Loading orders...</h2>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-dashboard-container">
-      
-      {/* HEADER */}
-      <div className="dashboard-header">
-        <div className="header-left">
-          <h1>📊 BlueBliss Order Management</h1>
-          <p>Real-time order processing system</p>
-        </div>
-        <div className="header-right">
-          <div className="time-display">
-            🕐 {new Date().toLocaleTimeString()}
-          </div>
-        </div>
-      </div>
+    <div className="admin-orders-container">
+      <h1>📋 Orders Management</h1>
 
-      {/* STATS GRID - PetPooja Style */}
-      <div className="stats-grid">
-        <div className="stat-card new-orders">
-          <div className="stat-icon">📋</div>
-          <div className="stat-content">
-            <h4>New Orders</h4>
-            <p className="stat-number">{stats.newOrders}</p>
-          </div>
-        </div>
-
-        <div className="stat-card preparing">
-          <div className="stat-icon">👨‍🍳</div>
-          <div className="stat-content">
-            <h4>Preparing</h4>
-            <p className="stat-number">{stats.preparing}</p>
-          </div>
-        </div>
-
-        <div className="stat-card ready">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <h4>Ready</h4>
-            <p className="stat-number">{stats.ready}</p>
-          </div>
-        </div>
-
-        <div className="stat-card completed">
-          <div className="stat-icon">🎉</div>
-          <div className="stat-content">
-            <h4>Completed Today</h4>
-            <p className="stat-number">{stats.completed}</p>
-          </div>
-        </div>
-
-        <div className="stat-card revenue">
-          <div className="stat-icon">💰</div>
-          <div className="stat-content">
-            <h4>Today's Revenue</h4>
-            <p className="stat-number">₹{stats.todayRevenue}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* TABS - PetPooja Style */}
-      <div className="tabs-section">
-        <div className="tabs">
-          {[
-            { id: "new", label: "NEW ORDERS", icon: "📋", count: stats.newOrders },
-            { id: "preparing", label: "PREPARING", icon: "👨‍🍳", count: stats.preparing },
-            { id: "ready", label: "READY", icon: "✅", count: stats.ready },
-            { id: "completed", label: "COMPLETED", icon: "🎉", count: stats.completed }
-          ].map(tab => (
+      {/* STATUS TABS */}
+      <div className="tabs">
+        {["pending", "approved", "ready", "completed"].map(tab => {
+          const count = orders.filter(o => o.status === tab).length;
+          return (
             <button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
+              key={tab}
+              className={`tab ${activeTab === tab ? "active" : ""}`}
+              onClick={() => setActiveTab(tab)}
             >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-              <span className="tab-count">{tab.count}</span>
+              {tab.toUpperCase()} <span className="tab-count">({count})</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
-      {/* ORDERS BOX GRID - PetPooja Style */}
-      <div className="orders-section">
-        <div className="section-header">
-          <h2>Orders ({filteredOrders.length})</h2>
-        </div>
-
+      {/* ORDERS GRID */}
+      <div className="orders-grid">
         {filteredOrders.length === 0 ? (
-          <div className="empty-state">
-            <p>🎊 No orders in this category</p>
+          <div style={{ 
+            gridColumn: "1 / -1", 
+            textAlign: "center", 
+            padding: "60px",
+            color: "#999"
+          }}>
+            <div style={{ fontSize: "64px", marginBottom: "20px" }}>📭</div>
+            <h3>No {activeTab} orders</h3>
+            <p>Orders will appear here when customers place them</p>
           </div>
         ) : (
-          <div className="orders-grid">
-            {filteredOrders.map(order => (
-              <div key={order.id} className="order-box">
-                
-                {/* ORDER BOX HEADER */}
-                <div className="order-box-header" style={{ borderTopColor: getStatusColor(order.status) }}>
-                  <div className="order-box-title">
-                    <span className="order-number">#{order.orderId}</span>
-                    <span className="order-time">
-                      {order.createdAt && (
-                        new Date(order.createdAt.seconds * 1000).toLocaleTimeString()
-                      )}
-                    </span>
-                  </div>
-                  <div className="order-status-badge" style={{ background: getStatusColor(order.status) }}>
-                    {getStatusIcon(order.status)} {order.status.toUpperCase()}
-                  </div>
-                </div>
-
-                {/* ORDER BOX BODY */}
-                <div className="order-box-body">
-                  
-                  {/* CUSTOMER INFO */}
-                  <div className="order-info-section">
-                    <p className="info-label">👤 Customer</p>
-                    <p className="info-value">{order.address?.label || "Customer"}</p>
-                  </div>
-
-                  {/* ADDRESS */}
-                  <div className="order-info-section">
-                    <p className="info-label">📍 Address</p>
-                    <p className="info-value">{order.address?.street}, {order.address?.area}</p>
-                    {order.address?.landmark && (
-                      <p className="info-subtext">📌 Near: {order.address.landmark}</p>
-                    )}
-                  </div>
-
-                  {/* ORDER ITEMS */}
-                  <div className="order-items">
-                    <p className="info-label">📦 Items</p>
-                    <div className="items-box">
-                      {order.cart && order.cart.map((item, idx) => (
-                        <div key={idx} className="item-row">
-                          <span className="item-qty">{item.qty}x</span>
-                          <span className="item-name">{item.name}</span>
-                          <span className="item-price">₹{item.price * item.qty}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* SPECIAL INSTRUCTIONS */}
-                  {order.suggestion && (
-                    <div className="order-info-section">
-                      <p className="info-label">📝 Instructions</p>
-                      <p className="info-value instruction-text">{order.suggestion}</p>
-                    </div>
-                  )}
-
-                  {/* NO CONTACT */}
-                  {order.noContact && (
-                    <div className="no-contact-badge">
-                      🔒 No-contact Delivery
-                    </div>
-                  )}
-                </div>
-
-                {/* ORDER BOX FOOTER */}
-                <div className="order-box-footer">
-                  <div className="order-total">
-                    <span>Total:</span>
-                    <span className="total-amount">₹{order.total}</span>
-                  </div>
-                </div>
-
-                {/* ACTION BUTTONS */}
-                <div className="order-box-actions">
-                  {order.status === "pending" && (
-                    <button
-                      className="action-btn accept-btn"
-                      onClick={() => updateOrderStatus(order.id, "preparing")}
-                    >
-                      ✅ ACCEPT
-                    </button>
-                  )}
-
-                  {order.status === "preparing" && (
-                    <button
-                      className="action-btn ready-btn"
-                      onClick={() => updateOrderStatus(order.id, "ready")}
-                    >
-                      ✨ READY
-                    </button>
-                  )}
-
-                  {order.status === "ready" && (
-                    <button
-                      className="action-btn complete-btn"
-                      onClick={() => updateOrderStatus(order.id, "delivered")}
-                    >
-                      🎉 DELIVERED
-                    </button>
-                  )}
-
-                  {order.status === "delivered" && (
-                    <button className="action-btn completed-btn" disabled>
-                      ✓ COMPLETED
-                    </button>
-                  )}
-                </div>
+          filteredOrders.map(order => (
+            <div key={order.id} className="order-card">
+              <div className="order-header">
+                <h3>#{order.orderId}</h3>
+                <span className={`status-badge ${order.status}`}>
+                  {order.status.toUpperCase()}
+                </span>
               </div>
-            ))}
-          </div>
+
+              <div className="order-body">
+                <p><strong>Customer:</strong> {order.userName || "Guest"}</p>
+                <p>
+                  <strong>Address:</strong> {order.address?.houseNo && `${order.address.houseNo}, `}
+                  {order.address?.street}, {order.address?.area}
+                </p>
+                <p><strong>Total:</strong> ₹{order.total}</p>
+
+                <div className="items">
+                  <strong>Items:</strong>
+                  {order.cart?.map((item, idx) => (
+                    <div key={idx} className="item">
+                      • {item.name} × {item.qty} (₹{item.price * item.qty})
+                    </div>
+                  ))}
+                </div>
+
+                {order.suggestion && (
+                  <div style={{ 
+                    marginTop: "12px", 
+                    padding: "8px", 
+                    background: "#fffbf0", 
+                    borderRadius: "6px",
+                    fontSize: "13px"
+                  }}>
+                    <strong>📝 Instructions:</strong> {order.suggestion}
+                  </div>
+                )}
+
+                {order.noContact && (
+                  <div style={{ 
+                    marginTop: "8px", 
+                    fontSize: "13px", 
+                    color: "#ff6b6b",
+                    fontWeight: "600"
+                  }}>
+                    🔒 No-contact Delivery Requested
+                  </div>
+                )}
+              </div>
+
+              {/* ✅ ACTION BUTTONS - Pass Firestore doc ID */}
+              <div className="order-actions">
+                {order.status === "pending" && (
+                  <button
+                    className="btn btn-accept"
+                    onClick={() => updateOrderStatus(order.id, "approved")}
+                  >
+                    ✅ ACCEPT ORDER
+                  </button>
+                )}
+
+                {order.status === "approved" && (
+                  <button
+                    className="btn btn-ready"
+                    onClick={() => updateOrderStatus(order.id, "ready")}
+                  >
+                    👨‍🍳 MARK READY
+                  </button>
+                )}
+
+                {order.status === "ready" && (
+                  <button
+                    className="btn btn-complete"
+                    onClick={() => updateOrderStatus(order.id, "completed")}
+                  >
+                    🎉 COMPLETED
+                  </button>
+                )}
+
+                {order.status === "completed" && (
+                  <div style={{ 
+                    textAlign: "center", 
+                    color: "#51cf66", 
+                    fontWeight: "600",
+                    padding: "10px"
+                  }}>
+                    ✅ Order Completed
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

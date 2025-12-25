@@ -5,6 +5,7 @@ import { db } from "../lib/firebase";
 import SearchBar from "./SearchBar";
 import "./SearchResults.css";
 import { CartContext } from "../context/CartContext";
+import { resolveMenuImages } from "./resolveMenuImages";
 
 function SearchResults() {
   const [searchParams] = useSearchParams();
@@ -15,9 +16,10 @@ function SearchResults() {
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const { addToCart, increaseQty, decreaseQty, getItemQty } = useContext(CartContext);
+  const { addToCart, increaseQty, decreaseQty, getItemQty } =
+    useContext(CartContext);
 
-  // Fetch all menu items
+  // 🔥 Fetch all menu items WITH image resolving
   const fetchAllMenuItems = async () => {
     const collections = ["menu", "Pmenu", "Umenu"];
     let allItems = [];
@@ -25,23 +27,36 @@ function SearchResults() {
     for (const col of collections) {
       const snap = await getDocs(collection(db, col));
 
+      const sections = [];
+
       snap.forEach((doc) => {
         const data = doc.data();
 
         if (data.items && Array.isArray(data.items)) {
-          const formattedItems = data.items.map((item, idx) => ({
-            id: item.id || `${col}-${doc.id}-${idx}`,
-            name: item.name,
+          sections.push({
             category: data.category || "Food Item",
+            items: data.items,
+          });
+        }
+      });
+
+      // 🔥 Resolve images using your utility
+      const sectionsWithImages = await resolveMenuImages(sections);
+
+      // 🔥 Flatten items
+      sectionsWithImages.forEach((section) => {
+        section.items.forEach((item, idx) => {
+          allItems.push({
+            id: item.id || `${col}-${section.category}-${idx}`,
+            name: item.name,
+            category: section.category,
             price: item.price,
             img: item.img,
-            desc: item.desc,
+            desc: item.desc || "",
             rating: item.rating || "4.2",
             isVeg: item.isVeg !== false,
-          }));
-
-          allItems = [...allItems, ...formattedItems];
-        }
+          });
+        });
       });
     }
 
@@ -57,9 +72,9 @@ function SearchResults() {
       const filtered = allItems.filter((item) => {
         const q = query.toLowerCase();
         return (
-          item.name.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q) ||
-          item.desc.toLowerCase().includes(q)
+          item.name?.toLowerCase().includes(q) ||
+          item.category?.toLowerCase().includes(q) ||
+          item.desc?.toLowerCase().includes(q)
         );
       });
 
@@ -98,7 +113,10 @@ function SearchResults() {
           <h1 className="brand-search" onClick={handleBackHome}>
             BlueBliss
           </h1>
-          <SearchBar onSearch={handleSearch} placeholder="Search for dishes..." />
+          <SearchBar
+            onSearch={handleSearch}
+            placeholder="Search for dishes..."
+          />
         </div>
       </header>
 
@@ -106,31 +124,39 @@ function SearchResults() {
         <div className="results-info">
           {query && (
             <h2 className="results-title">
-              Search results for <span className="query-highlight">"{query}"</span>
+              Search results for{" "}
+              <span className="query-highlight">"{query}"</span>
             </h2>
           )}
 
           {!loading && (
             <div className="results-meta">
               <p className="results-count">
-                {filteredResults.length} {filteredResults.length === 1 ? "dish" : "dishes"} found
+                {filteredResults.length}{" "}
+                {filteredResults.length === 1 ? "dish" : "dishes"} found
               </p>
 
               <div className="filter-chips">
                 <button
-                  className={`filter-chip ${activeFilter === "all" ? "active" : ""}`}
+                  className={`filter-chip ${
+                    activeFilter === "all" ? "active" : ""
+                  }`}
                   onClick={() => setActiveFilter("all")}
                 >
                   All Items
                 </button>
                 <button
-                  className={`filter-chip ${activeFilter === "veg" ? "active" : ""}`}
+                  className={`filter-chip ${
+                    activeFilter === "veg" ? "active" : ""
+                  }`}
                   onClick={() => setActiveFilter("veg")}
                 >
                   🟢 Veg
                 </button>
                 <button
-                  className={`filter-chip ${activeFilter === "nonveg" ? "active" : ""}`}
+                  className={`filter-chip ${
+                    activeFilter === "nonveg" ? "active" : ""
+                  }`}
                   onClick={() => setActiveFilter("nonveg")}
                 >
                   🔴 Non-Veg
@@ -142,97 +168,87 @@ function SearchResults() {
 
         {loading ? (
           <div className="loading-container">
-            <div className="loading-animation">
-              <div className="food-loader">
-                <div className="plate"></div>
-                <div className="food-item"></div>
-                <div className="food-item"></div>
-                <div className="food-item"></div>
-              </div>
-              <p className="loading-text">Finding delicious dishes...</p>
-            </div>
+            <p className="loading-text">Finding delicious dishes...</p>
+          </div>
+        ) : filteredResults.length > 0 ? (
+          <div className="results-grid">
+            {filteredResults.map((item) => {
+              const qty = getItemQty(item.id);
+
+              return (
+                <div key={item.id} className="dish-card">
+                  <div className="dish-image-wrapper">
+                    <img
+                      src={item.img}
+                      alt={item.name}
+                      className="dish-image"
+                    />
+                    <span
+                      className={`veg-badge ${
+                        item.isVeg ? "veg" : "nonveg"
+                      }`}
+                    >
+                      {item.isVeg ? "🟢" : "🔴"}
+                    </span>
+                  </div>
+
+                  <div className="dish-content">
+                    <span className="dish-category">{item.category}</span>
+                    <h3 className="dish-name">{item.name}</h3>
+                    <p className="dish-description">{item.desc}</p>
+
+                    <div className="dish-meta">
+                      <span className="dish-rating">⭐ {item.rating}</span>
+                    </div>
+
+                    <div className="dish-footer">
+                      <span className="dish-price">₹{item.price}</span>
+
+                      {qty === 0 ? (
+                        <button
+                          className="add-to-cart-btn"
+                          onClick={() =>
+                            addToCart({
+                              id: item.id,
+                              name: item.name,
+                              price: item.price,
+                              img: item.img,
+                            })
+                          }
+                        >
+                          Add to Cart
+                        </button>
+                      ) : (
+                        <div className="quantity-controls">
+                          <button
+                            className="qty-btn-minus"
+                            onClick={() => decreaseQty(item.id)}
+                          >
+                            −
+                          </button>
+                          <span className="qty-display">{qty}</span>
+                          <button
+                            className="qty-btn-plus"
+                            onClick={() => increaseQty(item.id)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <>
-            {filteredResults.length > 0 ? (
-              <div className="results-grid">
-                {filteredResults.map((item) => {
-                  const qty = getItemQty(item.id);
-                  
-                  return (
-                    <div key={item.id} className="dish-card">
-                      <div className="dish-image-wrapper">
-                        <img src={item.img} alt={item.name} className="dish-image" />
-                        <span className={`veg-badge ${item.isVeg ? "veg" : "nonveg"}`}>
-                          {item.isVeg ? "🟢" : "🔴"}
-                        </span>
-                      </div>
-
-                      <div className="dish-content">
-                        <span className="dish-category">{item.category}</span>
-                        <h3 className="dish-name">{item.name}</h3>
-                        <p className="dish-description">{item.desc}</p>
-
-                        <div className="dish-meta">
-                          <span className="dish-rating">⭐ {item.rating}</span>
-                        </div>
-
-                        <div className="dish-footer">
-                          <span className="dish-price">₹{item.price}</span>
-
-                          {qty === 0 ? (
-                            <button
-                              className="add-to-cart-btn"
-                              onClick={() =>
-                                addToCart({
-                                  id: item.id,
-                                  name: item.name,
-                                  price: item.price,
-                                  img: item.img,
-                                })
-                              }
-                            >
-                              Add to Cart
-                            </button>
-                          ) : (
-                            <div className="quantity-controls">
-                              <button
-                                className="qty-btn-minus"
-                                onClick={() => decreaseQty(item.id)}
-                              >
-                                −
-                              </button>
-                              <span className="qty-display">{qty}</span>
-                              <button
-                                className="qty-btn-plus"
-                                onClick={() => increaseQty(item.id)}
-                              >
-                                +
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="no-results">
-                <div className="no-results-animation">
-                  <div className="empty-plate">🍽️</div>
-                  <div className="search-magnifier">🔍</div>
-                </div>
-                <h3 className="no-results-title">No dishes found</h3>
-                <p className="no-results-text">
-                  We couldn't find any dishes matching "{query}"
-                </p>
-                <button className="browse-menu-btn" onClick={handleBackHome}>
-                  Browse Full Menu
-                </button>
-              </div>
-            )}
-          </>
+          <div className="no-results">
+            <h3>No dishes found</h3>
+            <p>We couldn't find any dishes matching "{query}"</p>
+            <button className="browse-menu-btn" onClick={handleBackHome}>
+              Browse Full Menu
+            </button>
+          </div>
         )}
       </main>
     </div>

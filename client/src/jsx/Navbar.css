@@ -1,14 +1,62 @@
-/* ================================
-   CLEAN NAVBAR (NO SEARCH BAR)
-================================ */
+/* ============================================
+   PREMIUM NAVBAR CSS - BLACK, GOLD & RED
+   ============================================ */
+
+/* Import Premium Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* CSS Variables */
+:root {
+  /* Primary Colors */
+  --gold-primary: #d4af37;
+  --gold-light: #ffd700;
+  --gold-dark: #b8860b;
+  
+  /* Neutral Colors */
+  --black-primary: #0f0e09;
+  --gray-dark: #1c1c1c;
+  --gray-medium: #4a4a4a;
+  --white: #ffffff;
+  
+  /* Accent Colors */
+  --accent-red: #e23744;
+  --accent-red-dark: #cf2533;
+  --accent-orange: #fc8019;
+  
+  /* Shadows */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.2);
+  
+  /* Fonts */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-secondary: 'Space Grotesk', sans-serif;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================
+   NAVBAR MAIN
+   ============================================ */
 
 .navbar {
-  background: white;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  background: linear-gradient(135deg, var(--black-primary) 0%, var(--gray-dark) 100%);
+  box-shadow: 0 8px 32px rgba(212, 175, 55, 0.15);
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 10px 0;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  backdrop-filter: blur(20px);
 }
 
 .navbar-container {
@@ -18,18 +66,35 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 56px;
+  min-height: 64px;
 }
 
-/* LOGO */
+/* ============================================
+   LOGO
+   ============================================ */
+
 .logo {
-  font-size: 28px;
+  font-family: var(--font-secondary);
+  font-size: 32px;
   font-weight: 800;
-  color: #e23744;
+  background: linear-gradient(135deg, var(--accent-red) 0%, var(--gold-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-decoration: none;
+  letter-spacing: -1px;
+  transition: all 0.3s ease;
 }
 
-/* LOCATION */
+.logo:hover {
+  filter: drop-shadow(0 4px 12px rgba(212, 175, 55, 0.3));
+  transform: scale(1.02);
+}
+
+/* ============================================
+   LOCATION SECTION
+   ============================================ */
+
 .navbar-center {
   flex: 1;
   display: flex;
@@ -39,74 +104,174 @@
 .location-section {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
-  min-width: 220px;
-  background: white;
+  gap: 10px;
+  padding: 12px 18px;
+  border: 2px solid rgba(212, 175, 55, 0.3);
+  border-radius: 12px;
+  min-width: 240px;
+  background: rgba(255, 215, 0, 0.08);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  font-family: var(--font-primary);
 }
 
-.location-icon { font-size: 18px; color: #e23744; }
+.location-section:hover {
+  border-color: var(--gold-light);
+  background: rgba(255, 215, 0, 0.12);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.2);
+}
 
-/* RIGHT SIDE */
+.location-icon {
+  font-size: 20px;
+  color: var(--accent-red);
+  font-weight: 700;
+}
+
+.location-section p {
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+/* ============================================
+   NAVBAR RIGHT SECTION
+   ============================================ */
+
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
 }
 
-/* LINKS */
+/* ============================================
+   NAV LINKS
+   ============================================ */
+
 .nav-links {
   display: flex;
-  gap: 20px;
+  gap: 28px;
   list-style: none;
 }
 
 .nav-links a {
   text-decoration: none;
-  color: #1c1c1c;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 15px;
   font-weight: 500;
+  transition: all 0.3s ease;
+  font-family: var(--font-primary);
+  letter-spacing: -0.2px;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
+  transition: width 0.3s ease;
+  border-radius: 1px;
 }
 
 .nav-links a:hover {
-  color: #e23744;
+  color: var(--gold-light);
 }
 
-/* CART */
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* ============================================
+   CART BUTTON
+   ============================================ */
+
 .btn-cart {
-  background: #fc8019;
+  background: linear-gradient(135deg, var(--accent-orange) 0%, #e67313 100%);
   color: white;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 16px rgba(252, 128, 25, 0.3);
+  letter-spacing: -0.2px;
+  font-size: 15px;
 }
 
-/* AUTH BUTTONS */
+.btn-cart:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(252, 128, 25, 0.4);
+}
+
+.btn-cart:active {
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   AUTH BUTTONS
+   ============================================ */
+
 .auth-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 .btn-login {
-  border: 1px solid #e8e8e8;
-  background: white;
-  padding: 7px 14px;
-  border-radius: 8px;
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  background: transparent;
+  padding: 9px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--gold-light);
+  font-family: var(--font-primary);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+
+.btn-login:hover {
+  border-color: var(--gold-light);
+  background: rgba(255, 215, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.2);
 }
 
 .btn-signup {
-  background: #e23744;
+  background: linear-gradient(135deg, var(--accent-red) 0%, var(--accent-red-dark) 100%);
   color: white;
   border: none;
-  padding: 7px 14px;
-  border-radius: 8px;
+  padding: 9px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: var(--font-primary);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 16px rgba(226, 55, 68, 0.3);
+  font-size: 14px;
+  letter-spacing: -0.2px;
 }
 
-/* PROFILE DROPDOWN */
+.btn-signup:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(226, 55, 68, 0.4);
+}
+
+.btn-signup:active {
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   PROFILE DROPDOWN CONTAINER
+   ============================================ */
+
 .profile-dropdown-container {
   position: relative;
   cursor: pointer;
@@ -115,110 +280,252 @@
 .user-section {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.user-section:hover {
+  background: rgba(255, 215, 0, 0.1);
 }
 
 .user-icon {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: #f4f4f4;
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  color: var(--black-primary);
+  font-size: 16px;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
+  font-family: var(--font-secondary);
 }
+
+.user-section:hover .user-icon {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+}
+
+.user-name {
+  color: var(--white);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-primary);
+  letter-spacing: -0.2px;
+}
+
+/* ============================================
+   PROFILE DROPDOWN MENU
+   ============================================ */
 
 .profile-dropdown {
   position: absolute;
-  top: 50px;
+  top: 58px;
   right: 0;
-  width: 180px;
+  width: 220px;
+  background: linear-gradient(135deg, rgba(15, 14, 9, 0.98) 0%, rgba(28, 28, 28, 0.98) 100%);
+  border-radius: 14px;
   padding: 8px 0;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+  animation: dropdownSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(20px);
 }
 
-.profile-dropdown p {
-  padding: 10px 14px;
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* -------- Dropdown Items -------- */
+
+.profile-dropdown > * {
+  padding: 14px 18px;
   margin: 0;
   font-size: 14px;
+  font-weight: 500;
+  text-decoration: none !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  cursor: pointer;
+  display: block;
+  transition: all 0.25s ease;
+  border-radius: 8px;
+  margin: 4px 6px;
+  font-family: var(--font-primary);
+  letter-spacing: -0.2px;
 }
 
-.profile-dropdown p:hover {
-  background: #f5f5f5;
+.profile-dropdown > *:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-light) !important;
+  padding-left: 22px;
 }
 
 .profile-divider {
   height: 1px;
-  background: #e0e0e0;
-  margin: 6px 0;
+  background: rgba(212, 175, 55, 0.15);
+  margin: 8px 0;
 }
 
 .logout-option {
-  color: #e23744;
-  font-weight: 600;
-}
-/* =====================================
-   PREMIUM NAVBAR DROPDOWN (Full Fix)
-   Works for: <p>, <a>, <Link>
-===================================== */
-
-.profile-dropdown {
-  position: absolute;
-  top: 52px;
-  right: 0;
-  width: 200px;
-
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 6px 0;
-
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  border: 1px solid #eee;
-
-  display: flex;
-  flex-direction: column;
-  z-index: 9999;
-
-  animation: fadeSlide 0.18s ease-out;
+  color: var(--accent-red) !important;
+  font-weight: 700;
 }
 
-/* Smooth dropdown animation */
-@keyframes fadeSlide {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.logout-option:hover {
+  background: rgba(226, 55, 68, 0.15) !important;
+  color: var(--accent-red) !important;
 }
 
-/* -------- Dropdown Item Universal Style -------- */
-.profile-dropdown > * {
-  padding: 12px 16px;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 
-  text-decoration: none !important;
-  color: #333 !important;
+@media (max-width: 1024px) {
+  .navbar-container {
+    gap: 16px;
+  }
 
-  cursor: pointer;
-  display: block;
+  .nav-links {
+    gap: 18px;
+  }
 
-  transition: background 0.15s ease, color 0.15s ease;
-  border-radius: 6px;
+  .navbar-right {
+    gap: 16px;
+  }
+
+  .location-section {
+    min-width: 200px;
+  }
+
+  .logo {
+    font-size: 28px;
+  }
 }
 
-/* Hover effect */
-.profile-dropdown > *:hover {
-  background: #f5f5f5;
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px 0;
+  }
+
+  .navbar-container {
+    min-height: 56px;
+    padding: 0 16px;
+  }
+
+  .logo {
+    font-size: 24px;
+  }
+
+  .location-section {
+    min-width: auto;
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .nav-links {
+    gap: 14px;
+  }
+
+  .nav-links a {
+    font-size: 13px;
+  }
+
+  .navbar-right {
+    gap: 12px;
+  }
+
+  .btn-cart,
+  .btn-login,
+  .btn-signup {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .user-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .profile-dropdown {
+    top: 50px;
+    right: -10px;
+    width: 200px;
+  }
 }
 
-/* Logout style */
-.profile-dropdown .logout-option {
-  color: #e23744 !important;
-  font-weight: 600;
-}
+@media (max-width: 480px) {
+  .navbar-center {
+    display: none;
+  }
 
-.profile-dropdown .logout-option:hover {
-  background: rgba(233, 81, 94, 0.1);
+  .navbar-container {
+    justify-content: space-between;
+    min-height: 50px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .navbar-right {
+    gap: 10px;
+  }
+
+  .nav-links {
+    gap: 10px;
+    display: none;
+  }
+
+  .btn-cart {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .auth-buttons {
+    gap: 8px;
+  }
+
+  .btn-login,
+  .btn-signup {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .user-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .profile-dropdown {
+    top: 48px;
+    right: 0;
+    width: 180px;
+  }
+
+  .profile-dropdown > * {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
 }

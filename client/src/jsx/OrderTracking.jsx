@@ -1,383 +1,215 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import GoogleMapsTracking from './GoogleMapsTracking';
-import { X } from 'lucide-react';
+// src/pages/OrderTracking.jsx - PREMIUM VERSION
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import "../jsx/ordertracking.css"; // Import the premium CSS
 
 export default function OrderTracking() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { orderId, total, address, cart } = location.state || {};
+  const { orderId } = location.state || {};
+  
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Order Status States
-  const [orderStatus, setOrderStatus] = useState('preparing');
-  const [timeRemaining, setTimeRemaining] = useState(35);
-  const [showDetails, setShowDetails] = useState(false);
-
-  // Restaurant location (hardcoded - update with your restaurant's actual location)
-  const restaurantLocation = {
-    latitude: 17.3850,
-    longitude: 78.4867,
-    name: "BlueBliss Cloud Kitchen"
-  };
-
-  // Simulate order status progression
   useEffect(() => {
-    const statusInterval = setInterval(() => {
-      setOrderStatus(prev => {
-        if (prev === 'preparing') return 'on-way';
-        if (prev === 'on-way') return 'delivered';
-        return prev;
-      });
-    }, 8000);
+    if (!orderId) {
+      setError("No order ID provided");
+      setLoading(false);
+      return;
+    }
 
-    return () => clearInterval(statusInterval);
-  }, []);
+    console.log("🔍 Tracking order:", orderId);
 
-  // Simulate time countdown
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setTimeRemaining(prev => (prev > 0 ? prev - 1 : 0));
-    }, 60000);
+    // ✅ Query orders collection for matching orderId
+    const q = query(
+      collection(db, "orders"), 
+      where("orderId", "==", orderId)
+    );
 
-    return () => clearInterval(timeInterval);
-  }, []);
+    const unsubscribe = onSnapshot(q, 
+      (snapshot) => {
+        if (!snapshot.empty) {
+          const orderData = snapshot.docs[0];
+          setOrder({ 
+            id: orderData.id, 
+            ...orderData.data() 
+          });
+          console.log("✅ Order found:", orderData.data());
+        } else {
+          setError("Order not found");
+          console.log("❌ No order found with ID:", orderId);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error("❌ Error fetching order:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+    );
 
-  if (!location.state) {
+    return () => unsubscribe();
+  }, [orderId]);
+
+  if (loading) {
     return (
-      <div style={{ padding: '80px 20px', textAlign: 'center' }}>
-        <p style={{ fontSize: '18px', color: '#d00' }}>⚠ Order details missing</p>
-        <button onClick={() => navigate('/')} style={{
-          marginTop: '20px', padding: '12px 30px', background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
-          border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: '600', cursor: 'pointer'
-        }}>
-          Go to Home
+      <div className="tracking-loading-container">
+        <div className="loading-spinner">
+          <div className="spinner-emoji">⏳</div>
+        </div>
+        <h2>Loading order details...</h2>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div className="tracking-error-container">
+        <div className="error-icon">❌</div>
+        <h2>{error || "Order not found"}</h2>
+        <button 
+          onClick={() => navigate("/")}
+          className="back-home-btn"
+        >
+          Go Home
         </button>
       </div>
     );
   }
 
-  const getStatusIcon = (status) => {
+  const statusSteps = [
+    { key: "pending", label: "Order Placed", icon: "📋" },
+    { key: "approved", label: "Accepted", icon: "✅" },
+    { key: "ready", label: "Preparing", icon: "👨‍🍳" },
+    { key: "completed", label: "Ready", icon: "🎉" }
+  ];
+
+  const currentStepIndex = statusSteps.findIndex(s => s.key === order.status);
+
+  const getStatusColor = (status) => {
     switch(status) {
-      case 'preparing': return '👨‍🍳';
-      case 'on-way': return '🚴';
-      case 'delivered': return '✅';
-      default: return '📦';
+      case "pending": return "#ff6b6b";
+      case "approved": return "#ffd700";
+      case "ready": return "#51cf66";
+      case "completed": return "#4caf50";
+      default: return "#999";
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusMessage = (status) => {
     switch(status) {
-      case 'preparing': return 'Preparing your order';
-      case 'on-way': return 'Your order is on the way';
-      case 'delivered': return 'Order delivered';
-      default: return 'Processing';
+      case "pending": return "⏳ Waiting for restaurant to accept your order...";
+      case "approved": return "✅ Order accepted! We're preparing your food...";
+      case "ready": return "👨‍🍳 Your food is being prepared...";
+      case "completed": return "🎉 Your order is ready for pickup!";
+      default: return "Processing your order...";
     }
-  };
-
-  const handleCall = () => {
-    window.location.href = 'tel:+919876543210';
-  };
-
-  const handleWhatsApp = () => {
-    const message = `Hi, I have placed an order (ID: #${orderId}). Please update on my order status.`;
-    window.open(`https://wa.me/919876543210?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  // Convert address to coordinates (basic lat/lng for demo)
-  const userLocation = {
-    latitude: address?.latitude || 17.3950,
-    longitude: address?.longitude || 78.4956,
-    address: address
   };
 
   return (
-    <div style={{ background: 'linear-gradient(to bottom, #f0f2f5, #e8eaed)', minHeight: '100vh', paddingBottom: '100px' }}>
-      
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #1c1c1c 0%, #2c2c2c 100%)',
-        color: 'white',
-        padding: '20px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h1 style={{ fontSize: '24px', fontWeight: '700', margin: 0 }}>Order Tracking</h1>
-            <p style={{ fontSize: '14px', opacity: 0.8, margin: '4px 0 0 0' }}>Order #{orderId}</p>
-          </div>
-          <button
-            onClick={() => navigate('/')}
+    <div className="tracking-page">
+      <button 
+        onClick={() => navigate("/")}
+        className="back-button"
+      >
+        ← Back to Home
+      </button>
+
+      <div className="tracking-header">
+        <h1 className="tracking-title">📦 Order Tracking</h1>
+        <h2 className="tracking-order-id">Order #{order.orderId}</h2>
+      </div>
+
+      {/* STATUS PROGRESS BAR */}
+      <div className="status-progress-container">
+        {/* Progress Line Background */}
+        <div className="progress-line-bg">
+          {/* Progress Line Fill */}
+          <div 
+            className="progress-line-fill"
             style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: 'none',
-              color: 'white',
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%`
             }}
-          >
-            <X size={20} />
-          </button>
+          ></div>
+        </div>
+
+        {/* Status Steps */}
+        <div className="status-steps">
+          {statusSteps.map((step, idx) => {
+            const isActive = idx <= currentStepIndex;
+            return (
+              <div 
+                key={step.key}
+                className={`status-step ${isActive ? 'active' : 'inactive'}`}
+              >
+                <div className="status-circle">
+                  {step.icon}
+                </div>
+                <p className="status-label">{step.label}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px' }}>
+      {/* CURRENT STATUS CARD */}
+      <div className="status-card" style={{ borderLeftColor: getStatusColor(order.status) }}>
+        <h3 className="status-heading" style={{ color: getStatusColor(order.status) }}>
+          {order.status.toUpperCase()}
+        </h3>
+        <p className="status-message">
+          {getStatusMessage(order.status)}
+        </p>
+      </div>
 
-        {/* Google Maps Section */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          marginBottom: '20px',
-          position: 'relative'
-        }}>
-          <GoogleMapsTracking 
-            restaurantLocation={restaurantLocation}
-            userLocation={userLocation}
-            orderStatus={orderStatus}
-          />
-
-          {/* Floating Time Badge */}
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
-            padding: '12px 20px',
-            borderRadius: '20px',
-            fontWeight: '600',
-            color: '#1c1c1c',
-            boxShadow: '0 4px 12px rgba(218, 165, 32, 0.3)',
-            zIndex: 10
-          }}>
-            ⏱ {timeRemaining} min
-          </div>
-        </div>
-
-        {/* Status Progress */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          marginBottom: '20px'
-        }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1c1c1c', margin: '0 0 20px 0' }}>
-            {getStatusIcon(orderStatus)} {getStatusText(orderStatus)}
-          </h2>
-
-          {/* Status Steps */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px' }}>
-            {/* Step 1 */}
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: orderStatus === 'preparing' ? '#ffd700' : orderStatus !== 'preparing' ? '#4caf50' : '#e0e0e0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 10px',
-                color: '#1c1c1c',
-                fontSize: '20px',
-                fontWeight: '700'
-              }}>
-                {orderStatus !== 'preparing' ? '✓' : '1'}
-              </div>
-              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1c', margin: 0 }}>Order Confirmed</p>
-              <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 0 0' }}>Just now</p>
-            </div>
-
-            {/* Step 2 */}
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: orderStatus === 'on-way' ? '#ffd700' : orderStatus === 'delivered' ? '#4caf50' : '#e0e0e0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 10px',
-                color: '#1c1c1c',
-                fontSize: '20px',
-                fontWeight: '700'
-              }}>
-                {orderStatus === 'delivered' ? '✓' : '2'}
-              </div>
-              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1c', margin: 0 }}>On the Way</p>
-              <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 0 0' }}>3 mins</p>
-            </div>
-
-            {/* Step 3 */}
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: orderStatus === 'delivered' ? '#4caf50' : '#e0e0e0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 10px',
-                color: 'white',
-                fontSize: '20px',
-                fontWeight: '700'
-              }}>
-                3
-              </div>
-              <p style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1c', margin: 0 }}>Delivered</p>
-              <p style={{ fontSize: '11px', color: '#999', margin: '4px 0 0 0' }}>{timeRemaining} mins</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Driver */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          marginBottom: '20px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>
-            <div style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '28px'
-            }}>
-              👨
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '16px', fontWeight: '700', color: '#1c1c1c', margin: 0 }}>Delivery Partner</p>
-              <p style={{ fontSize: '13px', color: '#666', margin: '4px 0 0 0' }}>Rajesh Kumar • 4.9 ⭐</p>
-            </div>
-            <div style={{
-              background: '#e0e0e0',
-              padding: '8px 12px',
-              borderRadius: '6px',
-              fontSize: '12px',
-              fontWeight: '600',
-              color: '#1c1c1c'
-            }}>
-              🚴 Bike
-            </div>
-          </div>
-
-          {/* Contact Buttons */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-            <button
-              onClick={handleCall}
-              style={{
-                padding: '12px',
-                background: '#2196f3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              📞 Call
-            </button>
-            <button
-              onClick={handleWhatsApp}
-              style={{
-                padding: '12px',
-                background: '#25d366',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              💬 WhatsApp
-            </button>
-          </div>
-        </div>
-
-        {/* Order Details */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          marginBottom: '20px'
-        }}>
-          <div
-            onClick={() => setShowDetails(!showDetails)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              paddingBottom: '15px',
-              borderBottom: '2px solid #f0f0f0'
-            }}
-          >
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1c1c1c', margin: 0 }}>📦 Order Details</h3>
-            <span style={{ transform: showDetails ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}>▼</span>
-          </div>
-
-          {showDetails && (
-            <div style={{ marginTop: '15px' }}>
-              {cart && cart.map((item) => (
-                <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
-                  <span style={{ fontSize: '14px', color: '#666' }}>{item.name} × {item.qty}</span>
-                  <span style={{ fontWeight: '600', color: '#1c1c1c' }}>₹{item.price * item.qty}</span>
+      {/* ORDER DETAILS */}
+      <div className="order-details-grid">
+        {/* Items */}
+        <div className="order-card">
+          <h3 className="order-card-title">🍽️ Order Items</h3>
+          <div className="order-items-list">
+            {order.cart?.map((item, idx) => (
+              <div key={idx} className="order-item">
+                <div className="item-details">
+                  <p className="item-name">{item.name}</p>
+                  <p className="item-qty">Qty: {item.qty}</p>
                 </div>
-              ))}
-              <div style={{ background: '#f5f5f5', padding: '12px', borderRadius: '8px', marginTop: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '700' }}>
-                  <span>Total</span>
-                  <span>₹{total}</span>
-                </div>
+                <span className="item-total">₹{item.price * item.qty}</span>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+          <div className="order-total">
+            <span className="total-label">Total</span>
+            <span className="total-price">₹{order.total}</span>
+          </div>
         </div>
 
         {/* Delivery Address */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '20px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
-        }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1c1c1c', margin: '0 0 15px 0' }}>📍 Delivery Address</h3>
-          {address ? (
-            <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '10px' }}>
-              <p style={{ fontSize: '14px', fontWeight: '600', color: '#1c1c1c', margin: '0 0 6px 0' }}>
-                {address.houseNo && `${address.houseNo}, `}{address.street}
+        <div className="order-card">
+          <h3 className="order-card-title">📍 Delivery Address</h3>
+          <div className="address-details">
+            <p className="address-label">
+              {order.address?.label || "Home"}
+            </p>
+            <p className="address-text">
+              {order.address?.houseNo && `${order.address.houseNo}, `}
+              {order.address?.street}
+            </p>
+            <p className="address-text">
+              {order.address?.area}
+            </p>
+            <p className="address-text">
+              {order.address?.city}, {order.address?.state} {order.address?.pincode}
+            </p>
+            {order.address?.landmark && (
+              <p className="address-landmark">
+                📌 Landmark: {order.address.landmark}
               </p>
-              <p style={{ fontSize: '13px', color: '#666', margin: '0 0 4px 0' }}>
-                {address.area}, {address.city}, {address.state} {address.pincode}
-              </p>
-              {address.landmark && (
-                <p style={{ fontSize: '13px', color: '#999', margin: '4px 0 0 0' }}>
-                  📌 Near: {address.landmark}
-                </p>
-              )}
-            </div>
-          ) : (
-            <p style={{ color: '#d00' }}>Address not available</p>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

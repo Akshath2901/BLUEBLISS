@@ -1,0 +1,184 @@
+/* ===============================
+   LOGIN PAGE – PREMIUM BLACK & GOLD
+   (MATCHES SIGNUP PAGE DESIGN)
+   =============================== */
+
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+/* LEFT PANEL */
+.login-left {
+  flex: 1;
+  background: url("/src/assets/IMG_2054.JPG") center/cover no-repeat;
+  position: relative;
+}
+
+.login-left-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.65),
+    rgba(0, 0, 0, 0.85)
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  color: white;
+}
+
+.login-left-overlay h1 {
+  font-size: 52px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.login-left-overlay p {
+  font-size: 18px;
+  opacity: 0.9;
+  max-width: 420px;
+}
+
+/* RIGHT PANEL */
+.login-right {
+  flex: 1;
+  background: linear-gradient(135deg, #0f0e09, #1c1c1c);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* LOGIN BOX */
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(28, 28, 28, 0.85);
+  border: 2px solid rgba(212, 175, 55, 0.25);
+  border-radius: 18px;
+  padding: 40px;
+  color: white;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+}
+
+.login-box h2 {
+  font-size: 30px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 25px;
+}
+
+/* FORM */
+.login-box label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 8px 0 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  outline: none;
+}
+
+.login-box input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.login-box input:focus {
+  border-color: #ffd700;
+}
+
+/* ERROR */
+.login-error {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* BUTTON */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ffd700, #d4af37);
+  color: black;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+}
+
+/* DIVIDER */
+.login-divider {
+  text-align: center;
+  margin: 25px 0;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* SOCIAL */
+.social-login {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.social-login button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: white;
+}
+
+.social-login .google { background: #db4437; }
+.social-login .facebook { background: #1877f2; }
+.social-login .apple { background: black; }
+
+/* FOOTER */
+.login-footer {
+  margin-top: 20px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.login-footer span {
+  color: #ffd700;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    flex: 1;
+  }
+}
