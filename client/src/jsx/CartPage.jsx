@@ -1,59 +1,196 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import "./CartPage.css";
 import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
-import LocationSystem from "./LocationSystem"; // ← ADD THIS
+import { auth, db } from "../lib/firebase";
+import { collection, doc, setDoc, deleteDoc, query, where, getDocs } from "firebase/firestore";
 
 function CartPage() {
   const navigate = useNavigate();
   const { cart, increaseQty, decreaseQty } = useContext(CartContext);
-
-  // State for address selection
+  const [currentUser, setCurrentUser] = useState(null);
   const [selectedAddressData, setSelectedAddressData] = useState(null);
-  
   const [noContact, setNoContact] = useState(false);
   const [suggestion, setSuggestion] = useState("");
   const [couponCode, setCouponCode] = useState("");
+  const [offers, setOffers] = useState([]);
+  const [couponError, setCouponError] = useState("");
 
-  // User info
-  const user = {
-    name: "Akshath Togari",
-    phone: "7569534271",
-  };
+  // Get current logged-in user
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // 🔥 FETCH OFFERS FROM 'offers' COLLECTION
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const offersSnapshot = await getDocs(collection(db, "offers"));
+        const offersData = [];
+        offersSnapshot.forEach((doc) => {
+          if (doc.data().isActive) {
+            offersData.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          }
+        });
+        setOffers(offersData);
+      } catch (e) {
+        console.log("Error fetching offers:", e);
+      }
+    };
+
+    fetchOffers();
+  }, []);
 
   // Billing calculations
   const subtotal = cart.reduce((acc, item) => acc + item.qty * item.price, 0);
   const deliveryFee = 42;
-  const discount = couponCode === "FIRST50" ? 50 : 0;
+
+  // 🔥 PARSE OFFER DETAILS FUNCTION
+  const parseOfferDetails = (offer) => {
+    const title = offer.title || "";
+    const description = offer.description || "";
+    const fullText = `${title} ${description}`.toLowerCase();
+
+    let minAmount = 0;
+    let maxDiscount = 0;
+    let discountType = null; // "percent" or "fixed"
+    let discountValue = 0;
+
+    // Extract minimum order amount (e.g., "orders above 500" or "on orders of ₹500")
+    const minMatch = fullText.match(/(?:above|of|₹)?\s*(\d+)/);
+    if (minMatch) {
+      minAmount = parseInt(minMatch[1]);
+    }
+
+    // Extract discount amount (e.g., "₹250 off" or "upto ₹250")
+    const amountMatch = fullText.match(/(?:upto|get|off|₹)\s*₹?(\d+)/);
+    if (amountMatch) {
+      maxDiscount = parseInt(amountMatch[1]);
+    }
+
+    // Check if it's percentage or fixed
+    if (fullText.includes("%")) {
+      discountType = "percent";
+      const percentMatch = fullText.match(/(\d+)%/);
+      if (percentMatch) {
+        discountValue = parseInt(percentMatch[1]);
+      }
+    } else {
+      discountType = "fixed";
+      discountValue = maxDiscount;
+    }
+
+    return {
+      minAmount,
+      maxDiscount,
+      discountType,
+      discountValue
+    };
+  };
+
+  // 🔥 CALCULATE DISCOUNT BASED ON CONDITIONS
+  const calculateDiscount = (matchedOffer) => {
+    if (!matchedOffer) return { discount: 0, reason: "" };
+
+    const offerDetails = parseOfferDetails(matchedOffer);
+    
+    // Check if order meets minimum amount requirement
+    if (subtotal < offerDetails.minAmount) {
+      return {
+        discount: 0,
+        reason: `Minimum order of ₹${offerDetails.minAmount} required`,
+        eligible: false
+      };
+    }
+
+    // Calculate discount based on type
+    let discount = 0;
+    if (offerDetails.discountType === "percent") {
+      discount = Math.floor((subtotal * offerDetails.discountValue) / 100);
+      // Cap discount to max if specified
+      if (offerDetails.maxDiscount > 0) {
+        discount = Math.min(discount, offerDetails.maxDiscount);
+      }
+    } else {
+      // Fixed discount
+      discount = Math.min(offerDetails.discountValue, subtotal);
+    }
+
+    return {
+      discount,
+      reason: `✓ Coupon applied successfully!`,
+      eligible: true,
+      maxDiscount: offerDetails.maxDiscount
+    };
+  };
+
+  // 🔥 FIND MATCHING OFFER
+  const matchedOffer = offers.find(offer => offer.code === couponCode);
+  const discountInfo = matchedOffer ? calculateDiscount(matchedOffer) : { discount: 0, reason: "" };
+  const discount = discountInfo.discount || 0;
+
   const gst = ((subtotal - discount) * 0.105).toFixed(2);
   const total = (subtotal + deliveryFee - discount + Number(gst)).toFixed(0);
 
+  // 🔥 IMPROVED COUPON VALIDATION
   const handleApplyCoupon = () => {
-    if (couponCode === "FIRST50") {
-      alert("🎉 Coupon applied! You saved ₹50");
-    } else {
-      alert("❌ Invalid coupon code");
+    if (!couponCode.trim()) {
+      setCouponError("❌ Please enter a coupon code");
+      return;
     }
+
+    if (!matchedOffer) {
+      setCouponError("❌ Invalid coupon code");
+      return;
+    }
+
+    const discountResult = calculateDiscount(matchedOffer);
+
+    if (!discountResult.eligible) {
+      setCouponError(`❌ ${discountResult.reason}`);
+      return;
+    }
+
+    setCouponError("");
+    alert(`🎉 ${discountResult.reason}\n💰 You save ₹${discountResult.discount}`);
   };
 
-  // ⭐ UPDATED: Proceed to Payment with selected address
   const handleProceedToPayment = () => {
     if (!selectedAddressData) {
       alert("❌ Please select a delivery address");
       return;
     }
 
-    // Pass address object to Payment page
     navigate("/payment", {
       state: {
         cart,
-        address: selectedAddressData, // Send the full address object
+        address: selectedAddressData,
         total,
         noContact,
         suggestion,
+        appliedCoupon: couponCode,
+        discount
       },
     });
   };
+
+  // Only render if user is logged in
+  if (!currentUser) {
+    return (
+      <div className="checkout-page">
+        <div style={{ padding: "40px", textAlign: "center" }}>
+          <h2>Please login to continue</h2>
+          <button onClick={() => navigate("/login")}>Go to Login</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="checkout-page">
@@ -74,14 +211,17 @@ function CartPage() {
                 <span className="verified-badge">✓ Verified</span>
               </div>
               <div className="user-details">
-                <p className="user-name">{user.name}</p>
-                <p className="user-phone">+91 {user.phone}</p>
+                <p className="user-name">{currentUser.displayName || "User"}</p>
+                <p className="user-phone">{currentUser.email}</p>
               </div>
             </div>
 
-            {/* ⭐ LOCATION SYSTEM COMPONENT */}
+            {/* Location System Component */}
             <div style={{ marginTop: "30px" }}>
-              <LocationSystemWrapper onAddressSelect={setSelectedAddressData} />
+              <LocationSystemWrapper 
+                userId={currentUser.uid} 
+                onAddressSelect={setSelectedAddressData} 
+              />
             </div>
 
             {/* Special Instructions */}
@@ -165,7 +305,7 @@ function CartPage() {
               </div>
             </div>
 
-            {/* Coupon Section */}
+            {/* 🔥 COUPON SECTION WITH CONDITIONAL LOGIC */}
             <div className="section-card coupon-card">
               <h4>
                 <span className="icon">🎁</span> Apply Coupon
@@ -176,27 +316,71 @@ function CartPage() {
                   type="text"
                   placeholder="Enter coupon code"
                   value={couponCode}
-                  onChange={(e) =>
-                    setCouponCode(e.target.value.toUpperCase())
-                  }
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    setCouponError("");
+                  }}
                 />
                 <button onClick={handleApplyCoupon}>APPLY</button>
               </div>
 
-              {couponCode === "FIRST50" && (
-                <div className="coupon-success">
-                  ✓ Coupon applied! You saved ₹{discount}
+              {/* Error or Success Message */}
+              {couponError && (
+                <div className="coupon-error" style={{ color: '#e74c3c', marginTop: '10px', fontSize: '13px' }}>
+                  {couponError}
                 </div>
               )}
 
+              {matchedOffer && discountInfo.eligible && (
+                <div className="coupon-success">
+                  ✓ {matchedOffer.title}
+                  <br />
+                  💰 You save ₹{discount}
+                </div>
+              )}
+
+              {/* 🔥 SHOW AVAILABLE COUPONS WITH CONDITIONS */}
               <div className="available-coupons">
                 <p className="available-text">Available coupons:</p>
-                <div
-                  className="coupon-tag"
-                  onClick={() => setCouponCode("FIRST50")}
-                >
-                  FIRST50 - Get ₹50 off
-                </div>
+                {offers.length > 0 ? (
+                  offers.slice(0, 3).map((offer) => {
+                    const offerDetails = parseOfferDetails(offer);
+                    const isEligible = subtotal >= offerDetails.minAmount;
+                    
+                    return (
+                      <div
+                        key={offer.id}
+                        className="coupon-tag"
+                        onClick={() => {
+                          setCouponCode(offer.code);
+                          setCouponError("");
+                        }}
+                        style={{
+                          opacity: isEligible ? 1 : 0.5,
+                          cursor: isEligible ? 'pointer' : 'not-allowed',
+                          pointerEvents: isEligible ? 'auto' : 'none'
+                        }}
+                        title={!isEligible ? `Minimum order ₹${offerDetails.minAmount} required` : ""}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                          <span>
+                            {offer.icon} {offer.code}
+                          </span>
+                          {!isEligible && (
+                            <span style={{ fontSize: '11px', color: '#999' }}>
+                              Min ₹{offerDetails.minAmount}
+                            </span>
+                          )}
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#666' }}>
+                          {offer.title}
+                        </p>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p style={{ color: '#999', fontSize: '12px' }}>No offers available</p>
+                )}
               </div>
             </div>
 
@@ -226,7 +410,10 @@ function CartPage() {
 
               {discount > 0 && (
                 <div className="bill-row discount-row">
-                  <span>Discount</span>
+                  <span>
+                    Discount
+                    {matchedOffer && <span style={{ fontSize: '11px', color: '#48c479' }}> ({matchedOffer.code})</span>}
+                  </span>
                   <span className="discount-amount">-₹{discount}</span>
                 </div>
               )}
@@ -244,7 +431,7 @@ function CartPage() {
               </div>
             </div>
 
-            {/* ⭐ UPDATED: Proceed to Payment Button */}
+            {/* Proceed to Payment Button */}
             <button
               className="pay-btn"
               onClick={handleProceedToPayment}
@@ -267,20 +454,21 @@ function CartPage() {
   );
 }
 
-// ⭐ WRAPPER COMPONENT - Makes LocationSystem work in CartPage
-function LocationSystemWrapper({ onAddressSelect }) {
+// WRAPPER COMPONENT
+function LocationSystemWrapper({ userId, onAddressSelect }) {
   return (
     <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-      <LocationSystemCompact onAddressSelect={onAddressSelect} />
+      <LocationSystemCompact userId={userId} onAddressSelect={onAddressSelect} />
     </div>
   );
 }
 
-// ⭐ COMPACT VERSION OF LOCATION SYSTEM (for CartPage)
-function LocationSystemCompact({ onAddressSelect }) {
+// FIREBASE-INTEGRATED LOCATION SYSTEM
+function LocationSystemCompact({ userId, onAddressSelect }) {
   const [addresses, setAddresses] = React.useState([]);
   const [selectedAddress, setSelectedAddress] = React.useState(null);
   const [showAddressForm, setShowAddressForm] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
   const [formData, setFormData] = React.useState({
     label: 'home',
     street: '',
@@ -293,65 +481,121 @@ function LocationSystemCompact({ onAddressSelect }) {
   });
 
   React.useEffect(() => {
-    loadSavedAddresses();
-  }, []);
+    if (userId) {
+      loadAddressesFromFirebase();
+    }
+  }, [userId]);
 
-  const loadSavedAddresses = () => {
+  const loadAddressesFromFirebase = async () => {
     try {
-      const saved = localStorage.getItem('bluebliss_addresses');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setAddresses(parsed);
-        if (parsed.length > 0) {
-          setSelectedAddress(parsed[0].id);
-          onAddressSelect(parsed[0]); // Send to parent
-        }
+      setLoading(true);
+      const addressesRef = collection(db, "userAddresses");
+      const q = query(addressesRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+      
+      const loadedAddresses = [];
+      querySnapshot.forEach((doc) => {
+        loadedAddresses.push({ id: doc.id, ...doc.data() });
+      });
+
+      setAddresses(loadedAddresses);
+      
+      if (loadedAddresses.length > 0) {
+        setSelectedAddress(loadedAddresses[0].id);
+        onAddressSelect(loadedAddresses[0]);
       }
     } catch (err) {
       console.error('Error loading addresses:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const saveAddress = () => {
+  const saveAddress = async () => {
     if (!formData.street.trim() || !formData.area.trim() || !formData.city.trim()) {
       alert('Please fill in Street, Area, and City');
       return;
     }
 
-    const newAddress = {
-      id: Date.now(),
-      ...formData,
-      timestamp: new Date().toISOString()
-    };
+    try {
+      setLoading(true);
+      
+      const newAddressId = `${userId}_${Date.now()}`;
+      
+      const newAddress = {
+        userId,
+        label: formData.label,
+        street: formData.street,
+        area: formData.area,
+        landmark: formData.landmark,
+        houseNo: formData.houseNo,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        timestamp: new Date().toISOString()
+      };
 
-    const updated = [...addresses, newAddress];
-    setAddresses(updated);
-    localStorage.setItem('bluebliss_addresses', JSON.stringify(updated));
+      const addressDocRef = doc(db, "userAddresses", newAddressId);
+      await setDoc(addressDocRef, newAddress);
 
-    setSelectedAddress(newAddress.id);
-    onAddressSelect(newAddress); // Send to parent
-    setShowAddressForm(false);
-    setFormData({ label: 'home', street: '', area: '', landmark: '', houseNo: '', city: '', state: '', pincode: '' });
+      const updatedAddresses = [...addresses, { id: newAddressId, ...newAddress }];
+      setAddresses(updatedAddresses);
+
+      setSelectedAddress(newAddressId);
+      onAddressSelect({ id: newAddressId, ...newAddress });
+      
+      setShowAddressForm(false);
+      setFormData({ 
+        label: 'home', 
+        street: '', 
+        area: '', 
+        landmark: '', 
+        houseNo: '', 
+        city: '', 
+        state: '', 
+        pincode: '' 
+      });
+      
+      alert('✅ Address saved successfully!');
+    } catch (err) {
+      console.error('Error saving address:', err);
+      alert('❌ Failed to save address: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteAddress = (id) => {
-    const updated = addresses.filter(addr => addr.id !== id);
-    setAddresses(updated);
-    localStorage.setItem('bluebliss_addresses', JSON.stringify(updated));
+  const deleteAddress = async (id) => {
+    try {
+      setLoading(true);
+      await deleteDoc(doc(db, "userAddresses", id));
 
-    if (selectedAddress === id) {
-      const newSelected = updated[0];
-      setSelectedAddress(newSelected?.id || null);
-      onAddressSelect(newSelected || null);
+      const updated = addresses.filter(addr => addr.id !== id);
+      setAddresses(updated);
+
+      if (selectedAddress === id) {
+        const newSelected = updated[0];
+        setSelectedAddress(newSelected?.id || null);
+        onAddressSelect(newSelected || null);
+      }
+
+      alert('✅ Address deleted successfully!');
+    } catch (err) {
+      console.error('Error deleting address:', err);
+      alert('❌ Failed to delete address');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAddressSelect = (addr) => {
     setSelectedAddress(addr.id);
-    onAddressSelect(addr); // Send to parent
+    onAddressSelect(addr);
   };
 
-  const currentAddress = addresses.find(addr => addr.id === selectedAddress);
+  if (loading && addresses.length === 0) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Loading addresses...</div>;
+  }
 
   return (
     <>
@@ -359,7 +603,6 @@ function LocationSystemCompact({ onAddressSelect }) {
         📍 Delivery Address
       </h3>
 
-      {/* Saved Addresses List */}
       {addresses.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
           {addresses.map(addr => (
@@ -411,7 +654,6 @@ function LocationSystemCompact({ onAddressSelect }) {
         </div>
       )}
 
-      {/* Add New Address Button */}
       <button
         onClick={() => setShowAddressForm(!showAddressForm)}
         style={{
@@ -430,7 +672,6 @@ function LocationSystemCompact({ onAddressSelect }) {
         + {showAddressForm ? 'Cancel' : 'Add New Address'}
       </button>
 
-      {/* Add Address Form */}
       {showAddressForm && (
         <div style={{ marginBottom: '20px', padding: '16px', background: '#f5f5f5', borderRadius: '10px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -503,6 +744,7 @@ function LocationSystemCompact({ onAddressSelect }) {
 
             <button
               onClick={saveAddress}
+              disabled={loading}
               style={{
                 padding: '10px',
                 background: 'linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)',
@@ -510,10 +752,11 @@ function LocationSystemCompact({ onAddressSelect }) {
                 border: 'none',
                 borderRadius: '6px',
                 fontWeight: '600',
-                cursor: 'pointer'
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.5 : 1
               }}
             >
-              Save Address
+              {loading ? '⏳ Saving...' : 'Save Address'}
             </button>
           </div>
         </div>

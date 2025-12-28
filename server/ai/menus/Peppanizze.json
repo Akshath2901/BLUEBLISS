@@ -1,0 +1,105 @@
+[
+  {
+    "category": "CLASSIC PIZZAS (6 inch)",
+    "items": [
+      { "name": "TOMATOES", "price": 59, "desc": "Fresh tomato pizza", "img": "/images/tomatoes.jpg", "rating": 4.2 },
+      { "name": "ONION", "price": 69, "desc": "Classic onion topping", "img": "/images/onion.jpg", "rating": 4.1 },
+      { "name": "CAPSICUM", "price": 79, "desc": "Crunchy capsicum pizza", "img": "/images/capsicum.jpg", "rating": 4.3 },
+      { "name": "SWEET CORN", "price": 79, "desc": "Sweet corn and cheese", "img": "/images/sweetcorn.jpg", "rating": 4.4 },
+      { "name": "ONIONS & CAPSICUMS", "price": 99, "desc": "Fresh onions + capsicums", "img": "/images/onion_capsicum.jpg", "rating": 4.3 },
+      { "name": "CAPSICUM & PANEER", "price": 109, "desc": "Paneer + capsicum delight", "img": "/images/capsicum_paneer.jpg", "rating": 4.5 },
+      { "name": "JALAPENOS & OLIVES", "price": 119, "desc": "Spicy jalapeno & olives", "img": "/images/jalapeno_olive.jpg", "rating": 4.4 },
+      { "name": "JALAPENO SWEET CORN PANEER", "price": 129, "desc": "Triple topping veg pizza", "img": "/images/jalapeno_corn_paneer.jpg", "rating": 4.6 },
+      { "name": "CAPSICUM PANEER RED PAPRIKA", "price": 139, "desc": "Spicy paprika twist", "img": "/images/paneer_paprika.jpg", "rating": 4.5 }
+    ]
+  },
+
+  {
+    "category": "CLASSIC VALUE PIZZA",
+    "items": [
+      { "name": "MARGHERITTA", "price": 139, "desc": "Classic cheese margherita", "img": "/images/margherita.jpg", "rating": 4.5 },
+      { "name": "LOVERS CHOICE", "price": 189, "desc": "Veg loaded favorite", "img": "/images/lovers_choice.jpg", "rating": 4.4 },
+      { "name": "GARDEN PARADISE", "price": 189, "desc": "Garden fresh veggies", "img": "/images/garden_paradise.jpg", "rating": 4.4 },
+      { "name": "DESI STYLE", "price": 189, "desc": "Indian masala veg pizza", "img": "/images/desi_style.jpg", "rating": 4.3 },
+      { "name": "SPRING FLING", "price": 189, "desc": "Exotic fresh toppings", "img": "/images/spring_fling.jpg", "rating": 4.3 }
+    ]
+  },
+
+  {
+    "category": "EXOTIC VEG PIZZAS",
+    "items": [
+      { "name": "GARDEN SPECIAL", "price": 229, "desc": "Special mix veg pizza", "img": "/images/garden_special.jpg", "rating": 4.6 },
+      { "name": "FARM DELIGHT", "price": 229, "desc": "Farm fresh veggies", "img": "/images/farm_delight.jpg", "rating": 4.5 },
+      { "name": "PANEER TIKKA BUTTER MASALA", "price": 229, "desc": "Paneer tikka in creamy sauce", "img": "/images/paneer_tikka.jpg", "rating": 4.7 },
+      { "name": "CHEEZY 7 PIZZA", "price": 229, "desc": "7 cheese explosion", "img": "/images/cheesy7.jpg", "rating": 4.8 },
+      { "name": "SPICY ANGRY PIZZA", "price": 229, "desc": "Hot & spicy pizza", "img": "/images/spicy_angry.jpg", "rating": 4.4 }
+    ]
+  },
+
+  {
+    "category": "SPECIALITY VEG",
+    "items": [
+      { "name": "PERI PERI VEG", "price": 259, "desc": "Spicy peri peri veg pizza", "img": "/images/periperi_veg.jpg", "rating": 4.6 },
+      { "name": "CHEESY MACRONI VEG", "price": 259, "desc": "Macaroni + cheese", "img": "/images/mac_veg.jpg", "rating": 4.7 },
+      { "name": "PRIME RETREAT", "price": 259, "desc": "Exotic premium veg", "img": "/images/prime_retreat.jpg", "rating": 4.5 },
+      { "name": "GARLIC PIZZA", "price": 259, "desc": "Garlic-infused veg pizza", "img": "/images/garlic_pizza.jpg", "rating": 4.4 },
+      { "name": "HOT STRING PIZZA", "price": 259, "desc": "Stringy spicy cheese", "img": "/images/hot_string.jpg", "rating": 4.6 },
+      { "name": "PEPPANIZZE PANEER", "price": 259, "desc": "Signature paneer pizza", "img": "/images/paneer_peppanizze.jpg", "rating": 4.8 },
+      { "name": "AFRICAN PERI PERI VEG", "price": 259, "desc": "African-style peri peri", "img": "/images/african_peri.jpg", "rating": 4.5 },
+      { "name": "AMERICAN RETREAT", "price": 259, "desc": "American-style flavours", "img": "/images/american_retreat.jpg", "rating": 4.4 },
+      { "name": "MAD-OVER CHEESE", "price": 259, "desc": "Extra cheesy pizza", "img": "/images/mad_cheese.jpg", "rating": 4.7 },
+      { "name": "KORMA SPECIAL", "price": 259, "desc": "Spicy korma-style pizza", "img": "/images/korma_special.jpg", "rating": 4.5 }
+    ]
+  },
+
+  {
+    "category": "SHAKES",
+    "items": [
+      { "name": "PEANUT BUTTER SHAKE", "price": 159, "desc": "Creamy peanut butter shake", "img": "/images/peanut_butter.jpg", "rating": 4.6 },
+      { "name": "COLD COFFEE", "price": 159, "desc": "Classic cold brew shake", "img": "/images/cold_coffee.jpg", "rating": 4.5 },
+      { "name": "MANGO SHAKE", "price": 159, "desc": "Sweet mango shake", "img": "/images/mango_shake.jpg", "rating": 4.4 },
+      { "name": "OREO SHAKE", "price": 159, "desc": "Crushed oreo shake", "img": "/images/oreo_shake.jpg", "rating": 4.6 },
+      { "name": "BELGIUM CHOCOLATE", "price": 169, "desc": "Rich Belgian chocolate shake", "img": "/images/belgium_choc.jpg", "rating": 4.7 }
+    ]
+  },
+
+  {
+    "category": "MOJITOS",
+    "items": [
+      { "name": "LIME N MINT", "price": 109, "desc": "Refreshing lime mojito", "img": "/images/lime_mint.jpg", "rating": 4.5 },
+      { "name": "BLUE CURACAO", "price": 109, "desc": "Blue citrus mojito", "img": "/images/blue_curaçao.jpg", "rating": 4.6 },
+      { "name": "SPICY MANGO", "price": 119, "desc": "Mango + spice kick", "img": "/images/spicy_mango.jpg", "rating": 4.4 }
+    ]
+  },
+
+  {
+    "category": "GARLIC BREAD",
+    "items": [
+      { "name": "PLAIN GARLIC BREAD", "price": 129, "desc": "Classic garlic bread", "img": "/images/plain_garlic.jpg", "rating": 4.4 },
+      { "name": "PANEER TIKKA STUFFED GARLIC", "price": 179, "desc": "Paneer tikka stuffing", "img": "/images/paneer_garlic.jpg", "rating": 4.6 },
+      { "name": "CORN CHEESE GARLIC", "price": 169, "desc": "Corn + cheese stuffing", "img": "/images/corn_cheese.jpg", "rating": 4.5 }
+    ]
+  },
+
+  {
+    "category": "CRINKLE FRIES",
+    "items": [
+      { "name": "SALTED FRIES", "price": 89, "desc": "Classic salted crispy fries", "img": "/images/salted_fries.jpg", "rating": 4.2 },
+      { "name": "PERI PERI FRIES", "price": 99, "desc": "Peri peri spice fries", "img": "/images/peri_peri_fries.jpg", "rating": 4.3 },
+      { "name": "CAJUN FRIES", "price": 109, "desc": "Seasoned cajun fries", "img": "/images/cajun_fries.jpg", "rating": 4.3 },
+      { "name": "CHEESY FRIES", "price": 169, "desc": "Cheese-loaded fries", "img": "/images/cheesy_fries.jpg", "rating": 4.5 },
+      { "name": "PANEER LOADED FRIES", "price": 169, "desc": "Paneer-loaded fries", "img": "/images/paneer_loaded_fries.jpg", "rating": 4.6 },
+      { "name": "CHICKEN LOADED FRIES", "price": 189, "desc": "Chicken-loaded fries", "img": "/images/chicken_loaded_fries.jpg", "rating": 4.6 }
+    ]
+  },
+
+  {
+    "category": "SANDWICHES",
+    "items": [
+      { "name": "CORN CHEESE GRILLED", "price": 139, "desc": "Corn + cheese grilled", "img": "/images/corn_cheese_sandwich.jpg", "rating": 4.5 },
+      { "name": "TANDOORI PANEER GRILLED", "price": 169, "desc": "Spicy paneer grilled sandwich", "img": "/images/tandoori_paneer.jpg", "rating": 4.6 },
+      { "name": "PERI PERI PANEER GRILLED", "price": 169, "desc": "Peri peri paneer sandwich", "img": "/images/periperi_paneer.jpg", "rating": 4.5 },
+      { "name": "TANDOORI CHICKEN GRILLED", "price": 189, "desc": "Chicken grilled sandwich", "img": "/images/tandoori_chicken.jpg", "rating": 4.6 }
+    ]
+  }
+]

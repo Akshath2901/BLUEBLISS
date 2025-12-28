@@ -57,10 +57,11 @@ export default function AdminDashboard() {
     { id: 10, icon: "🖨️", title: "Bill / KOT Print", subtitle: "Printer Settings", link: "/admin/settings", count: 0 },
     { id: 11, icon: "📋", title: "Tax", subtitle: "Tax Configuration", link: "/admin/settings", count: 0 },
     { id: 12, icon: "⚙️", title: "Settings", subtitle: "System Settings", link: "/admin/settings", count: 0 },
-    { id: 13, icon: "🎁", title: "Discount", subtitle: "Manage Discounts", link: "/admin/settings", count: 0 },
-    { id: 14, icon: "🖼️", title: "Billing Screen", subtitle: "Display Settings", link: "/admin/settings", count: 0 },
-    { id: 15, icon: "⚙️", title: "Advanced Settings", subtitle: "System Config", link: "/admin/settings", count: 0 },
-    { id: 16, icon: "🔔", title: "Notification", subtitle: "Alert Settings", link: "/admin/settings", count: 0 },
+    { id: 13, icon: "🎁", title: "Offers", subtitle: "Manage Promotions", link: "/admin/offers", count: 0 },
+    { id: 14, icon: "🎁", title: "Discount", subtitle: "Manage Discounts", link: "/admin/settings", count: 0 },
+    { id: 15, icon: "🖼️", title: "Billing Screen", subtitle: "Display Settings", link: "/admin/settings", count: 0 },
+    { id: 16, icon: "⚙️", title: "Advanced Settings", subtitle: "System Config", link: "/admin/settings", count: 0 },
+    { id: 17, icon: "🔔", title: "Notification", subtitle: "Alert Settings", link: "/admin/settings", count: 0 },
   ];
 
   const handleMenuClick = (link) => {

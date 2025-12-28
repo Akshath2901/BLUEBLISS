@@ -8,19 +8,19 @@ import "./SwiggyStyleMenu.css";
 function SwiggyStyleMenu() {
   const [menuData, setMenuData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // existing dropdown state
+  const [offers, setOffers] = useState([]); // 🔥 Fetch from your existing 'offers' collection
   const [openCategories, setOpenCategories] = useState({});
-
-  // 🔥 NEW: bottom menu state
   const [showCategoryNav, setShowCategoryNav] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showItemModal, setShowItemModal] = useState(false);
+  const [selectedAddons, setSelectedAddons] = useState({});
+  const [itemQty, setItemQty] = useState(1);
 
-  // 🔥 NEW: refs for scrolling
   const categoryRefs = useRef({});
-
   const { addToCart, increaseQty, decreaseQty, getItemQty, cart } =
     useContext(CartContext);
 
+  // 🔥 FETCH MENU DATA
   useEffect(() => {
     const fetchMenu = async () => {
       try {
@@ -30,7 +30,6 @@ function SwiggyStyleMenu() {
 
         const categoriesWithImages = await resolveMenuImages(categories);
 
-        // keep your existing behavior: open all by default
         const initialOpen = {};
         categoriesWithImages.forEach((cat) => {
           initialOpen[cat.category] = true;
@@ -48,7 +47,39 @@ function SwiggyStyleMenu() {
     fetchMenu();
   }, []);
 
-  // existing toggle
+  // 🔥 FETCH OFFERS FROM YOUR EXISTING 'offers' COLLECTION
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const offersSnapshot = await getDocs(collection(db, "offers"));
+        const offersData = [];
+        offersSnapshot.forEach((doc) => {
+          // Only include active offers
+          if (doc.data().isActive) {
+            offersData.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          }
+        });
+        setOffers(offersData);
+      } catch (e) {
+        console.log("Offers fetch error:", e);
+      }
+    };
+
+    fetchOffers();
+  }, []);
+
+  // 🔥 ADDON DATA - Customize as needed
+  const addonOptions = [
+    { id: 1, name: "Cheese", price: 30 },
+    { id: 2, name: "Bacon", price: 40 },
+    { id: 3, name: "Extra Sauce", price: 15 },
+    { id: 4, name: "Lettuce & Tomato", price: 20 },
+    { id: 5, name: "Grilled Onions", price: 10 },
+  ];
+
   const toggleCategory = (category) => {
     setOpenCategories((prev) => ({
       ...prev,
@@ -56,7 +87,6 @@ function SwiggyStyleMenu() {
     }));
   };
 
-  // 🔥 NEW: select from bottom menu
   const handleCategorySelect = (category) => {
     const updated = {};
     Object.keys(openCategories).forEach((key) => {
@@ -75,13 +105,88 @@ function SwiggyStyleMenu() {
     }, 200);
   };
 
+  const handleItemClick = (item, category) => {
+    setSelectedItem({ ...item, category });
+    setShowItemModal(true);
+    setItemQty(1);
+    setSelectedAddons({});
+  };
+
+  const handleAddToCart = () => {
+    const itemId = selectedItem.id || `${selectedItem.category}-${selectedItem.name}`;
+    const addonsList = Object.keys(selectedAddons).map((id) => {
+      const addon = addonOptions.find((a) => a.id === parseInt(id));
+      return addon;
+    });
+
+    const addonPrice = addonsList.reduce((sum, addon) => sum + addon.price, 0);
+
+    addToCart({
+      id: itemId,
+      name: selectedItem.name,
+      price: selectedItem.price + addonPrice,
+      img: selectedItem.img,
+      qty: itemQty,
+      addons: addonsList,
+      basePrice: selectedItem.price,
+    });
+
+    setShowItemModal(false);
+    alert("Added to cart!");
+  };
+
+  const toggleAddon = (addonId) => {
+    setSelectedAddons((prev) => {
+      const updated = { ...prev };
+      if (updated[addonId]) {
+        delete updated[addonId];
+      } else {
+        updated[addonId] = true;
+      }
+      return updated;
+    });
+  };
+
+  const addonTotal = Object.keys(selectedAddons).reduce((sum, id) => {
+    const addon = addonOptions.find((a) => a.id === parseInt(id));
+    return sum + (addon ? addon.price : 0);
+  }, 0);
+
+  const itemTotal = selectedItem
+    ? (selectedItem.price + addonTotal) * itemQty
+    : 0;
+
   return (
     <div className="menu-wrapper">
-
       {/* HEADER */}
       <div className="restaurant-header">
-        <h1 className="rest-name">Shrimmers</h1>
+        <div className="header-top">
+          <div className="header-info">
+            <h1 className="rest-name">Shrimmers</h1>
+            <p className="rest-rating">⭐ 4.3 • 200 for two</p>
+            <p className="rest-category">Burgers, Fast Food</p>
+            <p className="rest-location">📍 Padmarao Nagar • 55-65 mins</p>
+          </div>
+        </div>
       </div>
+
+      {/* 🔥 LIVE DEALS SECTION - FROM YOUR 'offers' COLLECTION */}
+      {offers.length > 0 && (
+        <div className="live-deals-section">
+          <h3 className="deals-title">🎉 Deals for you</h3>
+          <div className="deals-carousel">
+            {offers.slice(0, 3).map((offer, idx) => (
+              <div key={offer.id} className="deal-card">
+                <div className="deal-icon">{offer.icon || "🎁"}</div>
+                <div className="deal-content">
+                  <p className="deal-text">{offer.title}</p>
+                  <p className="deal-code">USE {offer.code}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="menu-title-divider">MENU</div>
 
@@ -96,14 +201,10 @@ function SwiggyStyleMenu() {
               <div
                 key={idx}
                 className="menu-section"
-                ref={(el) =>
-                  (categoryRefs.current[section.category] = el)
-                }
+                ref={(el) => (categoryRefs.current[section.category] = el)}
               >
-                {/* CATEGORY HEADER (unchanged, just clickable) */}
                 <div
                   className="category-title"
-                  style={{ cursor: "pointer" }}
                   onClick={() => toggleCategory(section.category)}
                 >
                   {section.category}
@@ -112,12 +213,10 @@ function SwiggyStyleMenu() {
                   </span>
                 </div>
 
-                {/* CATEGORY ITEMS */}
                 {isOpen && (
                   <div className="item-list">
                     {section.items.map((item, index) => {
-                      const itemId =
-                        item.id || `${section.category}-${index}`;
+                      const itemId = item.id || `${section.category}-${index}`;
                       const qty = getItemQty(itemId);
 
                       return (
@@ -127,6 +226,13 @@ function SwiggyStyleMenu() {
                             <p className="item-price">₹{item.price}</p>
                             <p className="item-rating">⭐ {item.rating}</p>
                             <p className="item-desc">{item.desc}</p>
+                            
+                            <button
+                              className="more-details-btn"
+                              onClick={() => handleItemClick(item, section.category)}
+                            >
+                              More Details →
+                            </button>
                           </div>
 
                           <div className="item-img-wrapper">
@@ -139,14 +245,7 @@ function SwiggyStyleMenu() {
                             {qty === 0 ? (
                               <button
                                 className="add-btn"
-                                onClick={() =>
-                                  addToCart({
-                                    id: itemId,
-                                    name: item.name,
-                                    price: item.price,
-                                    img: item.img,
-                                  })
-                                }
+                                onClick={() => handleItemClick(item, section.category)}
                               >
                                 ADD
                               </button>
@@ -173,7 +272,7 @@ function SwiggyStyleMenu() {
         </>
       )}
 
-      {/* 🔥 FLOATING MENU BUTTON */}
+      {/* FLOATING MENU BUTTON */}
       <button
         className="floating-menu-btn"
         onClick={() => setShowCategoryNav(true)}
@@ -181,7 +280,7 @@ function SwiggyStyleMenu() {
         MENU
       </button>
 
-      {/* 🔥 BOTTOM CATEGORY NAV */}
+      {/* BOTTOM CATEGORY NAV */}
       {showCategoryNav && (
         <div
           className="category-nav-overlay"
@@ -192,7 +291,7 @@ function SwiggyStyleMenu() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="category-nav-header">
-              <span>99 Store</span>
+              <span>Shrimmers</span>
               <button onClick={() => setShowCategoryNav(false)}>✕</button>
             </div>
 
@@ -200,21 +299,109 @@ function SwiggyStyleMenu() {
               <div
                 key={idx}
                 className="category-nav-item"
-                onClick={() =>
-                  handleCategorySelect(section.category)
-                }
+                onClick={() => handleCategorySelect(section.category)}
               >
                 <span>{section.category}</span>
-                <span className="category-count">
-                  {section.items.length}
-                </span>
+                <span className="category-count">{section.items.length}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* CART BAR (unchanged) */}
+      {/* ITEM DETAILS MODAL */}
+      {showItemModal && selectedItem && (
+        <div
+          className="modal-overlay"
+          onClick={() => setShowItemModal(false)}
+        >
+          <div
+            className="modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>{selectedItem.name}</h2>
+              <button
+                className="close-modal"
+                onClick={() => setShowItemModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <img src={selectedItem.img} alt={selectedItem.name} className="modal-img" />
+              
+              <div className="modal-info">
+                <p className="modal-price">₹{selectedItem.price}</p>
+                <p className="modal-rating">⭐ {selectedItem.rating}</p>
+                <p className="modal-desc">{selectedItem.desc}</p>
+              </div>
+
+              {/* ADDONS SECTION */}
+              <div className="addons-section">
+                <h3>Add Ons (Optional)</h3>
+                <p className="addons-subtitle">Add your choice of extras</p>
+                
+                {addonOptions.map((addon) => (
+                  <div key={addon.id} className="addon-item">
+                    <label className="addon-label">
+                      <input
+                        type="checkbox"
+                        checked={!!selectedAddons[addon.id]}
+                        onChange={() => toggleAddon(addon.id)}
+                      />
+                      <span className="addon-name">{addon.name}</span>
+                      <span className="addon-price">+₹{addon.price}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              {/* QUANTITY SELECTOR */}
+              <div className="qty-selector">
+                <label>Quantity:</label>
+                <div className="qty-controls">
+                  <button onClick={() => setItemQty(Math.max(1, itemQty - 1))}>-</button>
+                  <span>{itemQty}</span>
+                  <button onClick={() => setItemQty(itemQty + 1)}>+</button>
+                </div>
+              </div>
+
+              {/* PRICE BREAKDOWN */}
+              <div className="price-breakdown">
+                <div className="breakdown-row">
+                  <span>Item Price</span>
+                  <span>₹{selectedItem.price}</span>
+                </div>
+                {addonTotal > 0 && (
+                  <div className="breakdown-row">
+                    <span>Addons</span>
+                    <span>+₹{addonTotal}</span>
+                  </div>
+                )}
+                {itemQty > 1 && (
+                  <div className="breakdown-row">
+                    <span>Quantity</span>
+                    <span>x{itemQty}</span>
+                  </div>
+                )}
+                <div className="breakdown-row total">
+                  <span>Total</span>
+                  <span>₹{itemTotal}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ADD TO CART BUTTON */}
+            <button className="add-to-cart-btn" onClick={handleAddToCart}>
+              Add to Cart • ₹{itemTotal}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CART BAR */}
       {cart.length > 0 && (
         <div className="bottom-cart-bar">
           <span>{cart.length} item added</span>

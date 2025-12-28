@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import AIChat from "./AIChat";
+import { OfferBanner } from "./OfferBanner";
 import "./Navbar.css";
 
 function Navbar() {
@@ -81,134 +83,154 @@ function Navbar() {
   // ---------------------- ADMIN NAVBAR ----------------------
   if (role === "admin") {
     return (
-      <nav className="navbar admin-navbar">
-        <div className="navbar-container">
-          <div className="navbar-left">
-            <Link to="/admin" className="logo">Admin Panel</Link>
+      <>
+        <OfferBanner />
+        <nav className="navbar admin-navbar">
+          <div className="navbar-container">
+            <div className="navbar-left">
+              <Link to="/admin" className="logo">Admin Panel</Link>
+            </div>
+
+            <div className="navbar-right">
+              <button className="btn-cart" onClick={() => navigate("/admin")}>
+                📊 Dashboard
+              </button>
+
+              <span className="user-email">
+                Admin ({user?.email})
+              </span>
+
+              <button className="btn-logout" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
           </div>
-
-          <div className="navbar-right">
-            <button className="btn-cart" onClick={() => navigate("/admin")}>
-              📊 Dashboard
-            </button>
-
-            <span className="user-email">
-              Admin ({user?.email})
-            </span>
-
-            <button className="btn-logout" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
+        </nav>
+        <AIChat />
+      </>
     );
   }
 
   // ---------------------- USER NAVBAR ----------------------
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
+    <>
+      <OfferBanner />
+      <nav className="navbar">
+        <div className="navbar-container">
 
-        {/* Logo */}
-        <div className="navbar-left">
-          <Link to="/" className="logo">bluebliss</Link>
-        </div>
-
-        {/* Location */}
-        <div className="navbar-center">
-          <div className="location-section">
-            <span className="location-icon">📍</span>
-            <span className="location-text">{userLocation}</span>
-            <span className="location-dropdown">▼</span>
+          {/* Logo */}
+          <div className="navbar-left">
+            <Link to="/" className="logo">bluebliss</Link>
           </div>
-        </div>
 
-        {/* Right */}
-        <div className="navbar-right">
+          {/* Location */}
+          <div className="navbar-center">
+            <div className="location-section">
+              <span className="location-icon">📍</span>
+              <span className="location-text">{userLocation}</span>
+              <span className="location-dropdown">▼</span>
+            </div>
+          </div>
 
-          {/* Links */}
-          <ul className="nav-links">
-            <li>
-              <Link
-                to="/about"
-                className={currentRoute === "/about" ? "active" : ""}
-              >
-                About
-              </Link>
-            </li>
+          {/* Right */}
+          <div className="navbar-right">
 
-            <li>
-              <Link
-                to="/contact"
-                className={currentRoute === "/contact" ? "active" : ""}
-              >
-                Contact
-              </Link>
-            </li>
-          </ul>
-
-          {/* Cart */}
-          <button className="btn-cart" onClick={() => navigate("/cart")}>
-            🛒 Cart
-          </button>
-
-          {/* Auth / Profile */}
-          <div className="auth-buttons">
-            {!user ? (
-              <>
-                <button
-                  className="btn-login"
-                  onClick={() => navigate("/login")}
+            {/* Links */}
+            <ul className="nav-links">
+              <li>
+                <Link
+                  to="/combo-builder"
+                  className={currentRoute === "/combo-builder" ? "active" : ""}
+                  title="Create your own combo!"
                 >
-                  Log in
-                </button>
+                  🍕 Combo Builder
+                </Link>
+              </li>
 
-                <button
-                  className="btn-signup"
-                  onClick={() => navigate("/signup")}
+              <li>
+                <Link
+                  to="/about"
+                  className={currentRoute === "/about" ? "active" : ""}
                 >
-                  Sign up
-                </button>
-              </>
-            ) : (
-              <div className="profile-dropdown-container">
-                <div
-                  className="user-section"
-                  onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  About
+                </Link>
+              </li>
+
+              <li>
+                <Link
+                  to="/contact"
+                  className={currentRoute === "/contact" ? "active" : ""}
                 >
-                  <span className="user-name">
-                    Hi, {user.email.split("@")[0]}
-                  </span>
+                  Contact
+                </Link>
+              </li>
+            </ul>
 
-                  <div className="user-icon">
-                    {user.email.charAt(0).toUpperCase()}
-                  </div>
-                </div>
+            {/* Cart */}
+            <button className="btn-cart" onClick={() => navigate("/cart")}>
+              🛒 Cart
+            </button>
 
-                {showProfileDropdown && (
-                  <div className="profile-dropdown">
-                    <Link to="/my-orders">My Orders</Link>
-                    <Link to="/my-ratings">My Ratings</Link>
+            {/* Auth / Profile */}
+            <div className="auth-buttons">
+              {!user ? (
+                <>
+                  <button
+                    className="btn-login"
+                    onClick={() => navigate("/login")}
+                  >
+                    Log in
+                  </button>
 
-                    <div className="profile-divider"></div>
-
-                    <Link to="/help">Help</Link>
-
-                    <span
-                      onClick={handleLogout}
-                      style={{ color: "red", cursor: "pointer" }}
-                    >
-                      Logout
+                  <button
+                    className="btn-signup"
+                    onClick={() => navigate("/signup")}
+                  >
+                    Sign up
+                  </button>
+                </>
+              ) : (
+                <div className="profile-dropdown-container">
+                  <div
+                    className="user-section"
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                  >
+                    <span className="user-name">
+                      Hi, {user.email.split("@")[0]}
                     </span>
+
+                    <div className="user-icon">
+                      {user.email.charAt(0).toUpperCase()}
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
+
+                  {showProfileDropdown && (
+                    <div className="profile-dropdown">
+                      <Link to="/my-orders">My Orders</Link>
+                      <Link to="/my-ratings">My Ratings</Link>
+
+                      <div className="profile-divider"></div>
+
+                      <Link to="/help">Help</Link>
+
+                      <span
+                        onClick={handleLogout}
+                        style={{ color: "red", cursor: "pointer" }}
+                      >
+                        Logout
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* AI Chat Component */}
+      <AIChat />
+    </>
   );
 }
 

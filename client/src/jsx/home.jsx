@@ -1,11 +1,25 @@
+// Update your Home.js with this code
+// Location: src/components/Home.js
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../lib/firebase";
 import SearchBar from "./SearchBar";
 import Footer from "./Footer";
-import "./Home.css";
+import "./home.css";
 
 import img1 from "../assets/IMG_2054.JPG";
 import img2 from "../assets/paneer tikka wrap.jpg";
+
+import Burgers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
+import MilkShake from "/src/assets/brands/Biskoff.jpg";
+
+// ⭐ NEW IMPORTS FOR CATEGORY IMAGES
+import AfricanPeri from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
+import PeriChickenWrap from "/src/assets/brands/peri peri chicken wrap.jpg";
+import PaneerFries from "/src/assets/paneer tikka wrap.jpg";
+import VegetrianaPizza from "/src/assets/VEGETRIANA PIZZA.jpg";
 
 // Brand images
 import shrimmers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
@@ -16,6 +30,7 @@ function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentOffer, setCurrentOffer] = useState(0);
+  const [offers, setOffers] = useState([]); // 🔥 FETCH FROM FIREBASE
 
   // Hero Slider Images
   const heroImages = [
@@ -25,15 +40,17 @@ function Home() {
     "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1920&q=80"
   ];
 
-  // Offers
-  const offers = [
+  // ⭐ DEFAULT OFFERS (Fallback)
+  const defaultOffers = [
     {
       id: 1,
       title: "50% OFF on Burgers",
       description: "Get flat 50% discount on all burger items",
       code: "BURGER50",
       image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80",
-      route: "/menu/shrimmers"
+      bgColor: "#FF6B6B",
+      bgColorAlt: "#FF8E8E",
+      icon: "🍔"
     },
     {
       id: 2,
@@ -41,7 +58,9 @@ function Home() {
       description: "Order any pizza and get one free",
       code: "PIZZA2X",
       image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-      route: "/menu/peppanizze"
+      bgColor: "#FF9500",
+      bgColorAlt: "#FFB84D",
+      icon: "🍕"
     },
     {
       id: 3,
@@ -49,7 +68,9 @@ function Home() {
       description: "Enjoy healthy wraps with 30% discount",
       code: "WRAP30",
       image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&q=80",
-      route: "/menu/urbanwrap"
+      bgColor: "#4CAF50",
+      bgColorAlt: "#66BB6A",
+      icon: "🌯"
     },
     {
       id: 4,
@@ -57,22 +78,49 @@ function Home() {
       description: "Get a complimentary dessert with your order",
       code: "SWEET500",
       image: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80",
-      route: "/menu/shrimmers"
+      bgColor: "#E91E63",
+      bgColorAlt: "#F06292",
+      icon: "🍰"
     }
   ];
 
-  // Food Categories
+  // 🔥 FETCH OFFERS FROM FIREBASE
+  useEffect(() => {
+    const fetchOffers = async () => {
+      try {
+        const offersSnapshot = await getDocs(collection(db, "offers"));
+        const offersData = [];
+        
+        offersSnapshot.forEach((doc) => {
+          if (doc.data().isActive) {
+            offersData.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          }
+        });
+        
+        setOffers(offersData.length > 0 ? offersData : defaultOffers);
+        console.log("✅ Home page offers loaded:", offersData);
+      } catch (e) {
+        console.log("Error fetching home offers:", e);
+        setOffers(defaultOffers);
+      }
+    };
+
+    fetchOffers();
+  }, []);
+
+  // ⭐ UPDATED FOOD CATEGORIES WITH REAL IMAGES
   const foodCategories = [
-    { id: 1, name: "Burgers", emoji: "🍔", query: "burger" },
-    { id: 2, name: "Pizza", emoji: "🍕", query: "pizza" },
-    { id: 3, name: "Pasta", emoji: "🌯", query: "pasta" },
-    { id: 4, name: "Desserts", emoji: "🍰", query: "dessert" },
-    { id: 5, name: "Wraps", emoji: "🌯", query: "wrap" },
-    { id: 6, name: "MilkShakes", emoji: "🥗", query: "milkshake" },
-    { id: 7, name: "Sandwich", emoji: "🥗", query: "sandwich" }
+    { id: 1, name: "Burgers", image: Burgers, query: "burger" },
+    { id: 2, name: "Pizza", image: VegetrianaPizza, query: "pizza" },
+    { id: 3, name: "Fries", image: PaneerFries, query: "fries" },
+    { id: 4, name: "MilkShakes", image: MilkShake, query: "milkshake" },
+    { id: 5, name: "Wraps", image: PeriChickenWrap, query: "wrap" },
+    { id: 6, name: "Peri Peri", image: AfricanPeri, query: "peri peri" }
   ];
 
-  // ⭐⭐⭐ UPDATED BRANDS WITH FULL BACKGROUND IMAGE ⭐⭐⭐
   const brands = [
     {
       id: 1,
@@ -113,11 +161,12 @@ function Home() {
 
   // Auto Slide Offers
   useEffect(() => {
+    if (offers.length === 0) return;
     const interval = setInterval(() => {
       setCurrentOffer((prev) => (prev + 1) % offers.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [offers.length]);
 
   // Handle Search
   const handleSearch = (query) => navigate(`/search?q=${encodeURIComponent(query)}`);
@@ -170,159 +219,181 @@ function Home() {
         </div>
       </section>
 
-     {/* Categories Slider */}
-<section className="categories-section">
-  <div className="categories-container">
-    <h2 className="categories-title">What's on your mind?</h2>
+      {/* Categories Slider */}
+      <section className="categories-section">
+        <div className="categories-container">
+          <h2 className="categories-title">What's on your mind?</h2>
 
-    <div className="categories-slider-wrapper">
-      <button
-        className="cat-nav-btn left"
-        onClick={() =>
-          document
-            .querySelector(".categories-slider")
-            .scrollBy({ left: -300, behavior: "smooth" })
-        }
-      >
-        ‹
-      </button>
+          <div className="categories-slider-wrapper">
+            <button
+              className="cat-nav-btn left"
+              onClick={() =>
+                document
+                  .querySelector(".categories-slider")
+                  .scrollBy({ left: -300, behavior: "smooth" })
+              }
+            >
+              ‹
+            </button>
 
-      <div className="categories-slider">
-        {foodCategories.map((category) => (
-          <div
-            key={category.id}
-            className="category-circle"
-            onClick={() => handleCategoryClick(category.query)}
-          >
-            <div className="category-icon">{category.emoji}</div>
-            <p className="category-name">{category.name}</p>
+            <div className="categories-slider">
+              {foodCategories.map((category) => (
+                <div
+                  key={category.id}
+                  className="category-circle"
+                  onClick={() => handleCategoryClick(category.query)}
+                >
+                  <div 
+                    className="category-icon"
+                    style={{
+                      backgroundImage: `url(${category.image})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
+                    }}
+                  />
+                  <p className="category-name">{category.name}</p>
+                </div>
+              ))}
+            </div>
+
+            <button
+              className="cat-nav-btn right"
+              onClick={() =>
+                document
+                  .querySelector(".categories-slider")
+                  .scrollBy({ left: 300, behavior: "smooth" })
+              }
+            >
+              ›
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      <button
-        className="cat-nav-btn right"
-        onClick={() =>
-          document
-            .querySelector(".categories-slider")
-            .scrollBy({ left: 300, behavior: "smooth" })
-        }
-      >
-        ›
-      </button>
-    </div>;
-  </div>
-</section>
-
-      {/* OFFERS */}
+      {/* ⭐ SPECIAL OFFERS FROM FIREBASE */}
       <section className="offers-section">
         <div className="offers-container">
           <h2 className="offers-title">🎉 Special Offers for You</h2>
           <p className="offers-subtitle">Limited time deals you don't want to miss</p>
 
-          <div className="offers-slider">
-            <button className="offer-nav-btn prev" onClick={prevOffer}>‹</button>
+          {offers.length > 0 ? (
+            <>
+              <div className="offers-slider">
+                <button className="offer-nav-btn prev" onClick={prevOffer}>‹</button>
 
-            <div className="offer-track">
-              {offers.map((offer, index) => (
-                <div
-                  key={offer.id}
-                  className={`offer-card ${index === currentOffer ? "active" : ""}`}
-                  onClick={() => handleOfferClick(offer.route)}
-                  style={{ backgroundImage: `url(${offer.image})` }}
-                >
-                  <div className="offer-overlay" />
-                  <div className="offer-content">
-                    <span className="offer-badge">LIMITED OFFER</span>
-                    <h3 className="offer-title">{offer.title}</h3>
-                    <p className="offer-description">{offer.description}</p>
-                    <div className="offer-code">
-                      <span>Use Code:</span>
-                      <strong>{offer.code}</strong>
+                <div className="offer-track">
+                  {offers.map((offer, index) => (
+                    <div
+                      key={offer.id}
+                      className={`offer-card ${index === currentOffer ? "active" : ""}`}
+                      onClick={() => handleOfferClick(offer.route || "/menu/shrimmers")}
+                      style={{
+                        backgroundImage: `url(${offer.image})`,
+                        background: `linear-gradient(135deg, ${offer.bgColor || "#FF6B6B"} 0%, ${offer.bgColorAlt || "#FF8E8E"} 100%)`
+                      }}
+                    >
+                      <div className="offer-overlay" />
+                      <div className="offer-content">
+                        <span className="offer-badge">LIMITED OFFER</span>
+                        <h3 className="offer-title">
+                          {offer.icon && <span style={{ marginRight: "8px" }}>{offer.icon}</span>}
+                          {offer.title}
+                        </h3>
+                        <p className="offer-description">{offer.description}</p>
+                        <div className="offer-code">
+                          <span>Use Code:</span>
+                          <strong>{offer.code}</strong>
+                        </div>
+                        <button className="claim-btn">Claim Now →</button>
+                      </div>
                     </div>
-                    <button className="claim-btn">Claim Now →</button>
-                  </div>
+                  ))}
                 </div>
-              ))}
+
+                <button className="offer-nav-btn next" onClick={nextOffer}>›</button>
+              </div>
+
+              <div className="offer-indicators">
+                {offers.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`offer-indicator ${index === currentOffer ? "active" : ""}`}
+                    onClick={() => setCurrentOffer(index)}
+                  />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div style={{ textAlign: "center", padding: "40px", color: "#999" }}>
+              <p>No offers available at the moment</p>
             </div>
+          )}
+        </div>
+      </section>
 
-            <button className="offer-nav-btn next" onClick={nextOffer}>›</button>
-          </div>
+      {/* REVIEWS SECTION */}
+      <section className="reviews-section">
+        <h2 className="reviews-title">⭐ What Customers Say</h2>
 
-          <div className="offer-indicators">
-            {offers.map((_, index) => (
-              <button
-                key={index}
-                className={`offer-indicator ${index === currentOffer ? "active" : ""}`}
-                onClick={() => setCurrentOffer(index)}
-              />
+        <div className="reviews-slider">
+          <div className="reviews-track">
+            {[
+              {
+                name: "Akash R",
+                review: "Best burgers in Hyderabad. Super juicy and fresh!",
+                rating: "⭐⭐⭐⭐⭐"
+              },
+              {
+                name: "Sneha K",
+                review: "Loved the wraps. Packaging & taste both top notch.",
+                rating: "⭐⭐⭐⭐⭐"
+              },
+              {
+                name: "Rahul M",
+                review: "Fast delivery and premium quality food!",
+                rating: "⭐⭐⭐⭐"
+              },
+              {
+                name: "Priya S",
+                review: "Black & gold vibe + amazing food. 10/10.",
+                rating: "⭐⭐⭐⭐⭐"
+              },
+
+              /* DUPLICATE FOR SMOOTH INFINITE SCROLL */
+              {
+                name: "Akash R",
+                review: "Best burgers in Hyderabad. Super juicy and fresh!",
+                rating: "⭐⭐⭐⭐⭐"
+              },
+              {
+                name: "Sneha K",
+                review: "Loved the wraps. Packaging & taste both top notch.",
+                rating: "⭐⭐⭐⭐⭐"
+              },
+              {
+                name: "Rahul M",
+                review: "Fast delivery and premium quality food!",
+                rating: "⭐⭐⭐⭐"
+              },
+              {
+                name: "Priya S",
+                review: "Black & gold vibe + amazing food. 10/10.",
+                rating: "⭐⭐⭐⭐⭐"
+              }
+            ].map((item, index) => (
+              <div key={index} className="review-card">
+                <p className="review-text">"{item.review}"</p>
+                <div className="review-footer">
+                  <span className="review-name">{item.name}</span>
+                  <span className="review-rating">{item.rating}</span>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
-{/* REVIEWS SECTION */}
-<section className="reviews-section">
-  <h2 className="reviews-title">⭐ What Customers Say</h2>
 
-  <div className="reviews-slider">
-    <div className="reviews-track">
-      {[
-        {
-          name: "Akash R",
-          review: "Best burgers in Hyderabad. Super juicy and fresh!",
-          rating: "⭐⭐⭐⭐⭐"
-        },
-        {
-          name: "Sneha K",
-          review: "Loved the wraps. Packaging & taste both top notch.",
-          rating: "⭐⭐⭐⭐⭐"
-        },
-        {
-          name: "Rahul M",
-          review: "Fast delivery and premium quality food!",
-          rating: "⭐⭐⭐⭐"
-        },
-        {
-          name: "Priya S",
-          review: "Black & gold vibe + amazing food. 10/10.",
-          rating: "⭐⭐⭐⭐⭐"
-        },
-
-        /* DUPLICATE FOR SMOOTH INFINITE SCROLL */
-        {
-          name: "Akash R",
-          review: "Best burgers in Hyderabad. Super juicy and fresh!",
-          rating: "⭐⭐⭐⭐⭐"
-        },
-        {
-          name: "Sneha K",
-          review: "Loved the wraps. Packaging & taste both top notch.",
-          rating: "⭐⭐⭐⭐⭐"
-        },
-        {
-          name: "Rahul M",
-          review: "Fast delivery and premium quality food!",
-          rating: "⭐⭐⭐⭐"
-        },
-        {
-          name: "Priya S",
-          review: "Black & gold vibe + amazing food. 10/10.",
-          rating: "⭐⭐⭐⭐⭐"
-        }
-      ].map((item, index) => (
-        <div key={index} className="review-card">
-          <p className="review-text">“{item.review}”</p>
-          <div className="review-footer">
-            <span className="review-name">{item.name}</span>
-            <span className="review-rating">{item.rating}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-</section>
-
-      {/* ⭐⭐⭐ UPDATED BRAND SECTION ⭐⭐⭐ */}
+      {/* BRAND SECTION */}
       <section className="brands-section">
         <div className="brands-container">
           <h2 className="brands-title">Discover Our Brands</h2>
