@@ -67,6 +67,8 @@
   align-items: center;
   justify-content: space-between;
   min-height: 64px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 /* ============================================
@@ -84,6 +86,7 @@
   text-decoration: none;
   letter-spacing: -1px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .logo:hover {
@@ -99,6 +102,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 250px;
 }
 
 .location-section {
@@ -126,6 +130,7 @@
   font-size: 20px;
   color: var(--accent-red);
   font-weight: 700;
+  flex-shrink: 0;
 }
 
 .location-section p {
@@ -144,6 +149,7 @@
   display: flex;
   align-items: center;
   gap: 24px;
+  flex-shrink: 0;
 }
 
 /* ============================================
@@ -165,6 +171,7 @@
   font-family: var(--font-primary);
   letter-spacing: -0.2px;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-links a::after {
@@ -204,6 +211,7 @@
   box-shadow: 0 6px 16px rgba(252, 128, 25, 0.3);
   letter-spacing: -0.2px;
   font-size: 15px;
+  flex-shrink: 0;
 }
 
 .btn-cart:hover {
@@ -222,6 +230,7 @@
 .auth-buttons {
   display: flex;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .btn-login {
@@ -236,6 +245,7 @@
   transition: all 0.3s ease;
   font-size: 14px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 .btn-login:hover {
@@ -257,6 +267,7 @@
   box-shadow: 0 6px 16px rgba(226, 55, 68, 0.3);
   font-size: 14px;
   letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 .btn-signup:hover {
@@ -275,6 +286,7 @@
 .profile-dropdown-container {
   position: relative;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .user-section {
@@ -305,6 +317,7 @@
   box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
   transition: all 0.3s ease;
   font-family: var(--font-secondary);
+  flex-shrink: 0;
 }
 
 .user-section:hover .user-icon {
@@ -393,16 +406,117 @@
 }
 
 /* ============================================
+   USER PROFILE BUTTON
+   ============================================ */
+
+.user-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.user-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.user-profile-btn:active {
+  transform: scale(0.98);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.user-greeting {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================
+   NEW BADGE STYLING
+   ============================================ */
+
+.new-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #e23744 0%, #cf2533 100%);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  margin-left: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(226, 55, 68, 0.3);
+  animation: badgePulse 2s ease-in-out infinite;
+  vertical-align: super;
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(226, 55, 68, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(226, 55, 68, 0.5);
+  }
+}
+
+.nav-links a:hover .new-badge {
+  box-shadow: 0 6px 16px rgba(226, 55, 68, 0.5);
+  animation: badgeGlow 0.6s ease;
+}
+
+@keyframes badgeGlow {
+  0% {
+    box-shadow: 0 6px 16px rgba(226, 55, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(226, 55, 68, 0.6);
+  }
+  100% {
+    box-shadow: 0 6px 16px rgba(226, 55, 68, 0.5);
+  }
+}
+
+/* ============================================
    RESPONSIVE DESIGN
    ============================================ */
 
 @media (max-width: 1024px) {
   .navbar-container {
-    gap: 16px;
+    gap: 12px;
+    padding: 0 20px;
   }
 
   .nav-links {
-    gap: 18px;
+    gap: 16px;
   }
 
   .navbar-right {
@@ -420,112 +534,196 @@
 
 @media (max-width: 768px) {
   .navbar {
-    padding: 10px 0;
+    padding: 8px 0;
   }
 
   .navbar-container {
     min-height: 56px;
-    padding: 0 16px;
+    padding: 0 12px;
+    gap: 8px;
+    justify-content: flex-start;
   }
 
   .logo {
     font-size: 24px;
+    flex: 0 0 auto;
+  }
+
+  .navbar-center {
+    flex: 1;
+    min-width: auto;
+    justify-content: flex-start;
   }
 
   .location-section {
     min-width: auto;
-    padding: 10px 14px;
-    font-size: 13px;
+    padding: 9px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .location-icon {
+    font-size: 16px;
+  }
+
+  .location-section p {
+    font-size: 12px;
   }
 
   .nav-links {
-    gap: 14px;
+    gap: 12px;
+    display: flex;
   }
 
   .nav-links a {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .navbar-right {
-    gap: 12px;
+    gap: 8px;
+    min-width: auto;
   }
 
   .btn-cart,
   .btn-login,
   .btn-signup {
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-
-  .user-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-
-  .user-name {
-    display: none;
-  }
-
-  .profile-dropdown {
-    top: 50px;
-    right: -10px;
-    width: 200px;
-  }
-}
-
-@media (max-width: 480px) {
-  .navbar-center {
-    display: none;
-  }
-
-  .navbar-container {
-    justify-content: space-between;
-    min-height: 50px;
-  }
-
-  .logo {
-    font-size: 22px;
-  }
-
-  .navbar-right {
-    gap: 10px;
-  }
-
-  .nav-links {
-    gap: 10px;
-    display: none;
-  }
-
-  .btn-cart {
     padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .auth-buttons {
-    gap: 8px;
-  }
-
-  .btn-login,
-  .btn-signup {
-    padding: 7px 12px;
     font-size: 12px;
   }
 
   .user-icon {
     width: 32px;
     height: 32px;
-    font-size: 12px;
+    font-size: 13px;
+  }
+
+  .user-name {
+    display: none;
+  }
+
+  .user-profile-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .user-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .user-greeting {
+    display: none;
   }
 
   .profile-dropdown {
-    top: 48px;
-    right: 0;
+    top: 44px;
+    right: -10px;
     width: 180px;
   }
 
+  .new-badge {
+    padding: 1px 5px;
+    font-size: 8px;
+    margin-left: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-container {
+    min-height: 50px;
+    padding: 0 10px;
+    gap: 6px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .navbar-center {
+    width: 100%;
+    order: 3;
+    margin-top: 8px;
+    justify-content: center;
+  }
+
+  .location-section {
+    min-width: auto;
+    padding: 8px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+  }
+
+  .location-icon {
+    font-size: 14px;
+  }
+
+  .location-section p {
+    font-size: 11px;
+  }
+
+  .nav-links {
+    gap: 8px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+  }
+
+  .navbar-right {
+    gap: 6px;
+    order: 2;
+  }
+
+  .btn-cart {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .auth-buttons {
+    gap: 6px;
+  }
+
+  .btn-login,
+  .btn-signup {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .user-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .user-profile-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+
+  .user-avatar {
+    width: 20px;
+    height: 20px;
+    font-size: 9px;
+  }
+
+  .profile-dropdown {
+    top: 40px;
+    right: -5px;
+    width: 160px;
+  }
+
   .profile-dropdown > * {
-    padding: 12px 14px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .new-badge {
+    padding: 1px 4px;
+    font-size: 7px;
+    margin-left: 2px;
   }
 }

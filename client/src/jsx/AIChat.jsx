@@ -38,17 +38,14 @@ export default function AIChat() {
     scrollToBottom();
   }, [messages]);
 
-  // ⭐ MONITOR CART CHANGES AND GET AI SUGGESTIONS
+  // Monitor cart changes and get AI suggestions
   useEffect(() => {
     const currentCartState = JSON.stringify(cart);
     
     if (currentCartState !== lastCartStateRef.current) {
       lastCartStateRef.current = currentCartState;
-
-      // Update global context with cart
       updateGlobalContext();
 
-      // Only suggest if cart has 2+ items and 5 seconds have passed
       if (cart.length >= 2) {
         const now = Date.now();
         if (now - lastSuggestionTimeRef.current > 5000) {
@@ -59,7 +56,7 @@ export default function AIChat() {
     }
   }, [cart]);
 
-  // Update global user context
+  // Update cart on backend
   const updateGlobalContext = async () => {
     try {
       await fetch('http://localhost:5001/api/ai/update-cart', {
@@ -75,6 +72,7 @@ export default function AIChat() {
     }
   };
 
+  // Get combo suggestions
   const suggestComboForCart = async (items) => {
     if (items.length < 2) return;
 
@@ -82,23 +80,11 @@ export default function AIChat() {
     try {
       const itemNames = items.map(item => `${item.name} (${item.qty}x)`).join(', ');
       const totalPrice = items.reduce((sum, item) => sum + (item.price * item.qty), 0);
-      const restaurants = [...new Set(items.map(item => item.restaurant || 'Unknown'))];
 
-      const prompt = `You are BlueBLISS AI assistant. A customer has these items in their cart:
-${items.map(item => `- ${item.name} x${item.qty} (₹${item.price} each) from ${item.restaurant || 'Unknown'}`).join('\n')}
+      const prompt = `Customer has: ${itemNames}
+Cart total: ₹${totalPrice}
 
-Current cart total: ₹${totalPrice}
-Restaurants: ${restaurants.join(', ')}
-
-Based on their selections, provide ONE smart combo suggestion to save money. Be friendly and brief (1-2 sentences max).
-
-COMBO SUGGESTIONS EXAMPLES:
-- "Great! You've got pizza + burger + shake - that's our 'Triple Delight Feast' combo! Save ₹157!"
-- "Love mixing Peppanizze pizza with Urbanwrap wraps? Our 'Burger & Wrap Duo' saves ₹177!"
-- "Perfect spicy combo starter! Our 'Spicy Fire Bundle' includes peri peri items and saves ₹196!"
-
-If they're mixing restaurants well, mention how they can save even more with a combo deal.
-IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine and helpful!`;
+Suggest ONE money-saving combo deal (1-2 sentences). Be enthusiastic and mention savings.`;
 
       const response = await fetch('http://localhost:5001/api/ai/chat', {
         method: 'POST',
@@ -128,6 +114,7 @@ IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine
     }
   };
 
+  // Send user message
   const sendMessage = async (e) => {
     e.preventDefault();
 
@@ -178,7 +165,7 @@ IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine
     } catch (error) {
       const errorMessage = {
         id: messages.length + 2,
-        text: `Failed to connect to AI. Make sure the server is running on http://localhost:5001`,
+        text: `Failed to connect. Make sure the server is running on http://localhost:5001`,
         sender: 'ai',
         timestamp: new Date(),
       };
@@ -202,7 +189,7 @@ IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine
 
   return (
     <>
-      {/* Premium Chat Button */}
+      {/* Chat Button */}
       <button
         className="premium-ai-button"
         onClick={() => setIsOpen(!isOpen)}
@@ -213,7 +200,7 @@ IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine
         <span className="ai-icon-animated">✨</span>
       </button>
 
-      {/* Premium Chat Modal */}
+      {/* Chat Modal */}
       {isOpen && (
         <div className="premium-ai-modal">
           {/* Header */}
@@ -275,7 +262,7 @@ IMPORTANT: Only suggest if items actually match a real combo concept. Be genuine
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage(e)}
-              placeholder="Ask about dishes..."
+              placeholder="Ask about dishes, combos, or recommendations..."
               className="premium-ai-input"
               disabled={isLoading}
             />

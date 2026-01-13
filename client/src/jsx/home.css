@@ -121,7 +121,7 @@ body {
   justify-content: center;
   text-align: center;
   color: var(--white);
-  padding: 0 20px;
+  padding: 40px 20px;
 }
 
 .hero-content h2 {
@@ -181,7 +181,8 @@ body {
 .transparent-search {
   width: 100%;
   max-width: 750px;
-  margin-bottom: 35px;
+  margin: 0 auto 35px;
+  padding: 0 15px;
   animation: fadeInUp 1s ease 0.4s backwards;
 }
 
@@ -223,6 +224,7 @@ body {
   color: rgba(212, 175, 55, 0.9);
   font-size: 22px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .transparent-search .search-input-wrapper:focus-within .search-icon {
@@ -237,6 +239,7 @@ body {
   font-size: 20px;
   padding: 0 12px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .transparent-search .clear-btn:hover {
@@ -309,6 +312,7 @@ body {
 .indicator:hover {
   background: rgba(212, 175, 55, 0.7);
 }
+
 /* ============================================
    CATEGORIES SECTION – HORIZONTAL SLIDER
    ============================================ */
@@ -335,14 +339,13 @@ body {
   text-align: center;
 }
 
-/* 🔥 SLIDER WRAPPER */
 .categories-slider-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-/* 🔥 HORIZONTAL SLIDER */
 .categories-slider {
   display: flex;
   gap: 40px;
@@ -350,13 +353,13 @@ body {
   scroll-behavior: smooth;
   padding: 20px 10px;
   scrollbar-width: none;
+  flex: 1;
 }
 
 .categories-slider::-webkit-scrollbar {
   display: none;
 }
 
-/* NAV BUTTONS */
 .cat-nav-btn {
   background: rgba(212, 175, 55, 0.15);
   border: 1px solid rgba(212, 175, 55, 0.35);
@@ -367,6 +370,10 @@ body {
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cat-nav-btn:hover {
@@ -374,15 +381,6 @@ body {
   color: black;
 }
 
-.cat-nav-btn.left {
-  margin-right: 10px;
-}
-
-.cat-nav-btn.right {
-  margin-left: 10px;
-}
-
-/* CATEGORY ITEM */
 .category-circle {
   min-width: 160px;
   display: flex;
@@ -397,7 +395,6 @@ body {
   transform: scale(1.1);
 }
 
-/* ⭐ UPDATED CATEGORY ICON WITH IMAGE SUPPORT */
 .category-icon {
   width: 140px;
   height: 140px;
@@ -436,45 +433,13 @@ body {
   color: var(--gold-light);
 }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .category-icon {
-    width: 120px;
-    height: 120px;
-    font-size: 56px;
-  }
-
-  .category-name {
-    font-size: 16px;
-  }
-
-  .categories-title {
-    font-size: 40px;
-  }
-}
-
-@media (max-width: 480px) {
-  .category-icon {
-    width: 100px;
-    height: 100px;
-    font-size: 48px;
-  }
-
-  .category-name {
-    font-size: 14px;
-  }
-
-  .categories-slider {
-    gap: 30px;
-  }
-}
 /* ============================================
-   OFFERS SLIDER SECTION — FIXED BIG CARD
+   OFFERS SLIDER SECTION — MOBILE OPTIMIZED
    ============================================ */
 
 .offers-section {
   background: linear-gradient(135deg, var(--black-primary) 0%, var(--gray-dark) 100%);
-  padding: 70px 20px; /* SAME */
+  padding: 70px 20px;
   position: relative;
   overflow: hidden;
 }
@@ -483,8 +448,6 @@ body {
   max-width: 1200px;
   margin: 0 auto;
 }
-
-/* TITLE */
 
 .offers-title {
   font-family: var(--font-secondary);
@@ -504,8 +467,6 @@ body {
   margin-bottom: 40px;
 }
 
-/* SLIDER */
-
 .offers-slider {
   display: flex;
   align-items: center;
@@ -515,24 +476,20 @@ body {
 .offer-track {
   flex: 1;
   position: relative;
-  height: 260px; /* 🔥 slightly taller track */
+  height: 260px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* =====================
-   🔥 BIGGER OFFER CARD
-   ===================== */
-
 .offer-card {
   position: absolute;
   width: 100%;
-  max-width: 680px;     /* 🔥 BIGGER WIDTH */
-  height: 240px;        /* 🔥 BIGGER HEIGHT */
+  max-width: 680px;
+  height: 240px;
   left: 50%;
-  margin-left: -340px;  /* half of width */
+  margin-left: -340px;
   border-radius: 28px;
   background-size: cover;
   background-position: center;
@@ -550,10 +507,6 @@ body {
   z-index: 2;
 }
 
-/* =====================
-   🔥 BIGGER OVERLAY
-   ===================== */
-
 .offer-overlay {
   position: absolute;
   inset: 0;
@@ -562,7 +515,7 @@ body {
     rgba(212,175,55,0.85),
     rgba(0,0,0,0.92)
   );
-  padding: 42px 48px; /* 🔥 MORE SPACE */
+  padding: 42px 48px;
   display: flex;
   align-items: center;
   transition: transform 0.6s ease;
@@ -571,8 +524,6 @@ body {
 .offer-card:hover .offer-overlay {
   transform: translateY(-6px);
 }
-
-/* CONTENT */
 
 .offer-content {
   display: flex;
@@ -587,8 +538,6 @@ body {
   opacity: 1;
 }
 
-/* TEXT SCALE FIX */
-
 .offer-badge {
   background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
   color: var(--black-primary);
@@ -602,7 +551,7 @@ body {
 
 .offer-title {
   font-family: var(--font-secondary);
-  font-size: 34px; /* 🔥 BIGGER */
+  font-size: 34px;
   font-weight: 700;
   margin-bottom: 12px;
   line-height: 1.2;
@@ -623,6 +572,7 @@ body {
   border-radius: 12px;
   border: 1px dashed rgba(212,175,55,0.6);
   margin-bottom: 18px;
+  flex-wrap: wrap;
 }
 
 .offer-code span {
@@ -635,8 +585,6 @@ body {
   color: var(--gold-light);
 }
 
-/* CTA */
-
 .claim-btn {
   background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
   color: var(--black-primary);
@@ -647,14 +595,13 @@ body {
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
 }
 
 .claim-btn:hover {
   transform: translateX(6px);
   box-shadow: 0 8px 24px rgba(212,175,55,0.45);
 }
-
-/* NAV BUTTONS */
 
 .offer-nav-btn {
   width: 54px;
@@ -666,6 +613,10 @@ body {
   font-size: 28px;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .offer-nav-btn:hover {
@@ -673,13 +624,12 @@ body {
   transform: scale(1.15);
 }
 
-/* DOTS */
-
 .offer-indicators {
   margin-top: 32px;
   display: flex;
   justify-content: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .offer-indicator {
@@ -696,8 +646,6 @@ body {
   border-radius: 6px;
   background: var(--gold-light);
 }
-
-/* TEXT ENTRANCE */
 
 @keyframes offerTextIn {
   from {
@@ -902,6 +850,7 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   font-family: var(--font-primary);
   letter-spacing: -0.2px;
+  white-space: nowrap;
 }
 
 .zomato-btn {
@@ -932,208 +881,6 @@ body {
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-@media (max-width: 1024px) {
-  .brands-grid {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 28px;
-  }
-
-  .categories-grid {
-    gap: 35px;
-  }
-
-  .offer-track {
-    height: 320px;
-  }
-
-  .offer-card {
-    height: 280px;
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-slider {
-    height: 520px;
-  }
-
-  .hero-content h2 {
-    font-size: 44px;
-  }
-
-  .hero-content p {
-    font-size: 19px;
-  }
-
-  .categories-title,
-  .offers-title,
-  .brands-title,
-  .delivery-links h2 {
-    font-size: 40px;
-  }
-
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-  }
-
-  .category-icon {
-    width: 150px;
-    height: 150px;
-    font-size: 64px;
-  }
-
-  .offer-nav-btn {
-    display: none;
-  }
-
-  .offer-track {
-    height: 340px;
-  }
-
-  .offer-card {
-    height: 300px;
-  }
-
-  .offer-title {
-    font-size: 32px;
-  }
-
-  .brands-section {
-    padding: 100px 15px;
-  }
-
-  .brand-card {
-    min-height: 260px;
-  }
-
-  .brand-icon {
-    font-size: 52px;
-  }
-
-  .brand-name {
-    font-size: 26px;
-  }
-
-  .delivery-buttons {
-    gap: 20px;
-  }
-
-  .zomato-btn,
-  .swiggy-btn {
-    padding: 16px 32px;
-    font-size: 15px;
-  }
-
-  .categories-section,
-  .offers-section,
-  .delivery-links {
-    padding: 80px 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero-slider {
-    height: 450px;
-  }
-
-  .hero-content h2 {
-    font-size: 36px;
-  }
-
-  .hero-content p {
-    font-size: 17px;
-    margin-bottom: 30px;
-  }
-
-  .explore-btn {
-    padding: 14px 32px;
-    font-size: 16px;
-  }
-
-  .categories-section,
-  .offers-section,
-  .delivery-links {
-    padding: 60px 15px;
-  }
-
-  .categories-title,
-  .offers-title,
-  .brands-title,
-  .delivery-links h2 {
-    font-size: 32px;
-    margin-bottom: 25px;
-  }
-
-  .categories-grid {
-    grid-template-columns: 1fr;
-    gap: 25px;
-  }
-
-  .category-icon {
-    width: 130px;
-    height: 130px;
-    font-size: 56px;
-  }
-
-  .category-name {
-    font-size: 16px;
-  }
-
-  .offer-track {
-    height: 360px;
-  }
-
-  .offer-card {
-    height: 330px;
-  }
-
-  .offer-content {
-    padding: 30px;
-  }
-
-  .offer-title {
-    font-size: 26px;
-  }
-
-  .offer-description {
-    font-size: 15px;
-  }
-
-  .brands-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .brand-card {
-    min-height: 240px;
-  }
-
-  .brand-name {
-    font-size: 22px;
-  }
-
-  .slide-indicators,
-  .offer-indicators {
-    bottom: 15px;
-  }
-
-  .delivery-buttons {
-    flex-direction: column;
-    gap: 15px;
-    padding: 0 20px;
-  }
-
-  .zomato-btn,
-  .swiggy-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 24px;
-  }
-}
-/* ============================================
    REVIEWS AUTO SLIDER – PREMIUM BLACK & GOLD
    ============================================ */
 
@@ -1154,14 +901,12 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* VIEWPORT */
 .reviews-slider {
   width: 100%;
   overflow: hidden;
   position: relative;
 }
 
-/* MOVING TRACK */
 .reviews-track {
   display: flex;
   gap: 28px;
@@ -1169,7 +914,6 @@ body {
   animation: reviewScroll 28s linear infinite;
 }
 
-/* CARD */
 .review-card {
   min-width: 320px;
   max-width: 320px;
@@ -1190,7 +934,6 @@ body {
   box-shadow: 0 20px 60px rgba(212, 175, 55, 0.35);
 }
 
-/* TEXT */
 .review-text {
   font-size: 15px;
   color: rgba(255, 255, 255, 0.88);
@@ -1198,7 +941,6 @@ body {
   line-height: 1.7;
 }
 
-/* FOOTER */
 .review-footer {
   display: flex;
   justify-content: space-between;
@@ -1217,7 +959,6 @@ body {
   color: #ffd700;
 }
 
-/* AUTO SCROLL */
 @keyframes reviewScroll {
   from {
     transform: translateX(0);
@@ -1227,15 +968,174 @@ body {
   }
 }
 
-/* PAUSE ON HOVER */
 .reviews-slider:hover .reviews-track {
   animation-play-state: paused;
 }
 
-/* RESPONSIVE */
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .brands-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 28px;
+  }
+
+  .offer-track {
+    height: 320px;
+  }
+
+  .offer-card {
+    height: 280px;
+  }
+}
+
 @media (max-width: 768px) {
+  .hero-slider {
+    height: 520px;
+  }
+
+  .hero-content {
+    padding: 30px 15px;
+  }
+
+  .hero-content h2 {
+    font-size: 44px;
+    margin-bottom: 15px;
+  }
+
+  .hero-content p {
+    font-size: 19px;
+    margin-bottom: 30px;
+  }
+
+  .transparent-search {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .explore-btn {
+    padding: 14px 35px;
+    font-size: 16px;
+  }
+
+  .categories-title,
+  .offers-title,
+  .brands-title,
+  .delivery-links h2,
   .reviews-title {
-    font-size: 34px;
+    font-size: 40px;
+  }
+
+  .categories-slider-wrapper {
+    gap: 10px;
+  }
+
+  .cat-nav-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+  }
+
+  .category-icon {
+    width: 120px;
+    height: 120px;
+    font-size: 56px;
+  }
+
+  .category-name {
+    font-size: 16px;
+  }
+
+  .offer-nav-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 24px;
+  }
+
+  .offer-track {
+    height: 340px;
+  }
+
+  .offer-card {
+    height: 300px;
+    max-width: 100%;
+    margin-left: 0;
+    left: 0;
+  }
+
+  .offer-overlay {
+    padding: 30px 35px;
+  }
+
+  .offer-title {
+    font-size: 28px;
+  }
+
+  .offer-description {
+    font-size: 15px;
+  }
+
+  .offer-code {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  .offer-code strong {
+    font-size: 16px;
+  }
+
+  .claim-btn {
+    padding: 10px 24px;
+    font-size: 13px;
+  }
+
+  .brands-section,
+  .delivery-links {
+    padding: 100px 15px;
+  }
+
+  .brands-subtitle,
+  .delivery-links p {
+    font-size: 15px;
+  }
+
+  .brand-card {
+    min-height: 260px;
+  }
+
+  .brand-icon {
+    font-size: 52px;
+  }
+
+  .brand-name {
+    font-size: 26px;
+  }
+
+  .delivery-buttons {
+    gap: 16px;
+  }
+
+  .zomato-btn,
+  .swiggy-btn {
+    padding: 14px 28px;
+    font-size: 14px;
+    gap: 12px;
+  }
+
+  .zomato-btn img,
+  .swiggy-btn img {
+    height: 24px;
+  }
+
+  .categories-section,
+  .offers-section {
+    padding: 80px 15px;
+  }
+
+  .reviews-section {
+    padding: 60px 15px;
   }
 
   .review-card {
@@ -1246,5 +1146,250 @@ body {
 
   .reviews-track {
     animation-duration: 34s;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-slider {
+    height: 450px;
+  }
+
+  .hero-content {
+    padding: 25px 12px;
+  }
+
+  .hero-content h2 {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .hero-content p {
+    font-size: 16px;
+    margin-bottom: 25px;
+  }
+
+  .slide-indicators {
+    gap: 10px;
+    bottom: 20px;
+  }
+
+  .indicator {
+    width: 10px;
+    height: 10px;
+  }
+
+  .indicator.active {
+    width: 28px;
+  }
+
+  .explore-btn {
+    padding: 12px 28px;
+    font-size: 14px;
+  }
+
+  .categories-section,
+  .offers-section,
+  .delivery-links {
+    padding: 50px 12px;
+  }
+
+  .categories-title,
+  .offers-title,
+  .brands-title,
+  .delivery-links h2,
+  .reviews-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+
+  .categories-slider-wrapper {
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cat-nav-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    display: none;
+  }
+
+  .categories-slider {
+    gap: 25px;
+    padding: 15px 5px;
+  }
+
+  .category-icon {
+    width: 100px;
+    height: 100px;
+    font-size: 48px;
+  }
+
+  .category-name {
+    font-size: 14px;
+  }
+
+  .offers-container {
+    width: 100%;
+  }
+
+  .offers-slider {
+    gap: 10px;
+    flex-direction: column;
+  }
+
+  .offer-nav-btn {
+    display: none;
+  }
+
+  .offer-track {
+    height: 280px;
+    width: 100%;
+    position: relative;
+  }
+
+  .offer-card {
+    position: relative !important;
+    width: 100% !important;
+    height: 260px;
+    max-width: 100% !important;
+    margin: 0 !important;
+    left: 0 !important;
+    opacity: 1 !important;
+    transform: none !important;
+    border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.4);
+  }
+
+  .offer-card.active {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .offer-overlay {
+    padding: 20px 16px;
+    min-height: 260px;
+    justify-content: center;
+  }
+
+  .offer-content {
+    opacity: 1 !important;
+    animation: none;
+  }
+
+  .offer-badge {
+    font-size: 10px;
+    padding: 5px 14px;
+  }
+
+  .offer-title {
+    font-size: 22px;
+  }
+
+  .offer-description {
+    font-size: 14px;
+  }
+
+  .offer-code {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .offer-code strong {
+    font-size: 14px;
+    letter-spacing: 1px;
+  }
+
+  .claim-btn {
+    padding: 8px 20px;
+    font-size: 12px;
+  }
+
+  .offer-indicators {
+    gap: 8px;
+  }
+
+  .offer-indicator {
+    width: 8px;
+    height: 8px;
+  }
+
+  .offer-indicator.active {
+    width: 24px;
+  }
+
+  .brands-section {
+    padding: 50px 12px;
+  }
+
+  .brands-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .brand-card {
+    min-height: 240px;
+  }
+
+  .brand-overlay {
+    padding: 25px;
+  }
+
+  .brand-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .brand-name {
+    font-size: 20px;
+  }
+
+  .brand-tagline {
+    font-size: 13px;
+  }
+
+  .delivery-buttons {
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 10px;
+  }
+
+  .zomato-btn,
+  .swiggy-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  .zomato-btn img,
+  .swiggy-btn img {
+    height: 20px;
+  }
+
+  .reviews-section {
+    padding: 50px 12px;
+  }
+
+  .review-card {
+    min-width: 260px;
+    max-width: 260px;
+    padding: 18px;
+  }
+
+  .review-text {
+    font-size: 13px;
+    margin-bottom: 15px;
+  }
+
+  .review-name,
+  .review-rating {
+    font-size: 12px;
+  }
+
+  .reviews-track {
+    gap: 20px;
+    animation-duration: 40s;
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./AdminDashboard.css";
 
 export default function AdminDashboard() {
@@ -40,28 +40,94 @@ export default function AdminDashboard() {
     return () => unsub();
   }, []);
 
-  // Menu items for grid
+  // 🔥 MAIN MENU (UPDATED)
   const mainMenu = [
-    { id: 1, icon: "📋", title: "Orders", subtitle: "Manage Orders", link: "/admin/orders", count: stats.newOrders },
-    { id: 2, icon: "🕐", title: "Online Orders", subtitle: "Online Delivery", link: "/admin/orders", count: 0 },
-    { id: 3, icon: "📋", title: "KOTs", subtitle: "Kitchen Tickets", link: "/admin/orders", count: 0 },
-    { id: 4, icon: "💳", title: "Cash Flow", subtitle: "Payment Tracking", link: "/admin/sales", count: 0 },
-    { id: 5, icon: "📊", title: "Reports", subtitle: "Sales & Analytics", link: "/admin/sales", count: 0 },
-    { id: 6, icon: "📊", title: "Expense", subtitle: "Expense Tracking", link: "/admin/sales", count: 0 },
-    { id: 7, icon: "💰", title: "Withdrawal", subtitle: "Fund Management", link: "/admin/sales", count: 0 },
-    { id: 8, icon: "📦", title: "Inventory", subtitle: "Stock Management", link: "/admin/settings", count: 0 },
+    {
+      id: 1,
+      icon: "📋",
+      title: "Orders",
+      subtitle: "Manage Orders",
+      link: "/admin/orders",
+      count: stats.newOrders
+    },
+    {
+      id: 2,
+      icon: "🕐",
+      title: "Online Orders",
+      subtitle: "Online Delivery",
+      link: "/admin/orders",
+      count: 0
+    },
+    {
+      id: 3,
+      icon: "📋",
+      title: "KOTs",
+      subtitle: "Kitchen Tickets",
+      link: "/admin/orders",
+      count: 0
+    },
+    {
+      id: 4,
+      icon: "💳",
+      title: "Cash Flow",
+      subtitle: "Payment Tracking",
+      link: "/admin/sales",
+      count: 0
+    },
+    {
+      id: 5,
+      icon: "📊",
+      title: "Reports",
+      subtitle: "Sales & Analytics",
+      link: "/admin/sales",
+      count: 0
+    },
+    {
+      id: 6,
+      icon: "📊",
+      title: "Expense",
+      subtitle: "Expense Tracking",
+      link: "/admin/sales",
+      count: 0
+    },
+    {
+      id: 7,
+      icon: "💰",
+      title: "Withdrawal",
+      subtitle: "Fund Management",
+      link: "/admin/sales",
+      count: 0
+    },
+    {
+      id: 8,
+      icon: "📦",
+      title: "Stock Management",
+      subtitle: "Manage Inventory",
+      link: "/admin/stock",
+      count: 0
+    },
+
+    // ✅ NEW INGREDIENTS TILE
+    {
+      id: 9,
+      icon: "🧂",
+      title: "Ingredients",
+      subtitle: "Manage Raw Stock",
+      link: "/admin/ingredients",
+      count: 0
+    }
   ];
 
   const configMenu = [
-    { id: 9, icon: "🍽️", title: "Menu", subtitle: "Manage Menu Items", link: "/admin/settings", count: 0 },
-    { id: 10, icon: "🖨️", title: "Bill / KOT Print", subtitle: "Printer Settings", link: "/admin/settings", count: 0 },
-    { id: 11, icon: "📋", title: "Tax", subtitle: "Tax Configuration", link: "/admin/settings", count: 0 },
-    { id: 12, icon: "⚙️", title: "Settings", subtitle: "System Settings", link: "/admin/settings", count: 0 },
-    { id: 13, icon: "🎁", title: "Offers", subtitle: "Manage Promotions", link: "/admin/offers", count: 0 },
-    { id: 14, icon: "🎁", title: "Discount", subtitle: "Manage Discounts", link: "/admin/settings", count: 0 },
-    { id: 15, icon: "🖼️", title: "Billing Screen", subtitle: "Display Settings", link: "/admin/settings", count: 0 },
-    { id: 16, icon: "⚙️", title: "Advanced Settings", subtitle: "System Config", link: "/admin/settings", count: 0 },
-    { id: 17, icon: "🔔", title: "Notification", subtitle: "Alert Settings", link: "/admin/settings", count: 0 },
+    { id: 10, icon: "🍽️", title: "Menu", subtitle: "Manage Menu Items", link: "/admin/settings" },
+    { id: 11, icon: "🖨️", title: "Bill / KOT Print", subtitle: "Printer Settings", link: "/admin/settings" },
+    { id: 12, icon: "📋", title: "Tax", subtitle: "Tax Configuration", link: "/admin/settings" },
+    { id: 13, icon: "⚙️", title: "Settings", subtitle: "System Settings", link: "/admin/settings" },
+    { id: 14, icon: "🎁", title: "Offers", subtitle: "Manage Promotions", link: "/admin/offers" },
+    { id: 15, icon: "🎁", title: "Discount", subtitle: "Manage Discounts", link: "/admin/settings" },
+    { id: 16, icon: "🖼️", title: "Billing Screen", subtitle: "Display Settings", link: "/admin/settings" },
+    { id: 17, icon: "⚙️", title: "Advanced Settings", subtitle: "System Config", link: "/admin/settings" },
+    { id: 18, icon: "🔔", title: "Notification", subtitle: "Alert Settings", link: "/admin/settings" },
   ];
 
   const handleMenuClick = (link) => {

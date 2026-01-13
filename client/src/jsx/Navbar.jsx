@@ -12,7 +12,6 @@ function Navbar() {
   const [userLocation, setUserLocation] = useState("Detecting...");
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   const auth = getAuth();
   const currentRoute = useLocation().pathname;
@@ -144,6 +143,7 @@ function Navbar() {
                   title="Create your own combo!"
                 >
                   🍕 Combo Builder
+                  <span className="new-badge">NEW</span>
                 </Link>
               </li>
 
@@ -190,37 +190,17 @@ function Navbar() {
                   </button>
                 </>
               ) : (
-                <div className="profile-dropdown-container">
-                  <div
-                    className="user-section"
-                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                  >
-                    <span className="user-name">
-                      Hi, {user.email.split("@")[0]}
-                    </span>
-
-                    <div className="user-icon">
-                      {user.email.charAt(0).toUpperCase()}
-                    </div>
+                <div 
+                  className="user-profile-btn"
+                  onClick={() => navigate("/profile")}
+                  title={user.email}
+                >
+                  <div className="user-avatar">
+                    {user.email.charAt(0).toUpperCase()}
                   </div>
-
-                  {showProfileDropdown && (
-                    <div className="profile-dropdown">
-                      <Link to="/my-orders">My Orders</Link>
-                      <Link to="/my-ratings">My Ratings</Link>
-
-                      <div className="profile-divider"></div>
-
-                      <Link to="/help">Help</Link>
-
-                      <span
-                        onClick={handleLogout}
-                        style={{ color: "red", cursor: "pointer" }}
-                      >
-                        Logout
-                      </span>
-                    </div>
-                  )}
+                  <span className="user-greeting">
+                    Hi, {user.email.split("@")[0]}
+                  </span>
                 </div>
               )}
             </div>

@@ -1,4 +1,15 @@
-/* AdminDashboard.css - PetPooja Grid Style */
+/* AdminDashboard.css - Black Gold Red Premium Theme */
+
+:root {
+  --black-primary: #0f0e09;
+  --gray-dark: #1c1c1c;
+  --gray-medium: #2a2a2a;
+  --gold-primary: #d4af37;
+  --gold-light: #ffd700;
+  --red-primary: #ff6b6b;
+  --white: #ffffff;
+  --text-muted: #999999;
+}
 
 * {
   margin: 0;
@@ -7,10 +18,11 @@
 }
 
 .admin-dashboard-grid {
-  background: #f5f5f5;
+  background: linear-gradient(135deg, var(--black-primary) 0%, var(--gray-dark) 100%);
   min-height: 100vh;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--white);
 }
 
 /* HEADER */
@@ -18,25 +30,25 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
-  padding: 20px 30px;
-  border-radius: 0;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-top: 4px solid #c41e3a;
+  background: linear-gradient(135deg, var(--gray-dark) 0%, var(--gray-medium) 100%);
+  padding: 25px 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-top: 3px solid var(--gold-primary);
 }
 
 .header-brand h1 {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  color: #1c1c1c;
+  color: var(--gold-light);
   margin: 0;
 }
 
 .header-brand p {
   font-size: 12px;
-  color: #999;
-  margin: 4px 0 0 0;
+  color: var(--text-muted);
+  margin: 6px 0 0 0;
 }
 
 .header-info {
@@ -46,13 +58,14 @@
 
 .header-info p {
   font-size: 13px;
-  color: #666;
-  margin: 2px 0;
+  color: var(--white);
+  margin: 4px 0;
+  font-weight: 500;
 }
 
 .server-name {
   font-weight: 700;
-  color: #1c1c1c;
+  color: var(--gold-light);
 }
 
 .header-contact {
@@ -61,56 +74,74 @@
 
 .header-contact p {
   font-size: 13px;
-  color: #666;
-  margin: 2px 0;
-  font-weight: 600;
+  color: var(--white);
+  margin: 4px 0;
+  font-weight: 500;
 }
 
 /* QUICK STATS */
 .quick-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 15px;
   margin-bottom: 30px;
 }
 
 .quick-stat-item {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(28, 28, 28, 0.9) 0%, rgba(42, 42, 42, 0.9) 100%);
+  padding: 20px;
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease;
   cursor: pointer;
-  border-top: 3px solid #ffd700;
+  border-top: 4px solid var(--gold-primary);
+  position: relative;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.quick-stat-item:nth-child(1) {
+  border-top-color: var(--red-primary);
+}
+
+.quick-stat-item:nth-child(2) {
+  border-top-color: var(--gold-light);
+}
+
+.quick-stat-item:nth-child(3) {
+  border-top-color: #51cf66;
+}
+
+.quick-stat-item:nth-child(4) {
+  border-top-color: var(--gold-primary);
 }
 
 .quick-stat-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
 }
 
 .stat-icon {
   display: block;
-  font-size: 28px;
-  margin-bottom: 8px;
+  font-size: 32px;
+  margin-bottom: 10px;
 }
 
 .stat-label {
   display: block;
-  font-size: 12px;
-  color: #999;
+  font-size: 11px;
+  color: var(--text-muted);
   text-transform: uppercase;
   font-weight: 700;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   letter-spacing: 0.5px;
 }
 
 .stat-number {
   display: block;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
-  color: #1c1c1c;
+  color: var(--gold-light);
 }
 
 /* MENU SECTIONS */
@@ -119,67 +150,72 @@
 }
 
 .menu-title {
-  font-size: 14px;
-  color: #1c1c1c;
+  font-size: 16px;
+  color: var(--gold-light);
   font-weight: 700;
   margin-bottom: 16px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 16px;
 }
 
 /* MENU ITEM */
 .menu-item {
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, rgba(212, 175, 55, 0.03) 100%);
+  border: 2px solid rgba(212, 175, 55, 0.4);
+  border-radius: 12px;
+  padding: 25px 20px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-item:hover {
-  border-color: #999;
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: var(--gold-light);
+  transform: translateY(-6px);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
 }
 
 .menu-item:active {
-  transform: translateY(-1px);
+  transform: translateY(-3px);
 }
 
 .menu-icon {
-  font-size: 36px;
+  font-size: 40px;
   margin-bottom: 12px;
   display: block;
 }
 
 .menu-text {
-  min-height: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .menu-title-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  color: #1c1c1c;
-  margin: 0 0 4px 0;
+  color: var(--gold-light);
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .menu-subtitle {
   font-size: 11px;
-  color: #999;
-  margin: 0;
+  color: rgba(255, 215, 0, 0.8);
+  margin: 4px 0 0 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* MENU BADGE */
@@ -187,32 +223,36 @@
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #ff6b6b;
+  background: var(--red-primary);
   color: white;
   border-radius: 50%;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 /* FOOTER */
 .dashboard-grid-footer {
   text-align: center;
-  padding: 20px;
-  color: #999;
+  padding: 25px;
+  color: var(--text-muted);
   font-size: 12px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 2px solid var(--gold-primary);
   margin-top: 30px;
+  background: linear-gradient(90deg, var(--gray-dark) 0%, var(--gray-medium) 100%);
+  border-radius: 12px;
+  font-weight: 500;
 }
 
 /* RESPONSIVE */
 @media (max-width: 1024px) {
   .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 
   .dashboard-grid-header {
@@ -223,6 +263,10 @@
   .header-info {
     order: 3;
     width: 100%;
+  }
+
+  .quick-stats {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -242,20 +286,20 @@
   }
 
   .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 12px;
   }
 
   .menu-item {
-    padding: 16px 12px;
+    padding: 20px 15px;
   }
 
   .menu-icon {
-    font-size: 28px;
+    font-size: 32px;
   }
 
   .menu-title-text {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .menu-subtitle {
@@ -264,7 +308,15 @@
 
   .quick-stats {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    font-size: 28px;
+  }
+
+  .stat-number {
+    font-size: 24px;
   }
 }
 
@@ -274,18 +326,42 @@
   }
 
   .dashboard-grid-header {
-    padding: 15px 10px;
+    padding: 15px;
+  }
+
+  .header-brand h1 {
+    font-size: 22px;
   }
 
   .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .menu-item {
+    padding: 15px 10px;
+  }
+
+  .menu-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .menu-title-text {
+    font-size: 12px;
   }
 
   .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .stat-number {
-    font-size: 20px;
+    font-size: 22px;
+  }
+
+  .menu-badge {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
   }
 }

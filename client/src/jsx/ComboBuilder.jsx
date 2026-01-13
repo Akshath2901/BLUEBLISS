@@ -1,551 +1,782 @@
-// Client-side: client/src/pages/ComboBuilder.jsx
-import { useState, useEffect, useRef } from 'react';
-import { Heart, Zap, TrendingUp, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../lib/firebase";
+import { collection, getDocs, setDoc, doc, deleteDoc, query, where } from "firebase/firestore";
+import { CartContext } from "../context/CartContext";
+import { resolveMenuImages } from "./resolveMenuImages";
+import "./ComboBuilder.css";
+
+// Brand collections mapping
+const BRAND_COLLECTIONS = {
+  menu: "Shrimmers",
+  Pmenu: "Peppanizze",
+  Umenu: "Urban Bites",
+};
+
+// Pre-built combo templates
+const COMBO_TEMPLATES = [
+  {
+    id: "breakfast",
+    name: "Breakfast Bundle",
+    icon: "🌅",
+    description: "Start your day right",
+    discountBonus: 2,
+  },
+  {
+    id: "lunch",
+    name: "Lunch Combo",
+    icon: "🍛",
+    description: "Complete meal experience",
+    discountBonus: 2,
+  },
+  {
+    id: "quickbites",
+    name: "Quick Bites",
+    icon: "⚡",
+    description: "Fast and satisfying",
+    discountBonus: 0,
+  },
+  {
+    id: "family",
+    name: "Family Pack",
+    icon: "👨‍👩‍👧‍👦",
+    description: "Feed 3-4 people",
+    discountBonus: 3,
+  },
+  {
+    id: "indulgent",
+    name: "Indulgent Feast",
+    icon: "🤤",
+    description: "Go all out",
+    discountBonus: 3,
+  },
+];
 
 export default function ComboBuilder() {
-  const [allDishes, setAllDishes] = useState([]);
-  const [cart, setCart] = useState([]);
-  const [combos, setCombos] = useState([]);
-  const [aiSuggestion, setAiSuggestion] = useState("");
-  const [suggestedCombo, setSuggestedCombo] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [menuData, setMenuData] = useState({}); // { brandName: { category: [items] } }
+  const [selectedDishes, setSelectedDishes] = useState([]);
+  const [savedCombos, setSavedCombos] = useState([]);
+  const [comboName, setComboName] = useState("");
   const [activeTab, setActiveTab] = useState("builder");
-  const suggestionsRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [trendingCombos, setTrendingCombos] = useState([]);
+  const [expandedBrands, setExpandedBrands] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({});
 
-  // Load dishes on mount
+  // Get current user
   useEffect(() => {
-    const loadDishes = async () => {
-      try {
-        const response = await fetch("http://localhost:5001/api/menus");
-        if (response.ok) {
-          const data = await response.json();
-          setAllDishes(data.flat());
-        }
-      } catch (error) {
-        console.error("Error loading dishes:", error);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+      if (user) {
+        console.log("👤 User logged in:", user.uid);
+        loadSavedCombos(user.uid);
+        loadTrendingCombos();
+      } else {
+        console.log("👤 No user logged in");
+        setSavedCombos([]);
       }
-    };
-
-    const loadCombos = async () => {
-      try {
-        const response = await fetch("http://localhost:5001/api/combo/combos");
-        if (response.ok) {
-          const data = await response.json();
-          setCombos(data.combos || []);
-        }
-      } catch (error) {
-        console.error("Error loading combos:", error);
-      }
-    };
-
-    loadDishes();
-    loadCombos();
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Analyze cart whenever it changes
+  // Load all menu data from all brands
   useEffect(() => {
-    if (cart.length > 0) {
-      analyzeCartWithAI();
-    } else {
-      setAiSuggestion("");
-      setSuggestedCombo(null);
-    }
-  }, [cart]);
+    loadAllMenus();
+  }, []);
 
-  const analyzeCartWithAI = async () => {
-    setLoading(true);
+  const loadAllMenus = async () => {
     try {
-      const response = await fetch("http://localhost:5001/api/combo/analyze-cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cartItems: cart })
-      });
+      setLoading(true);
+      const allMenus = {};
 
-      const data = await response.json();
-      if (data.success) {
-        setAiSuggestion(data.aiSuggestion);
-        setSuggestedCombo(data.suggestedCombo);
-        suggestionsRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Fetch from all brand collections
+      for (const [collectionName, brandName] of Object.entries(
+        BRAND_COLLECTIONS
+      )) {
+        try {
+          const snapshot = await getDocs(collection(db, collectionName));
+          const categories = [];
+
+          snapshot.forEach((doc) => {
+            categories.push(doc.data());
+          });
+
+          // Resolve images
+          const categoriesWithImages = await resolveMenuImages(categories);
+
+          // Group by category
+          const brandCategories = {};
+          categoriesWithImages.forEach((section) => {
+            const categoryName = section.category || "Uncategorized";
+            if (!brandCategories[categoryName]) {
+              brandCategories[categoryName] = [];
+            }
+            if (section.items && Array.isArray(section.items)) {
+              brandCategories[categoryName].push(
+                ...section.items.map((item, idx) => ({
+                  ...item,
+                  id: item.id || `${collectionName}-${categoryName}-${idx}`,
+                }))
+              );
+            }
+          });
+
+          allMenus[brandName] = brandCategories;
+        } catch (err) {
+          console.error(`Error loading ${brandName}:`, err);
+        }
       }
+
+      setMenuData(allMenus);
+      // Initialize all brands as expanded
+      const initialExpanded = {};
+      Object.keys(allMenus).forEach((brand) => {
+        initialExpanded[brand] = true;
+      });
+      setExpandedBrands(initialExpanded);
+      setLoading(false);
     } catch (error) {
-      console.error("Error analyzing cart:", error);
-    } finally {
+      console.error("Error loading menus:", error);
       setLoading(false);
     }
   };
 
-  const addToCart = (dish) => {
-    setCart([...cart, { ...dish, cartId: Date.now() + Math.random() }]);
+  const loadSavedCombos = async (userId) => {
+    try {
+      console.log("Loading saved combos for userId:", userId);
+      
+      const combosRef = collection(db, "userCombos");
+      const q = query(combosRef, where("userId", "==", userId));
+      const querySnapshot = await getDocs(q);
+
+      const combos = [];
+      querySnapshot.forEach((doc) => {
+        console.log("Found combo:", doc.id, doc.data());
+        combos.push({ id: doc.id, ...doc.data() });
+      });
+
+      console.log("Total combos loaded:", combos.length);
+      setSavedCombos(combos);
+    } catch (error) {
+      console.error("Error loading combos:", error);
+    }
   };
 
-  const removeFromCart = (cartId) => {
-    setCart(cart.filter(item => item.cartId !== cartId));
+  const loadTrendingCombos = async () => {
+    try {
+      const combosRef = collection(db, "userCombos");
+      const querySnapshot = await getDocs(combosRef);
+
+      const combos = [];
+      querySnapshot.forEach((doc) => {
+        combos.push({ id: doc.id, ...doc.data() });
+      });
+
+      const trending = combos
+        .sort((a, b) => (b.timesReordered || 0) - (a.timesReordered || 0))
+        .slice(0, 5);
+
+      setTrendingCombos(trending);
+    } catch (error) {
+      console.error("Error loading trending combos:", error);
+    }
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0), 0);
-  const cartItemCount = cart.length;
+  const toggleBrand = (brand) => {
+    setExpandedBrands((prev) => ({
+      ...prev,
+      [brand]: !prev[brand],
+    }));
+  };
+
+  const toggleCategory = (brand, category) => {
+    const key = `${brand}-${category}`;
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  // Calculate discount
+  const calculateDiscount = (itemCount) => {
+    if (itemCount <= 1) return 0;
+    if (itemCount === 2) return 5;
+    if (itemCount <= 4) return 8;
+    return 10;
+  };
+
+  const addDishToCombo = (dish) => {
+    setSelectedDishes([
+      ...selectedDishes,
+      { ...dish, comboItemId: `${dish.name}-${Date.now()}` },
+    ]);
+  };
+
+  const removeDishFromCombo = (comboItemId) => {
+    setSelectedDishes(
+      selectedDishes.filter((item) => item.comboItemId !== comboItemId)
+    );
+  };
+
+  const originalPrice = selectedDishes.reduce((sum, item) => sum + item.price, 0);
+  const discountPercentage = calculateDiscount(selectedDishes.length);
+  const discountedPrice = Math.round(originalPrice * (1 - discountPercentage / 100));
+  const discount = originalPrice - discountedPrice;
+  const pointsEarned = Math.floor(discountedPrice / 25) * 1.5;
+
+  const handleSaveCombo = async () => {
+    if (!currentUser) {
+      alert("Please login to save combos");
+      navigate("/login");
+      return;
+    }
+
+    if (!comboName.trim()) {
+      alert("Please enter a combo name");
+      return;
+    }
+
+    if (selectedDishes.length === 0) {
+      alert("Please add at least one item to the combo");
+      return;
+    }
+
+    try {
+      const comboId = `combo-${currentUser.uid}-${Date.now()}`;
+
+      const comboData = {
+        userId: currentUser.uid,
+        name: comboName,
+        dishes: selectedDishes.map((dish) => ({
+          name: dish.name,
+          price: dish.price,
+        })),
+        originalPrice,
+        discountedPrice,
+        discount,
+        discountPercentage,
+        createdAt: new Date().toISOString(),
+        timesReordered: 0,
+      };
+
+      console.log("🔥 SAVING COMBO:", {
+        comboId,
+        userId: currentUser.uid,
+        name: comboName,
+        dishes: selectedDishes.length,
+      });
+
+      // Save to Firebase
+      await setDoc(doc(db, "userCombos", comboId), comboData);
+      console.log("✅ Combo saved to Firebase!");
+
+      // Immediately update local state
+      setSavedCombos((prevCombos) => [
+        ...prevCombos,
+        { id: comboId, ...comboData },
+      ]);
+
+      // Clear form
+      setComboName("");
+      setSelectedDishes([]);
+
+      // Show success and switch tab
+      alert("✅ Combo saved successfully!");
+      setActiveTab("saved");
+
+      // Also reload from Firebase to sync
+      setTimeout(() => {
+        loadSavedCombos(currentUser.uid);
+      }, 500);
+    } catch (error) {
+      console.error("❌ Error saving combo:", error);
+      alert("❌ Failed to save combo: " + error.message);
+    }
+  };
+
+  const handleAddCurrentComboToCart = () => {
+    if (!currentUser) {
+      alert("Please login to add combos to cart");
+      navigate("/login");
+      return;
+    }
+
+    if (selectedDishes.length === 0) {
+      alert("Please add at least one item to the combo");
+      return;
+    }
+
+    const comboItem = {
+      id: `combo-temp-${Date.now()}`,
+      name: comboName || `Custom Combo (${selectedDishes.length} items)`,
+      price: discountedPrice,
+      originalPrice,
+      discount,
+      discountPercentage,
+      isCombo: true,
+      items: selectedDishes.map((dish) => ({
+        name: dish.name,
+        price: dish.price,
+      })),
+      qty: 1,
+      img: "🍽️",
+    };
+
+    addToCart(comboItem);
+    alert("✅ Combo added to cart!");
+
+    setComboName("");
+    setSelectedDishes([]);
+    navigate("/cart");
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="combo-auth-required">
+        <div className="auth-card">
+          <div className="auth-icon">🔐</div>
+          <h2>Login Required</h2>
+          <p>Please login to create and manage your personalized combos</p>
+          <button className="auth-btn" onClick={() => navigate("/login")}>
+            🔓 Login Now
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <style>{`
-        .combo-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 40px 20px;
-          text-align: center;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .combo-header::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 200%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-          0% { left: -100%; }
-          100% { left: 100%; }
-        }
-
-        .combo-container {
-          display: grid;
-          grid-template-columns: 1fr 380px;
-          gap: 20px;
-          padding: 30px;
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        @media (max-width: 1024px) {
-          .combo-container {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .combo-dishes-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 16px;
-        }
-
-        .combo-dish-card {
-          background: white;
-          border-radius: 12px;
-          overflow: hidden;
-          border: 2px solid #e8e8e8;
-          transition: all 0.3s ease;
-          cursor: pointer;
-        }
-
-        .combo-dish-card:hover {
-          border-color: #667eea;
-          transform: translateY(-4px);
-          box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
-        }
-
-        .combo-dish-img {
-          width: 100%;
-          height: 180px;
-          background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 48px;
-        }
-
-        .combo-dish-info {
-          padding: 16px;
-        }
-
-        .combo-dish-name {
-          font-weight: 600;
-          color: #333;
-          margin-bottom: 4px;
-          font-size: 14px;
-        }
-
-        .combo-dish-category {
-          font-size: 12px;
-          color: #999;
-          margin-bottom: 8px;
-        }
-
-        .combo-dish-bottom {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-
-        .combo-dish-price {
-          font-weight: 700;
-          color: #667eea;
-          font-size: 16px;
-        }
-
-        .combo-add-btn {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          padding: 8px 16px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
-          transition: all 0.3s ease;
-        }
-
-        .combo-add-btn:hover {
-          transform: scale(1.05);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .combo-sidebar {
-          position: sticky;
-          top: 20px;
-          height: fit-content;
-        }
-
-        .combo-cart-card {
-          background: white;
-          border-radius: 16px;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-          padding: 20px;
-          margin-bottom: 20px;
-        }
-
-        .combo-cart-title {
-          font-size: 18px;
-          font-weight: 700;
-          color: #333;
-          margin-bottom: 16px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .combo-cart-items {
-          max-height: 300px;
-          overflow-y: auto;
-          margin-bottom: 16px;
-        }
-
-        .combo-cart-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 10px;
-          background: #f8f9fa;
-          border-radius: 8px;
-          margin-bottom: 8px;
-          font-size: 13px;
-        }
-
-        .combo-cart-item-price {
-          color: #667eea;
-          font-weight: 600;
-        }
-
-        .combo-remove-btn {
-          background: #ff4757;
-          color: white;
-          border: none;
-          width: 24px;
-          height: 24px;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .combo-cart-total {
-          border-top: 2px solid #e8e8e8;
-          padding-top: 12px;
-          font-size: 16px;
-          font-weight: 700;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 16px;
-        }
-
-        .combo-suggestion-box {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          padding: 16px;
-          border-radius: 12px;
-          margin-bottom: 16px;
-          border-left: 4px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .combo-suggestion-title {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-weight: 600;
-          margin-bottom: 8px;
-          font-size: 14px;
-        }
-
-        .combo-suggestion-text {
-          font-size: 13px;
-          line-height: 1.5;
-          opacity: 0.95;
-        }
-
-        .combo-suggestion-button {
-          background: white;
-          color: #667eea;
-          border: none;
-          padding: 8px 14px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 12px;
-          margin-top: 10px;
-          transition: all 0.3s ease;
-        }
-
-        .combo-suggestion-button:hover {
-          transform: scale(1.05);
-        }
-
-        .combo-preset-combos {
-          background: white;
-          border-radius: 12px;
-          padding: 16px;
-          border: 2px solid #e8e8e8;
-        }
-
-        .combo-preset-title {
-          font-weight: 700;
-          margin-bottom: 12px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: #333;
-        }
-
-        .combo-preset-item {
-          background: #f8f9fa;
-          padding: 12px;
-          border-radius: 8px;
-          margin-bottom: 8px;
-          cursor: pointer;
-          transition: all 0.3s ease;
-          border-left: 4px solid transparent;
-        }
-
-        .combo-preset-item:hover {
-          background: #667eea;
-          color: white;
-          border-left-color: white;
-        }
-
-        .combo-preset-name {
-          font-weight: 600;
-          font-size: 13px;
-          margin-bottom: 4px;
-        }
-
-        .combo-preset-price {
-          font-size: 12px;
-          opacity: 0.8;
-        }
-
-        .combo-preset-save {
-          color: #2ecc71;
-          font-weight: 600;
-        }
-
-        .combo-empty {
-          text-align: center;
-          padding: 40px 20px;
-          color: #999;
-        }
-
-        .combo-empty-icon {
-          font-size: 48px;
-          margin-bottom: 16px;
-        }
-
-        .combo-button {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          color: white;
-          border: none;
-          padding: 12px 24px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
-          width: 100%;
-          transition: all 0.3s ease;
-        }
-
-        .combo-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .combo-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .combo-loading {
-          display: inline-block;
-          width: 12px;
-          height: 12px;
-          background: white;
-          border-radius: 50%;
-          animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-          0%, 100% { opacity: 0.5; }
-          50% { opacity: 1; }
-        }
-
-        .combo-alert {
-          background: #fff3cd;
-          border-left: 4px solid #ffc107;
-          padding: 12px;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #333;
-          margin-bottom: 16px;
-          display: flex;
-          align-items: start;
-          gap: 10px;
-        }
-
-        .combo-alert-icon {
-          color: #ffc107;
-          flex-shrink: 0;
-          margin-top: 2px;
-        }
-      `}</style>
-
-      {/* Header */}
-      <div className="combo-header">
-        <h1 style={{ margin: 0, position: 'relative', zIndex: 1, fontSize: '32px', fontWeight: '700' }}>
-          🍕 Create Your Perfect Combo
-        </h1>
-        <p style={{ margin: '10px 0 0 0', position: 'relative', zIndex: 1, opacity: 0.9 }}>
-          Mix & match dishes or choose from our curated combinations!
-        </p>
+    <div className="combo-builder-wrapper">
+      <div className="combo-builder-header">
+        <h1>🍕 Create Your Perfect Combo</h1>
+        <p>Mix & match from our menu and save your favorite combinations!</p>
       </div>
 
-      {/* Main Container */}
-      <div className="combo-container">
-        {/* Dishes Grid */}
-        <div>
-          {allDishes.length === 0 ? (
-            <div className="combo-empty">
-              <div className="combo-empty-icon">🍽️</div>
-              <p>Loading dishes...</p>
-            </div>
-          ) : (
-            <div className="combo-dishes-grid">
-              {allDishes.map((dish, idx) => (
-                <div key={idx} className="combo-dish-card">
-                  <div className="combo-dish-img">
-                    {dish.img ? <img src={dish.img} alt={dish.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '🍽️'}
+      <div className="combo-tabs">
+        <button
+          className={`tab-btn ${activeTab === "builder" ? "active" : ""}`}
+          onClick={() => setActiveTab("builder")}
+        >
+          🛠️ Build Combo
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "saved" ? "active" : ""}`}
+          onClick={() => setActiveTab("saved")}
+        >
+          ⭐ Saved Combos ({savedCombos.length})
+        </button>
+        <button
+          className={`tab-btn ${activeTab === "trending" ? "active" : ""}`}
+          onClick={() => setActiveTab("trending")}
+        >
+          🔥 Trending ({trendingCombos.length})
+        </button>
+      </div>
+
+      <div className="combo-content">
+        {/* BUILD COMBO TAB */}
+        {activeTab === "builder" && (
+          <div className="combo-builder-section">
+            <div className="builder-layout">
+              {/* Left: All Dishes with Dropdowns */}
+              <div className="dishes-panel">
+                <h2>📋 Available Dishes</h2>
+
+                {loading ? (
+                  <p className="loading-text">Loading menus from all brands...</p>
+                ) : Object.keys(menuData).length === 0 ? (
+                  <p className="loading-text">No menus found</p>
+                ) : (
+                  <div className="brands-accordion">
+                    {Object.entries(menuData).map(([brandName, categories]) => (
+                      <div key={brandName} className="brand-section">
+                        <button
+                          className="brand-header"
+                          onClick={() => toggleBrand(brandName)}
+                        >
+                          <span className="brand-name">🍽️ {brandName}</span>
+                          <span className="toggle-icon">
+                            {expandedBrands[brandName] ? "▼" : "▶"}
+                          </span>
+                        </button>
+
+                        {expandedBrands[brandName] && (
+                          <div className="brand-content">
+                            {Object.entries(categories).map(
+                              ([categoryName, items]) => {
+                                const catKey = `${brandName}-${categoryName}`;
+                                const isOpen = expandedCategories[catKey];
+
+                                return (
+                                  <div key={catKey} className="category-accordion">
+                                    <button
+                                      className="category-header"
+                                      onClick={() =>
+                                        toggleCategory(brandName, categoryName)
+                                      }
+                                    >
+                                      <span>{categoryName}</span>
+                                      <span className="item-count">
+                                        {items.length}
+                                      </span>
+                                      <span className="toggle-icon">
+                                        {isOpen ? "▼" : "▶"}
+                                      </span>
+                                    </button>
+
+                                    {isOpen && (
+                                      <div className="items-accordion">
+                                        {items.map((item, idx) => (
+                                          <div
+                                            key={idx}
+                                            className="small-dish-item"
+                                          >
+                                            <div className="small-dish-img">
+                                              {item.img ? (
+                                                <img
+                                                  src={item.img}
+                                                  alt={item.name}
+                                                  onError={(e) => {
+                                                    e.target.src = "🍽️";
+                                                  }}
+                                                />
+                                              ) : (
+                                                "🍽️"
+                                              )}
+                                            </div>
+                                            <div className="small-dish-info">
+                                              <h4>{item.name}</h4>
+                                              <p className="small-price">
+                                                ₹{item.price}
+                                              </p>
+                                            </div>
+                                            <button
+                                              className="small-add-btn"
+                                              onClick={() =>
+                                                addDishToCombo(item)
+                                              }
+                                            >
+                                              +
+                                            </button>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  <div className="combo-dish-info">
-                    <div className="combo-dish-name">{dish.name}</div>
-                    <div className="combo-dish-category">{dish.category}</div>
-                    <div className="combo-dish-bottom">
-                      <div className="combo-dish-price">₹{dish.price}</div>
-                      <button className="combo-add-btn" onClick={() => addToCart(dish)}>
-                        Add
-                      </button>
+                )}
+              </div>
+
+              {/* Right: Combo Builder */}
+              <div className="builder-panel">
+                <div className="builder-card">
+                  <h2>🎯 Your Combo</h2>
+
+                  <input
+                    type="text"
+                    placeholder="Give your combo a name..."
+                    value={comboName}
+                    onChange={(e) => setComboName(e.target.value)}
+                    className="combo-name-input"
+                  />
+
+                  <div className="selected-items">
+                    <h3>Items ({selectedDishes.length})</h3>
+
+                    {selectedDishes.length === 0 ? (
+                      <div className="empty-combo">
+                        <p>👈 Add items from the left to create your combo</p>
+                      </div>
+                    ) : (
+                      <div className="items-list">
+                        {selectedDishes.map((item) => (
+                          <div key={item.comboItemId} className="combo-item">
+                            <div className="item-details">
+                              <p className="item-name">{item.name}</p>
+                            </div>
+                            <div className="item-right">
+                              <span className="item-price">₹{item.price}</span>
+                              <button
+                                className="remove-btn"
+                                onClick={() =>
+                                  removeDishFromCombo(item.comboItemId)
+                                }
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedDishes.length > 0 && (
+                    <div className="price-breakdown">
+                      <div className="price-row">
+                        <span>Original Price:</span>
+                        <span>₹{originalPrice}</span>
+                      </div>
+                      <div className="price-row discount-row">
+                        <span>{discountPercentage}% Combo Discount:</span>
+                        <span className="discount-amount">-₹{discount}</span>
+                      </div>
+                      <div className="price-row total-row">
+                        <strong>Final Price:</strong>
+                        <strong className="final-price">₹{discountedPrice}</strong>
+                      </div>
+                      <div className="loyalty-boost">
+                        <span>⭐ Earn {Math.round(pointsEarned)} Points</span>
+                        <span className="boost-badge">+50% Bonus!</span>
+                      </div>
+                      <p className="discount-note">
+                        💰 You save ₹{discount} on this combo!
+                      </p>
                     </div>
+                  )}
+
+                  <div className="action-buttons">
+                    <button
+                      className="save-combo-btn"
+                      onClick={handleSaveCombo}
+                      disabled={selectedDishes.length === 0 || loading}
+                    >
+                      {loading ? "⏳ Saving..." : "💾 Save for Later"}
+                    </button>
+                    <button
+                      className="add-cart-btn"
+                      onClick={handleAddCurrentComboToCart}
+                      disabled={selectedDishes.length === 0}
+                    >
+                      🛒 Add to Cart
+                    </button>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* COMBO TEMPLATES - Show when builder is empty */}
+        {activeTab === "builder" && selectedDishes.length === 0 && (
+          <div className="combo-templates-section">
+            <h2>📋 Quick Start Templates</h2>
+            <p style={{ color: "rgba(255,255,255,0.6)", marginBottom: "20px" }}>
+              Select a template to get started with recommended discount bonuses!
+            </p>
+            <div className="templates-grid">
+              {COMBO_TEMPLATES.map((template) => (
+                <div key={template.id} className="template-card">
+                  <div className="template-icon">{template.icon}</div>
+                  <h3>{template.name}</h3>
+                  <p>{template.description}</p>
+                  {template.discountBonus > 0 && (
+                    <div className="template-bonus">
+                      +{template.discountBonus}% Extra Discount
+                    </div>
+                  )}
+                  <button
+                    className="template-btn"
+                    onClick={() => {
+                      setComboName(`${template.name} - Custom`);
+                      alert(
+                        `📋 ${template.name} template selected! Start adding items to get ${template.discountBonus || 0}% bonus discount`
+                      );
+                    }}
+                  >
+                    Use Template
+                  </button>
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Sidebar */}
-        <div className="combo-sidebar">
-          {/* Cart */}
-          <div className="combo-cart-card">
-            <div className="combo-cart-title">
-              🛒 Your Cart ({cartItemCount})
+        {/* SAVED COMBOS TAB */}
+        {activeTab === "saved" && (
+          <div className="saved-combos-section">
+            <div
+              style={{
+                marginBottom: "30px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "28px",
+                  color: "#ffd700",
+                  fontWeight: "900",
+                }}
+              >
+                ⭐ Saved Combos ({savedCombos.length})
+              </h2>
+              <button
+                onClick={() => loadSavedCombos(currentUser.uid)}
+                style={{
+                  padding: "10px 20px",
+                  background: "linear-gradient(135deg, #ffd700, #d4af37)",
+                  border: "none",
+                  borderRadius: "8px",
+                  color: "#000",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
+                onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+              >
+                🔄 Refresh
+              </button>
             </div>
 
-            {cartItemCount === 0 ? (
-              <div className="combo-empty">
-                <p>Add items to get started!</p>
+            {savedCombos.length === 0 ? (
+              <div className="empty-state">
+                <p className="empty-icon">😕</p>
+                <p style={{ fontSize: "20px", color: "#fff", margin: "10px 0" }}>
+                  No saved combos yet
+                </p>
+                <p className="empty-subtext">
+                  Create and save your favorite combos!
+                </p>
+                <button
+                  className="goto-builder-btn"
+                  onClick={() => setActiveTab("builder")}
+                >
+                  🛠️ Create Combo
+                </button>
               </div>
             ) : (
-              <>
-                <div className="combo-cart-items">
-                  {cart.map((item) => (
-                    <div key={item.cartId} className="combo-cart-item">
-                      <div>
-                        <div style={{ fontWeight: 600, marginBottom: '2px' }}>{item.name}</div>
-                        <div className="combo-cart-item-price">₹{item.price}</div>
+              <div className="saved-combos-grid">
+                {savedCombos.map((combo) => (
+                  <div key={combo.id} className="saved-combo-card">
+                    <div className="combo-header">
+                      <h3>{combo.name}</h3>
+                      <span className="items-badge">
+                        {combo.dishes ? combo.dishes.length : 0} items
+                      </span>
+                    </div>
+
+                    {combo.dishes && combo.dishes.length > 0 && (
+                      <div className="combo-items-preview">
+                        {combo.dishes.map((item, idx) => (
+                          <p key={idx} className="preview-item">
+                            • {item.name} (₹{item.price})
+                          </p>
+                        ))}
                       </div>
-                      <button className="combo-remove-btn" onClick={() => removeFromCart(item.cartId)}>
-                        ✕
+                    )}
+
+                    <div className="combo-pricing">
+                      <div className="price-info">
+                        <span className="original-price">
+                          ₹{combo.originalPrice}
+                        </span>
+                        <span className="discount-badge">
+                          {combo.discountPercentage}% OFF
+                        </span>
+                      </div>
+                      <div className="final-combo-price">
+                        ₹{combo.discountedPrice}
+                      </div>
+                    </div>
+
+                    <p className="save-amount">Save ₹{combo.discount}</p>
+
+                    {combo.timesReordered > 0 && (
+                      <p className="reorder-count">
+                        ✨ Reordered {combo.timesReordered} times
+                      </p>
+                    )}
+
+                    <div className="combo-actions">
+                      <button
+                        className="reorder-btn"
+                        onClick={() => {
+                          const comboItem = {
+                            id: `combo-${combo.id}-${Date.now()}`,
+                            name: combo.name,
+                            price: combo.discountedPrice,
+                            originalPrice: combo.originalPrice,
+                            discount: combo.discount,
+                            discountPercentage: combo.discountPercentage,
+                            isCombo: true,
+                            items: combo.dishes || [],
+                            qty: 1,
+                            img: "🍽️",
+                          };
+                          addToCart(comboItem);
+                          alert(`✅ "${combo.name}" added to cart!`);
+                          navigate("/cart");
+                        }}
+                      >
+                        🛒 Reorder
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={async () => {
+                          if (window.confirm(`Delete "${combo.name}"?`)) {
+                            try {
+                              await deleteDoc(doc(db, "userCombos", combo.id));
+                              alert("✅ Combo deleted!");
+                              loadSavedCombos(currentUser.uid);
+                            } catch (error) {
+                              alert("❌ Failed to delete combo");
+                            }
+                          }
+                        }}
+                      >
+                        🗑️
                       </button>
                     </div>
-                  ))}
-                </div>
-
-                <div className="combo-cart-total">
-                  <span>Total:</span>
-                  <span style={{ color: '#667eea' }}>₹{cartTotal}</span>
-                </div>
-
-                <button className="combo-button">Add to Cart</button>
-              </>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
+        )}
 
-          {/* AI Suggestions */}
-          {cartItemCount > 0 && aiSuggestion && (
-            <div ref={suggestionsRef} className="combo-suggestion-box">
-              <div className="combo-suggestion-title">
-                <Zap size={16} />
-                Smart Suggestion {loading && <span className="combo-loading"></span>}
+        {/* TRENDING COMBOS TAB */}
+        {activeTab === "trending" && (
+          <div className="trending-combos-section">
+            {trendingCombos.length === 0 ? (
+              <div className="empty-state">
+                <p className="empty-icon">🔥</p>
+                <p>No trending combos yet</p>
               </div>
-              <div className="combo-suggestion-text">
-                {aiSuggestion}
+            ) : (
+              <div className="saved-combos-grid">
+                {trendingCombos.map((combo) => (
+                  <div key={combo.id} className="saved-combo-card">
+                    <div className="combo-header">
+                      <h3>{combo.name}</h3>
+                    </div>
+                    <p className="trending-stat">
+                      ✨ Ordered {combo.timesReordered} times
+                    </p>
+                    <div className="combo-pricing">
+                      <div className="final-combo-price">₹{combo.discountedPrice}</div>
+                    </div>
+                    <button className="trending-order-btn">🔥 Order Now</button>
+                  </div>
+                ))}
               </div>
-              {suggestedCombo && (
-                <button className="combo-suggestion-button">
-                  👍 Choose "{suggestedCombo.name}"
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Preset Combos */}
-          <div className="combo-preset-combos">
-            <div className="combo-preset-title">
-              <TrendingUp size={16} />
-              Popular Combos
-            </div>
-            {combos.slice(0, 3).map((combo) => (
-              <div key={combo.id} className="combo-preset-item">
-                <div className="combo-preset-name">{combo.name}</div>
-                <div className="combo-preset-price">
-                  ₹{combo.comboPrice}
-                  <span className="combo-preset-save"> Save ₹{combo.savings}</span>
-                </div>
-              </div>
-            ))}
+            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,45 +1,115 @@
-import React, { useEffect, useState } from "react";
+// PaymentSuccess.jsx - UPDATED VERSION
+// ⚠️ REMOVED duplicate order creation - Payment.jsx already creates it
+
+import React, { useEffect, useState, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { auth, db } from "../lib/firebase";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { auth } from "../lib/firebase";
+import { LoyaltyContext } from "../context/LoyaltyContext";
+import { deductStockForOrder } from "../lib/services/StockService";
+import VoucherUnlockedPopup from "./VoucherUnlockedPopup";
 
 function PaymentSuccess() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [saved, setSaved] = useState(false);
+  const { addPoints } = useContext(LoyaltyContext);
+  
+  const [processed, setProcessed] = useState(false);
+  const [showVoucherPopup, setShowVoucherPopup] = useState(false);
+  const [unlockedVoucher, setUnlockedVoucher] = useState(null);
+  const [error, setError] = useState(null);
+  const [stockError, setStockError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const { orderId, total, address, suggestion, noContact, cart } =
+  const { orderId, total, address, suggestion, noContact, cart, appliedVoucher } =
     location.state || {};
 
   useEffect(() => {
-    async function saveOrder() {
-      if (!location.state || saved) return;
-      setSaved(true);
+    async function processPostPayment() {
+      // ⚠️ DON'T create order again - Payment.jsx already did it!
+      if (!location.state || processed) return;
+      setProcessed(true);
 
       const user = auth.currentUser;
-      if (!user) return;
+      if (!user) {
+        setError("User not authenticated");
+        setLoading(false);
+        return;
+      }
 
-      await addDoc(collection(db, "orders"), {
-        orderId,
-        userId: user.uid,
-        cart,
-        total,
-        address,
-        suggestion: suggestion || "",
-        noContact: !!noContact,
-        status: "pending",
-        paymentStatus: "paid",
-        createdAt: Timestamp.now(),
-      });
+      try {
+        console.log("📝 Processing post-payment tasks for order:", orderId);
+        
+        // ✅ ORDER ALREADY SAVED BY Payment.jsx - Just do stock & loyalty
+
+        // 1️⃣ DEDUCT STOCK FROM INGREDIENTS
+        try {
+          console.log("📦 Deducting stock for items...");
+          const stockResult = await deductStockForOrder(cart);
+          console.log("✅ Stock deducted successfully:", stockResult);
+        } catch (stError) {
+          console.error("⚠️ Stock deduction error:", stError);
+          setStockError(stError.message);
+          // Continue - don't block the flow
+        }
+
+        // 2️⃣ ADD LOYALTY POINTS
+        if (!addPoints) {
+          setError("Loyalty context not available");
+          setLoading(false);
+          return;
+        }
+
+        const loyaltyResult = await addPoints(
+          orderId,
+          total,
+          { cart, address }
+        );
+
+        console.log("⭐ Loyalty Result:", loyaltyResult);
+
+        // 3️⃣ SHOW POPUP FOR EARNED POINTS AND UNLOCKED VOUCHERS
+        if (loyaltyResult) {
+          setUnlockedVoucher({
+            amount: loyaltyResult.voucherAmount || 0,
+            earnedPoints: loyaltyResult.earnedPoints || 0,
+            vouchersUnlocked: loyaltyResult.vouchersUnlocked || 0,
+          });
+          setShowVoucherPopup(true);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error("❌ Error in post-payment processing:", err);
+        setError(err.message);
+        setLoading(false);
+      }
     }
 
-    saveOrder();
-  }, [location.state, saved]);
+    processPostPayment();
+  }, [location.state, processed, addPoints]);
 
   if (!location.state) {
     return (
       <div style={{ padding: 80, textAlign: "center", color: "#ff4d4d" }}>
         ⚠ Order details missing
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 80, textAlign: "center", color: "#ff4d4d" }}>
+        ⚠ Error: {error}
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: 80, textAlign: "center", color: "#fff" }}>
+        <div style={{ fontSize: 40, marginBottom: 20 }}>⏳</div>
+        <h2>Processing your order...</h2>
+        <p>Please wait while we finalize everything</p>
       </div>
     );
   }
@@ -76,6 +146,27 @@ function PaymentSuccess() {
           </p>
         </div>
 
+        {/* STOCK ERROR WARNING (if any) */}
+        {stockError && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #ff6b6b, #ee5a6f)",
+              border: "2px solid #ff3333",
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 30,
+              color: "#fff",
+            }}
+          >
+            <p style={{ fontWeight: 700, marginBottom: 8 }}>
+              ⚠️ Stock Update Warning
+            </p>
+            <p style={{ margin: 0, fontSize: 14 }}>
+              {stockError}
+            </p>
+          </div>
+        )}
+
         {/* CARD */}
         <div
           style={{
@@ -102,7 +193,7 @@ function PaymentSuccess() {
           </div>
 
           {/* ITEMS */}
-          {cart.map((item) => (
+          {cart && cart.map((item) => (
             <div
               key={item.id}
               style={{
@@ -150,9 +241,14 @@ function PaymentSuccess() {
           >
             <p style={{ fontWeight: 600 }}>📍 Delivery Address</p>
             <p style={{ fontSize: 14, opacity: 0.8 }}>
-              {address.houseNo}, {address.street}, {address.area},{" "}
-              {address.city}
+              {address?.fullAddress || 
+               `${address?.houseNo}, ${address?.street}, ${address?.area}, ${address?.city}`}
             </p>
+            {address?.landmark && (
+              <p style={{ fontSize: 13, opacity: 0.6, marginTop: 4 }}>
+                📌 {address.landmark}
+              </p>
+            )}
           </div>
 
           {/* NOTES */}
@@ -197,6 +293,10 @@ function PaymentSuccess() {
           }}
         >
           <button
+            onClick={() => {
+              const message = `🎉 Order Placed!\n\nOrder ID: ${orderId}\nTotal: ₹${total}\n\nTrack your order: ${window.location.origin}/track-order`;
+              window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            }}
             style={{
               padding: 16,
               background: "#25d366",
@@ -204,19 +304,21 @@ function PaymentSuccess() {
               border: "none",
               color: "#fff",
               fontWeight: 700,
+              cursor: "pointer",
             }}
           >
             💬 Share WhatsApp
           </button>
 
           <button
-            onClick={() => navigate("/track-order", { state: { orderId } })}
+            onClick={() => navigate("/order-tracking", { state: { orderId } })}
             style={{
               padding: 16,
               background: "linear-gradient(135deg,#ffd700,#d4af37)",
               borderRadius: 12,
               border: "none",
               fontWeight: 700,
+              cursor: "pointer",
             }}
           >
             📍 Track Order
@@ -234,11 +336,21 @@ function PaymentSuccess() {
             borderRadius: 12,
             color: "#ffd700",
             fontWeight: 700,
+            cursor: "pointer",
           }}
         >
           🏠 Continue Shopping
         </button>
       </div>
+
+      {/* VOUCHER POPUP */}
+      <VoucherUnlockedPopup
+        isOpen={showVoucherPopup}
+        onClose={() => setShowVoucherPopup(false)}
+        voucherAmount={unlockedVoucher?.amount}
+        earnedPoints={unlockedVoucher?.earnedPoints}
+        vouchersUnlocked={unlockedVoucher?.vouchersUnlocked}
+      />
 
       <style>{`
         @keyframes bounce {

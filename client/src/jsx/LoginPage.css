@@ -1,12 +1,12 @@
 /* ===============================
    LOGIN PAGE – PREMIUM BLACK & GOLD
-   (MATCHES SIGNUP PAGE DESIGN)
    =============================== */
 
 .login-page {
   display: flex;
   min-height: 100vh;
   font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #0f0e09, #1c1c1c);
 }
 
 /* LEFT PANEL */
@@ -14,6 +14,7 @@
   flex: 1;
   background: url("/src/assets/IMG_2054.JPG") center/cover no-repeat;
   position: relative;
+  min-width: 300px;
 }
 
 .login-left-overlay {
@@ -35,12 +36,14 @@
   font-size: 52px;
   font-weight: 800;
   margin-bottom: 10px;
+  line-height: 1.1;
 }
 
 .login-left-overlay p {
   font-size: 18px;
   opacity: 0.9;
   max-width: 420px;
+  line-height: 1.6;
 }
 
 /* RIGHT PANEL */
@@ -50,6 +53,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 40px 20px;
+  min-height: 100vh;
 }
 
 /* LOGIN BOX */
@@ -63,6 +68,18 @@
   color: white;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(12px);
+  animation: slideUp 0.6s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .login-box h2 {
@@ -71,29 +88,39 @@
   background: linear-gradient(135deg, #ffd700, #d4af37);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
 }
 
 .login-subtitle {
   font-size: 14px;
   opacity: 0.7;
   margin-bottom: 25px;
+  font-weight: 400;
 }
 
 /* FORM */
 .login-box label {
   font-size: 13px;
   opacity: 0.8;
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .login-box input {
   width: 100%;
   padding: 12px 14px;
-  margin: 8px 0 18px;
+  margin: 0 0 18px 0;
   border-radius: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 2px solid rgba(212, 175, 55, 0.3);
   background: rgba(255, 255, 255, 0.08);
   color: white;
   outline: none;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .login-box input::placeholder {
@@ -102,6 +129,8 @@
 
 .login-box input:focus {
   border-color: #ffd700;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15);
 }
 
 /* ERROR */
@@ -109,6 +138,10 @@
   color: #ff6b6b;
   font-size: 13px;
   margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(255, 107, 107, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid #ff6b6b;
 }
 
 /* BUTTON */
@@ -123,11 +156,18 @@
   cursor: pointer;
   margin-top: 5px;
   transition: all 0.3s ease;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
 .login-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+}
+
+.login-btn:active {
+  transform: translateY(0);
 }
 
 /* DIVIDER */
@@ -136,6 +176,27 @@
   margin: 25px 0;
   font-size: 12px;
   opacity: 0.6;
+  position: relative;
+}
+
+.login-divider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: rgba(212, 175, 55, 0.2);
+}
+
+.login-divider::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 45%;
+  height: 1px;
+  background: rgba(212, 175, 55, 0.2);
 }
 
 /* SOCIAL */
@@ -153,32 +214,202 @@
   cursor: pointer;
   font-size: 18px;
   color: white;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.social-login .google { background: #db4437; }
-.social-login .facebook { background: #1877f2; }
-.social-login .apple { background: black; }
+.social-login .google { 
+  background: #db4437;
+}
+
+.social-login .facebook { 
+  background: #1877f2;
+}
+
+.social-login .apple { 
+  background: black;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.social-login button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
 
 /* FOOTER */
 .login-footer {
   margin-top: 20px;
   font-size: 14px;
   text-align: center;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .login-footer span {
   color: #ffd700;
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.3s ease;
 }
 
-/* RESPONSIVE */
-@media (max-width: 900px) {
+.login-footer span:hover {
+  text-decoration: underline;
+}
+
+/* ===============================
+   RESPONSIVE DESIGN
+   =============================== */
+
+@media (max-width: 1024px) {
   .login-left {
     display: none;
   }
 
   .login-right {
     flex: 1;
+    padding: 30px 20px;
+  }
+
+  .login-box {
+    padding: 35px;
+  }
+}
+
+@media (max-width: 768px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left {
+    display: none;
+  }
+
+  .login-right {
+    padding: 25px 15px;
+    min-height: auto;
+  }
+
+  .login-box {
+    padding: 28px;
+    border-radius: 16px;
+  }
+
+  .login-box h2 {
+    font-size: 26px;
+    margin-bottom: 8px;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .login-box label {
+    font-size: 12px;
+  }
+
+  .login-box input {
+    padding: 11px 12px;
+    margin: 0 0 16px 0;
+    font-size: 13px;
+  }
+
+  .login-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .social-login button {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .login-footer {
+    font-size: 13px;
+    margin-top: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    min-height: 100vh;
+  }
+
+  .login-right {
+    padding: 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 100%;
+    padding: 24px;
+    border-radius: 14px;
+    border: 2px solid rgba(212, 175, 55, 0.25);
+  }
+
+  .login-box h2 {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .login-subtitle {
+    font-size: 12px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+
+  .login-box label {
+    font-size: 11px;
+    margin-bottom: 5px;
+  }
+
+  .login-box input {
+    padding: 10px 11px;
+    margin: 0 0 14px 0;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .login-btn {
+    padding: 11px;
+    font-size: 13px;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  .login-error {
+    font-size: 12px;
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+
+  .login-divider {
+    margin: 18px 0;
+    font-size: 11px;
+  }
+
+  .social-login {
+    gap: 12px;
+  }
+
+  .social-login button {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+
+  .login-footer {
+    font-size: 12px;
+    margin-top: 14px;
+  }
+
+  .login-footer span {
+    font-size: 12px;
   }
 }

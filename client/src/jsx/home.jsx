@@ -1,5 +1,5 @@
 // Update your Home.js with this code
-// Location: src/components/Home.js
+// Location: src/jsx/home.jsx
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,7 @@ function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentOffer, setCurrentOffer] = useState(0);
-  const [offers, setOffers] = useState([]); // 🔥 FETCH FROM FIREBASE
+  const [offers, setOffers] = useState([]);
 
   // Hero Slider Images
   const heroImages = [
@@ -40,47 +40,37 @@ function Home() {
     "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1920&q=80"
   ];
 
-  // ⭐ DEFAULT OFFERS (Fallback)
+  // ⭐ DEFAULT OFFERS
   const defaultOffers = [
     {
       id: 1,
-      title: "50% OFF on Burgers",
-      description: "Get flat 50% discount on all burger items",
-      code: "BURGER50",
+      title: "BUY 2 BURGERS FOR 99",
+      description: "Valid till 25th dec",
+      code: "BURGER99",
       image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80",
-      bgColor: "#FF6B6B",
-      bgColorAlt: "#FF8E8E",
+      bgColor: "#d4af37",
+      bgColorAlt: "#ffd700",
       icon: "🍔"
     },
     {
       id: 2,
-      title: "Buy 1 Get 1 Free Pizza",
-      description: "Order any pizza and get one free",
-      code: "PIZZA2X",
+      title: "GET 50% OFF ON PIZZA",
+      description: "Valid till 30th dec",
+      code: "PIZZA50",
       image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-      bgColor: "#FF9500",
-      bgColorAlt: "#FFB84D",
+      bgColor: "#d4af37",
+      bgColorAlt: "#ffd700",
       icon: "🍕"
     },
     {
       id: 3,
-      title: "30% OFF on All Wraps",
-      description: "Enjoy healthy wraps with 30% discount",
-      code: "WRAP30",
+      title: "FREE DELIVERY ABOVE 199",
+      description: "Valid till 28th dec",
+      code: "FREEDEL",
       image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&q=80",
-      bgColor: "#4CAF50",
-      bgColorAlt: "#66BB6A",
-      icon: "🌯"
-    },
-    {
-      id: 4,
-      title: "Free Dessert on Orders Above ₹500",
-      description: "Get a complimentary dessert with your order",
-      code: "SWEET500",
-      image: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800&q=80",
-      bgColor: "#E91E63",
-      bgColorAlt: "#F06292",
-      icon: "🍰"
+      bgColor: "#d4af37",
+      bgColorAlt: "#ffd700",
+      icon: "🚚"
     }
   ];
 
@@ -101,7 +91,6 @@ function Home() {
         });
         
         setOffers(offersData.length > 0 ? offersData : defaultOffers);
-        console.log("✅ Home page offers loaded:", offersData);
       } catch (e) {
         console.log("Error fetching home offers:", e);
         setOffers(defaultOffers);
@@ -157,16 +146,24 @@ function Home() {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroImages.length]);
 
   // Auto Slide Offers
   useEffect(() => {
     if (offers.length === 0) return;
     const interval = setInterval(() => {
       setCurrentOffer((prev) => (prev + 1) % offers.length);
-    }, 4000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [offers.length]);
+
+  // ⭐ AI TOAST NOTIFICATION - Show on homepage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      window.showAiToast("🔥 Trending Now: CHEEZY 7 PIZZA is selling like hotcakes! ₹229", 8000);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle Search
   const handleSearch = (query) => navigate(`/search?q=${encodeURIComponent(query)}`);
@@ -177,12 +174,14 @@ function Home() {
   // Brand Click
   const handleBrandClick = (route) => navigate(route);
 
-  // Offer Click
-  const handleOfferClick = (route) => navigate(route);
-
   // Offer Slider Controls
-  const nextOffer = () => setCurrentOffer((prev) => (prev + 1) % offers.length);
-  const prevOffer = () => setCurrentOffer((prev) => (prev - 1 + offers.length) % offers.length);
+  const nextOffer = () => {
+    setCurrentOffer((prev) => (prev + 1) % offers.length);
+  };
+  
+  const prevOffer = () => {
+    setCurrentOffer((prev) => (prev - 1 + offers.length) % offers.length);
+  };
 
   return (
     <div className="home-container">
@@ -226,7 +225,7 @@ function Home() {
 
           <div className="categories-slider-wrapper">
             <button
-              className="cat-nav-btn left"
+              className="cat-nav-btn"
               onClick={() =>
                 document
                   .querySelector(".categories-slider")
@@ -257,7 +256,7 @@ function Home() {
             </div>
 
             <button
-              className="cat-nav-btn right"
+              className="cat-nav-btn"
               onClick={() =>
                 document
                   .querySelector(".categories-slider")
@@ -270,7 +269,7 @@ function Home() {
         </div>
       </section>
 
-      {/* ⭐ SPECIAL OFFERS FROM FIREBASE */}
+      {/* ⭐ SPECIAL OFFERS SECTION - MOBILE OPTIMIZED */}
       <section className="offers-section">
         <div className="offers-container">
           <h2 className="offers-title">🎉 Special Offers for You</h2>
@@ -279,38 +278,42 @@ function Home() {
           {offers.length > 0 ? (
             <>
               <div className="offers-slider">
-                <button className="offer-nav-btn prev" onClick={prevOffer}>‹</button>
+                <button className="offer-nav-btn offer-nav-prev" onClick={prevOffer} aria-label="Previous offer">
+                  ‹
+                </button>
 
                 <div className="offer-track">
                   {offers.map((offer, index) => (
                     <div
                       key={offer.id}
                       className={`offer-card ${index === currentOffer ? "active" : ""}`}
-                      onClick={() => handleOfferClick(offer.route || "/menu/shrimmers")}
-                      style={{
-                        backgroundImage: `url(${offer.image})`,
-                        background: `linear-gradient(135deg, ${offer.bgColor || "#FF6B6B"} 0%, ${offer.bgColorAlt || "#FF8E8E"} 100%)`
-                      }}
                     >
-                      <div className="offer-overlay" />
-                      <div className="offer-content">
-                        <span className="offer-badge">LIMITED OFFER</span>
-                        <h3 className="offer-title">
-                          {offer.icon && <span style={{ marginRight: "8px" }}>{offer.icon}</span>}
-                          {offer.title}
-                        </h3>
-                        <p className="offer-description">{offer.description}</p>
-                        <div className="offer-code">
-                          <span>Use Code:</span>
-                          <strong>{offer.code}</strong>
+                      <div 
+                        className="offer-overlay"
+                        style={{
+                          background: `linear-gradient(135deg, ${offer.bgColor || "#d4af37"} 0%, ${offer.bgColorAlt || "#ffd700"} 100%)`
+                        }}
+                      >
+                        <div className="offer-content">
+                          <span className="offer-badge">LIMITED OFFER</span>
+                          <h3 className="offer-title">
+                            {offer.icon && <span>{offer.icon}</span>} {offer.title}
+                          </h3>
+                          <p className="offer-description">{offer.description}</p>
+                          <div className="offer-code">
+                            <span>Use Code:</span>
+                            <strong>{offer.code}</strong>
+                          </div>
+                          <button className="claim-btn">Claim Now →</button>
                         </div>
-                        <button className="claim-btn">Claim Now →</button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <button className="offer-nav-btn next" onClick={nextOffer}>›</button>
+                <button className="offer-nav-btn offer-nav-next" onClick={nextOffer} aria-label="Next offer">
+                  ›
+                </button>
               </div>
 
               <div className="offer-indicators">
@@ -319,13 +322,14 @@ function Home() {
                     key={index}
                     className={`offer-indicator ${index === currentOffer ? "active" : ""}`}
                     onClick={() => setCurrentOffer(index)}
+                    aria-label={`Go to offer ${index + 1}`}
                   />
                 ))}
               </div>
             </>
           ) : (
             <div style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-              <p>No offers available at the moment</p>
+              <p>Loading offers...</p>
             </div>
           )}
         </div>
@@ -358,8 +362,6 @@ function Home() {
                 review: "Black & gold vibe + amazing food. 10/10.",
                 rating: "⭐⭐⭐⭐⭐"
               },
-
-              /* DUPLICATE FOR SMOOTH INFINITE SCROLL */
               {
                 name: "Akash R",
                 review: "Best burgers in Hyderabad. Super juicy and fresh!",
@@ -407,40 +409,15 @@ function Home() {
                 onClick={() => handleBrandClick(brand.route)}
                 style={{
                   backgroundImage: `url(${brand.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  height: "230px",
-                  borderRadius: "18px",
-                  position: "relative",
-                  overflow: "hidden",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "flex-end",
                 }}
               >
-
-                {/* Dark Fade */}
-                <div style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: "rgba(0,0,0,0.45)"
-                }} />
-
-                {/* TEXT ON TOP */}
-                <div style={{
-                  position: "relative",
-                  padding: "20px",
-                  color: "white",
-                  textAlign: "left",
-                }}>
-                  <h3 style={{ fontSize: "24px", margin: 0 }}>{brand.name}</h3>
-                  <p style={{ marginTop: "4px", opacity: 0.9 }}>{brand.tagline}</p>
-                  <p style={{ fontSize: "14px", opacity: 0.8 }}>{brand.description}</p>
+                <div className="brand-overlay" />
+                <div className="brand-card-inner">
+                  <div className="brand-icon">{brand.icon}</div>
+                  <h3 className="brand-name">{brand.name}</h3>
+                  <p className="brand-tagline">{brand.tagline}</p>
+                  <div className="brand-arrow">→</div>
                 </div>
-
               </div>
             ))}
           </div>

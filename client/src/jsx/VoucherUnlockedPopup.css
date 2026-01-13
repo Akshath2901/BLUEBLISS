@@ -1,0 +1,173 @@
+.voucher-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.voucher-popup-card {
+  background: linear-gradient(135deg, #1c1c1c 0%, #0f0e09 100%);
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  border: 2px solid #d4af37;
+  box-shadow: 0 20px 60px rgba(212, 175, 55, 0.3);
+  animation: popupSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popupSlide {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.popup-content {
+  text-align: center;
+  color: white;
+}
+
+.unlock-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.popup-content h2 {
+  font-size: 32px;
+  margin: 16px 0 8px 0;
+  color: #d4af37;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
+}
+
+.voucher-display {
+  margin: 30px 0;
+}
+
+.voucher-card {
+  background: linear-gradient(135deg, #d4af37 0%, #ffd700 100%);
+  padding: 30px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+
+.voucher-amount {
+  font-size: 48px;
+  font-weight: 800;
+  color: #0f0e09;
+  line-height: 1;
+}
+
+.voucher-label {
+  font-size: 14px;
+  color: #0f0e09;
+  margin-top: 8px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.points-earned {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 24px 0;
+}
+
+.points-earned strong {
+  color: #ffd700;
+  font-weight: 700;
+}
+
+.popup-actions {
+  margin: 30px 0;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #e23744 0%, #cf2533 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(226, 55, 68, 0.3);
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(226, 55, 68, 0.4);
+}
+
+.primary-btn:active {
+  transform: translateY(0);
+}
+
+.voucher-info {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 16px;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .voucher-popup-card {
+    padding: 30px 20px;
+  }
+
+  .unlock-icon {
+    font-size: 60px;
+  }
+
+  .popup-content h2 {
+    font-size: 24px;
+  }
+
+  .voucher-amount {
+    font-size: 36px;
+  }
+
+  .primary-btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}

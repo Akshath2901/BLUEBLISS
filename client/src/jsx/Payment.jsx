@@ -1,16 +1,27 @@
-// src/pages/Payment.jsx - PREMIUM VERSION WITH UPDATED STYLING
+// src/pages/Payment.jsx - UPDATED VERSION
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
-import "../jsx/payment.css"; // Import the premium CSS
+import "../jsx/payment.css";
+
+// 🔥 ADD YOUR RESTAURANT INFO HERE
+const RESTAURANT_INFO = {
+  name: "Blue Bliss",  // ← REPLACE THIS
+  address: "opp. chikalguda, Railway Colony, police station, Secunderabad, Telangana 500061",  // ← REPLACE THIS
+  coordinates: {
+    lat: 17.430833225925735,  // ← REPLACE WITH YOUR RESTAURANT'S LATITUDE
+    lng: 78.5133938400985   // ← REPLACE WITH YOUR RESTAURANT'S LONGITUDE
+  },
+  phone: "+91-7569534271"  // ← REPLACE WITH YOUR PHONE
+};
 
 function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   
-  const { total, address, suggestion, noContact, cart } = location.state || {};
+  const { total, address, suggestion, noContact, cart, orderId, appliedOffer, offerDiscount, appliedVoucher, voucherDiscount, totalDiscount } = location.state || {};
 
   const handleFakePayment = async () => {
     if (!cart || cart.length === 0) {
@@ -24,22 +35,30 @@ function Payment() {
     }
 
     setLoading(true);
-    const orderId = Math.floor(Math.random() * 900000 + 100000);
+    const finalOrderId = orderId || `ORD-${Date.now()}`;
     const user = auth.currentUser;
 
     // Simulate payment processing
     setTimeout(async () => {
       try {
-        // ✅ SAVE ORDER TO FIRESTORE
-        const docRef = await addDoc(collection(db, "orders"), {
-          orderId,
+        // ✅ UPDATED ORDER STRUCTURE
+        const orderData = {
+          // Basic info
+          orderId: finalOrderId,
           userId: user?.uid || "guest",
-          userEmail: user?.email || "guest@example.com",
-          userName: user?.displayName || "Guest User",
+          status: "pending",
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+          
+          // Cart items
           cart,
           total: Number(total),
+          
+          // ✅ ENHANCED ADDRESS (with coordinates from CartPage)
           address: {
             label: address.label || "home",
+            fullAddress: address.fullAddress || 
+              `${address.houseNo ? address.houseNo + ', ' : ''}${address.street}, ${address.area}, ${address.city}`,
             houseNo: address.houseNo || "",
             street: address.street || "",
             area: address.area || "",
@@ -47,22 +66,82 @@ function Payment() {
             state: address.state || "",
             pincode: address.pincode || "",
             landmark: address.landmark || "",
+            
+            // 🔥 GPS Coordinates (from AddressAutocomplete)
+            coordinates: address.coordinates || null,
+            
+            // Delivery info from autocomplete
+            deliveryInfo: address.deliveryInfo || null
           },
+          
+          // ✅ RESTAURANT INFO
+          restaurant: RESTAURANT_INFO,
+          
+          // ✅ CUSTOMER INFO
+          customer: {
+            name: user?.displayName || "Guest User",
+            phone: user?.phoneNumber || user?.email || "",
+            email: user?.email || "guest@example.com"
+          },
+          
+          // ✅ DELIVERY STRUCTURE (for third-party integration)
+          delivery: {
+            partner: null,           // Will be "dunzo", "shadowfax", etc.
+            taskId: null,            // Delivery partner's task ID
+            trackingUrl: null,       // Tracking link
+            currentLocation: null,   // Live GPS
+            estimatedDelivery: null, // ETA
+            
+            agent: {
+              name: null,
+              phone: null,
+              vehicleNo: null
+            },
+            
+            partnerStatus: null,     // "assigned", "picked_up", "in_transit", "delivered"
+            assignedAt: null,
+            pickedUpAt: null,
+            deliveredAt: null,
+            
+            deliveryFee: 42,
+            partnerCharges: null,
+            failureReason: null
+          },
+          
+          // ✅ PAYMENT INFO
+          payment: {
+            method: "online",  // or "cod" based on selection
+            status: "completed",
+            transactionId: `TXN-${Date.now()}`,
+            codAmount: 0  // Set to total if COD
+          },
+          
+          // Additional info
           suggestion: suggestion || "",
           noContact: noContact || false,
-          status: "pending",
-          createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now(),
-        });
+          
+          // Offers/Vouchers
+          appliedOffer: appliedOffer || null,
+          offerDiscount: offerDiscount || 0,
+          appliedVoucher: appliedVoucher || null,
+          voucherDiscount: voucherDiscount || 0,
+          totalDiscount: totalDiscount || 0
+        };
+
+        console.log("✅ Creating order with structure:", orderData);
+
+        const docRef = await addDoc(collection(db, "orders"), orderData);
 
         console.log("✅ Order saved successfully with ID:", docRef.id);
 
         navigate("/payment-success", {
           state: { 
-            orderId, 
+            orderId: finalOrderId, 
             total, 
             address, 
             cart,
+            suggestion,
+            noContact,
             firestoreId: docRef.id 
           },
         });
@@ -109,12 +188,14 @@ function Payment() {
                 📍 Delivery Address
               </h3>
               <p style={{ margin: "4px 0", fontWeight: "600" }}>
-                {address?.houseNo && `${address.houseNo}, `}
-                {address?.street}
+                {address?.fullAddress || 
+                 `${address?.houseNo ? address.houseNo + ', ' : ''}${address?.street}, ${address?.area}, ${address?.city}`}
               </p>
-              <p style={{ margin: "4px 0", fontSize: "14px", opacity: 0.8 }}>
-                {address?.area}, {address?.city}
-              </p>
+              {address?.landmark && (
+                <p style={{ margin: "4px 0", fontSize: "13px", opacity: 0.7 }}>
+                  📌 {address.landmark}
+                </p>
+              )}
             </div>
           </div>
         </div>
