@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
 import { collection, addDoc, doc, getDoc, Timestamp } from "firebase/firestore";
-import "./payment.css";
+import "./Payment.css";
 
 // 🔥 RESTAURANT INFO
 const RESTAURANT_INFO = {

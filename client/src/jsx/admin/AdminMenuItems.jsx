@@ -6,7 +6,7 @@ import {
   doc,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
-import "./AdminManagement.css";
+import "./admin.css";
 
 export default function AdminMenuManagement() {
   const [items, setItems] = useState([]);

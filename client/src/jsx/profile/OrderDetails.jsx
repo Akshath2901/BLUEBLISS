@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { auth, db } from "../../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import "./Profile.css";
+import "./profile.css";
 
 export default function OrderDetails() {
   const { id } = useParams();

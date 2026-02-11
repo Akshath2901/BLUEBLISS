@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import "../jsx/ordertracking.css";
+import "./OrderTracking.css";
 
 export default function OrderTracking() {
   const location = useLocation();
