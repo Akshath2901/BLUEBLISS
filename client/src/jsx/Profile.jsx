@@ -6,6 +6,7 @@ import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import MyOrders from "./profile/MyOrders";
 import MyRatings from "./profile/MyRatings";
+import RateOrder from "./profile/RateOrder"; // ADD THIS IMPORT
 import Help from "./profile/Help";
 import PaymentMethods from "./profile/PaymentMethods";
 import Addresses from "./profile/Addresses";
@@ -18,6 +19,7 @@ export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [ratingOrderData, setRatingOrderData] = useState(null); // ADD THIS STATE
   const auth = getAuth();
   const navigate = useNavigate();
 
@@ -81,6 +83,18 @@ export default function Profile() {
   const handleSectionChange = (section) => {
     setActiveSection(section);
     setMobileMenuOpen(false);
+  };
+
+  // ADD THIS FUNCTION - Handle rate order navigation
+  const handleRateOrder = (orderData) => {
+    setRatingOrderData(orderData);
+    setActiveSection("rate-order");
+  };
+
+  // ADD THIS FUNCTION - Handle back from rating
+  const handleBackFromRating = () => {
+    setRatingOrderData(null);
+    setActiveSection("orders");
   };
 
   if (loading) {
@@ -212,8 +226,15 @@ export default function Profile() {
 
         {/* MAIN CONTENT AREA */}
         <main className="profile-main">
-          {activeSection === "orders" && <MyOrders />}
+          {/* PASS handleRateOrder to MyOrders */}
+          {activeSection === "orders" && <MyOrders onRateOrder={handleRateOrder} />}
           {activeSection === "ratings" && <MyRatings />}
+          {activeSection === "rate-order" && (
+            <RateOrder 
+              orderData={ratingOrderData} 
+              onBack={handleBackFromRating}
+            />
+          )}
           {activeSection === "loyalty" && <LoyaltyRewardsSection />}
           {activeSection === "addresses" && <Addresses />}
           {activeSection === "payments" && <PaymentMethods />}

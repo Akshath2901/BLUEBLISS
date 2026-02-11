@@ -15,18 +15,41 @@ function UrbanWrap() {
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState({});
   const [itemQty, setItemQty] = useState(1);
-  
+
   // Filter states
   const [filterType, setFilterType] = useState("all");
   const [filteredMenuData, setFilteredMenuData] = useState([]);
-  
-  // 🔥 NEW: State for order history
+
+  // 🔥 Search states (added)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Order history
   const [previousOrders, setPreviousOrders] = useState([]);
   const [recentItems, setRecentItems] = useState([]);
 
+  // Sort states
+  const [sortType, setSortType] = useState("");
+  const [topPicks, setTopPicks] = useState([]);
+
+  // Discount & recommendations
+  const [discountedItems, setDiscountedItems] = useState([]);
+  const [recommendedItems, setRecommendedItems] = useState([]);
+  const [categoryBanners, setCategoryBanners] = useState([]);
+  const [pairingSuggestions, setPairingSuggestions] = useState([]);
+  const [showPairingModal, setShowPairingModal] = useState(false);
+  const [expandedBanner, setExpandedBanner] = useState(null);
+
   const categoryRefs = useRef({});
+  const searchBarRef = useRef(null); // 🔥 Search bar ref (added)
+  // 🔥 Deals auto slider
+const [activeDealIndex, setActiveDealIndex] = useState(0);
+
+
   const { addToCart, increaseQty, decreaseQty, getItemQty, cart } =
     useContext(CartContext);
+
 
   // 🔥 CUSTOM CATEGORY ORDER - Put wraps first!
   const categoryOrder = [
@@ -52,7 +75,7 @@ function UrbanWrap() {
     });
   };
 
-  // 🔥 ENHANCED CUSTOMIZATION GROUPS - Multiple groups with selection limits
+  // 🔥 ENHANCED CUSTOMIZATION GROUPS
   const customizationGroups = [
     {
       id: "base",
@@ -103,7 +126,6 @@ function UrbanWrap() {
 
         const categoriesWithImages = await resolveMenuImages(categories);
         
-        // 🔥 SORT CATEGORIES
         const sortedCategories = sortCategories(categoriesWithImages);
 
         const initialOpen = {};
@@ -114,6 +136,54 @@ function UrbanWrap() {
         setOpenCategories(initialOpen);
         setMenuData(sortedCategories);
         setFilteredMenuData(sortedCategories);
+        
+        // 🔥 EXTRACT TOP PICKS (Bestsellers - items with rating > 4.5)
+        const allItems = [];
+        sortedCategories.forEach(category => {
+          category.items.forEach(item => {
+            allItems.push({
+              ...item,
+              category: category.category,
+              itemId: item.id || `${category.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase()
+            });
+          });
+        });
+        
+        // Filter items with rating >= 4.5 and sort by rating
+        const bestsellers = allItems
+          .filter(item => parseFloat(item.rating) >= 4.5)
+          .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+          .slice(0, 6);
+        
+        setTopPicks(bestsellers);
+        
+        // 🔥 EXTRACT DISCOUNTED ITEMS
+        const itemsWithDiscount = allItems
+          .filter(item => item.discount && item.discount > 0)
+          .sort((a, b) => b.discount - a.discount)
+          .slice(0, 6);
+        
+        setDiscountedItems(itemsWithDiscount);
+        
+        // 🔥 RECOMMENDED ITEMS
+        const recommended = allItems
+          .filter(item => parseFloat(item.rating) >= 4.3)
+          .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+          .slice(0, 6);
+        
+        setRecommendedItems(recommended);
+        
+        // 🔥 CATEGORY PRICE BANNERS
+        const banners = sortedCategories.map(category => {
+          const minPrice = Math.min(...category.items.map(item => item.price));
+          return {
+            category: category.category,
+            startingPrice: minPrice,
+            itemCount: category.items.length
+          };
+        }).slice(0, 3);
+        
+        setCategoryBanners(banners);
       } catch (e) {
         console.log(e);
       } finally {
@@ -146,8 +216,21 @@ function UrbanWrap() {
 
     fetchOffers();
   }, []);
+  // 🔥 AUTO SLIDE DEALS (Swiggy style)
+useEffect(() => {
+  if (!offers.length) return;
 
-  // 🔥 NEW: FETCH ORDER HISTORY FOR "ORDER AGAIN" SECTION
+  const interval = setInterval(() => {
+    setActiveDealIndex((prev) =>
+      prev === offers.length - 1 ? 0 : prev + 1
+    );
+  }, 1800); // 1.8 sec
+
+  return () => clearInterval(interval);
+}, [offers]);
+
+
+  // 🔥 FETCH ORDER HISTORY
   useEffect(() => {
     const fetchRecentOrders = async () => {
       const user = auth.currentUser;
@@ -163,10 +246,8 @@ function UrbanWrap() {
           orders.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort by timestamp (most recent first)
         orders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        // Extract unique items from recent orders
         const itemMap = new Map();
         orders.slice(0, 5).forEach(order => {
           if (order.cart) {
@@ -187,12 +268,13 @@ function UrbanWrap() {
     fetchRecentOrders();
   }, []);
 
-  // APPLY FILTER
+  // 🔥 APPLY FILTER AND SORT
   useEffect(() => {
-    if (filterType === "all") {
-      setFilteredMenuData(sortCategories(menuData));
-    } else {
-      const filtered = menuData.map(category => ({
+    let filtered = menuData;
+    
+    // Apply veg/non-veg filter
+    if (filterType !== "all") {
+      filtered = menuData.map(category => ({
         ...category,
         items: category.items.filter(item => {
           if (filterType === "veg") {
@@ -203,10 +285,76 @@ function UrbanWrap() {
           return true;
         })
       })).filter(category => category.items.length > 0);
-
-      setFilteredMenuData(sortCategories(filtered));
     }
-  }, [filterType, menuData]);
+    
+    // Apply sorting
+    if (sortType === "rating") {
+      filtered = filtered.map(category => ({
+        ...category,
+        items: category.items.filter(item => parseFloat(item.rating) >= 4.0)
+      })).filter(category => category.items.length > 0);
+    } else if (sortType === "bestseller") {
+      const allItems = [];
+      filtered.forEach(category => {
+        category.items.forEach(item => {
+          allItems.push({
+            ...item,
+            category: category.category,
+            categoryName: category.category
+          });
+        });
+      });
+      
+      let bestsellerItems = allItems.filter(item => parseFloat(item.rating) >= 4.5);
+      
+      // Prioritize wraps and pasta
+      const priority = bestsellerItems.filter(item => 
+        item.categoryName.includes('WRAP') || 
+        item.categoryName.includes('PASTA')
+      );
+      const others = bestsellerItems.filter(item => 
+        !item.categoryName.includes('WRAP') && 
+        !item.categoryName.includes('PASTA')
+      );
+      
+      bestsellerItems = [...priority, ...others].slice(0, 11);
+      
+      const categoryMap = new Map();
+      bestsellerItems.forEach(item => {
+        if (!categoryMap.has(item.categoryName)) {
+          categoryMap.set(item.categoryName, {
+            category: item.categoryName,
+            items: []
+          });
+        }
+        categoryMap.get(item.categoryName).items.push(item);
+      });
+      
+      filtered = Array.from(categoryMap.values());
+    }
+
+    setFilteredMenuData(sortCategories(filtered));
+  }, [filterType, sortType, menuData]);
+  // 🔥 AUTO SCROLL TO MATCHING CATEGORY ON SEARCH
+useEffect(() => {
+  if (!searchQuery.trim()) return;
+
+  const matchedCategory = filteredMenuData.find(category =>
+    category.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    category.items.some(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
+  if (matchedCategory) {
+    const el = categoryRefs.current[matchedCategory.category];
+    el?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+}, [searchQuery, filteredMenuData]);
+
 
   const toggleCategory = (category) => {
     setOpenCategories((prev) => ({
@@ -241,10 +389,8 @@ function UrbanWrap() {
   };
 
   const handleAddToCart = () => {
-    // Use consistent itemId - match the one used in menu display
     const itemId = selectedItem.itemId;
     
-    // Collect all selected addons from all groups
     const addonsList = [];
     let addonPrice = 0;
     
@@ -268,7 +414,46 @@ function UrbanWrap() {
     });
 
     setShowItemModal(false);
-    alert("Added to cart!");
+    
+    // 🔥 SHOW PAIRING SUGGESTIONS
+    generatePairingSuggestions(selectedItem);
+    setShowPairingModal(true);
+  };
+  
+  // 🔥 GENERATE SMART PAIRING SUGGESTIONS
+  const generatePairingSuggestions = (addedItem) => {
+    const allItems = [];
+    menuData.forEach(category => {
+      category.items.forEach(item => {
+        allItems.push({
+          ...item,
+          category: category.category,
+          itemId: item.id || `${category.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase()
+        });
+      });
+    });
+    
+    let pairings = [];
+    
+    if (addedItem.category.includes('WRAP')) {
+      pairings = allItems.filter(item => 
+        item.category.includes('FRIES') || 
+        item.category.includes('SHAKE') || 
+        item.category.includes('MOJITO')
+      ).slice(0, 3);
+    } else if (addedItem.category.includes('FRIES')) {
+      pairings = allItems.filter(item => 
+        item.category.includes('WRAP') ||
+        item.name.toLowerCase().includes('dip')
+      ).slice(0, 3);
+    } else {
+      pairings = allItems
+        .filter(item => item.category !== addedItem.category && parseFloat(item.rating) >= 4.3)
+        .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
+        .slice(0, 3);
+    }
+    
+    setPairingSuggestions(pairings);
   };
 
   const toggleAddon = (addonId, groupId) => {
@@ -278,18 +463,14 @@ function UrbanWrap() {
     setSelectedAddons((prev) => {
       const updated = { ...prev };
       
-      // Count currently selected items in this group
       const selectedInGroup = group.options.filter(opt => updated[opt.id]).length;
       
       if (updated[addonId]) {
-        // Deselect
         delete updated[addonId];
       } else {
-        // Check if we can select more
         if (selectedInGroup < group.maxSelection) {
           updated[addonId] = true;
         } else {
-          // Max selection reached
           alert(`You can only select up to ${group.maxSelection} items from ${group.title}`);
         }
       }
@@ -307,7 +488,6 @@ function UrbanWrap() {
     ? (selectedItem.price + addonTotal) * itemQty
     : 0;
 
-  // Get item counts for filter buttons
   const totalItems = menuData.reduce((sum, cat) => sum + cat.items.length, 0);
   const vegItems = menuData.reduce((sum, cat) => 
     sum + cat.items.filter(item => item.type === "veg" || item.isVeg === true).length, 0
@@ -316,7 +496,6 @@ function UrbanWrap() {
     sum + cat.items.filter(item => item.type === "nonveg" || item.type === "non-veg" || item.isVeg === false).length, 0
   );
 
-  // Render veg/non-veg indicator
   const renderFoodTypeIndicator = (item) => {
     const isVeg = item.type === "veg" || item.isVeg === true;
     
@@ -349,39 +528,116 @@ function UrbanWrap() {
     );
   };
 
-  return (
-    <div className="menu-wrapper">
-      {/* HEADER */}
-      <div className="restaurant-header">
-        <div className="header-top">
-          <div className="header-info">
-            <h1 className="rest-name">Urban Wrap</h1>
-            <p className="rest-rating">⭐ 4.5 • ₹300 for two</p>
-            <p className="rest-category">Wraps, Fries, Fast Food</p>
-            <p className="rest-location">📍 Tolichowki • 30-35 mins</p>
-          </div>
+return (
+  <div className="menu-wrapper">
+    {/* 🔥 FIXED SEARCH BAR AT TOP - ALWAYS VISIBLE */}
+    <div className="top-search-bar" ref={searchBarRef}>
+      <div className="top-search-wrapper">
+        <div className="search-input-group">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search for dishes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="clear-search"
+              onClick={() => {
+                setSearchQuery("");
+                setIsSearching(false);
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <button
+          className={`veg-only-toggle ${
+            filterType === "veg" ? "active" : ""
+          }`}
+          onClick={() =>
+            setFilterType(filterType === "veg" ? "all" : "veg")
+          }
+        >
+          <span className="veg-icon">
+            <span className="veg-dot"></span>
+          </span>
+          <span className="veg-text">Veg Only</span>
+        </button>
+      </div>
+    </div>
+
+    {/* Search results banner */}
+    {isSearching && (
+      <div className="search-results-banner">
+        <p>
+          {filteredMenuData.reduce(
+            (sum, cat) => sum + cat.items.length,
+            0
+          )}{" "}
+          results for "{searchQuery}"
+        </p>
+        <button
+          className="clear-search-btn"
+          onClick={() => {
+            setSearchQuery("");
+            setIsSearching(false);
+          }}
+        >
+          Clear search
+        </button>
+      </div>
+    )}
+
+    {/* HEADER */}
+    <div className="restaurant-header">
+      <div className="header-top">
+        <div className="header-info">
+          <h1 className="rest-name">Urban Wrap</h1>
+          <p className="rest-rating">⭐ 4.5 • ₹300 for two</p>
+          <p className="rest-category">Wraps, Fries, Fast Food</p>
+          <p className="rest-location">
+            📍 Tolichowki • 30-35 mins
+          </p>
         </div>
       </div>
+    </div>
 
-      {/* LIVE DEALS SECTION */}
-      {offers.length > 0 && (
-        <div className="live-deals-section">
-          <h3 className="deals-title">🎉 Deals for you</h3>
-          <div className="deals-carousel">
-            {offers.slice(0, 3).map((offer) => (
-              <div key={offer.id} className="deal-card">
-                <div className="deal-icon">{offer.icon || "🎁"}</div>
-                <div className="deal-content">
-                  <p className="deal-text">{offer.title}</p>
-                  <p className="deal-code">USE {offer.code}</p>
-                </div>
-              </div>
-            ))}
+      {/* 🔥 LIVE DEALS – SWIGGY STYLE */}
+{offers.length > 0 && (
+  <div className="live-deals-section">
+    <h3 className="deals-title">🎉 Deals for you</h3>
+
+    <div className="deal-strip">
+      <div className="deal-strip-content">
+        <div className="deal-left">
+          <span className="deal-icon">
+            {offers[activeDealIndex]?.icon || "🎁"}
+          </span>
+
+          <div>
+            <div className="deal-main-text">
+              {offers[activeDealIndex]?.title}
+            </div>
+            <div className="deal-sub-text">
+              USE {offers[activeDealIndex]?.code}
+            </div>
           </div>
         </div>
-      )}
 
-      {/* VEG/NON-VEG FILTER BUTTONS */}
+        <div className="deal-counter">
+          {activeDealIndex + 1}/{offers.length}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+      {/* VEG/NON-VEG FILTER & SORT BUTTONS */}
       <div className="filter-section">
         <div className="filter-buttons">
           <button
@@ -413,6 +669,21 @@ function UrbanWrap() {
             <span className="filter-text">Non-Veg</span>
             <span className="filter-count">{nonVegItems}</span>
           </button>
+          
+          {/* 🔥 NEW: SORT BUTTONS */}
+          <button
+            className={`filter-btn sort-btn ${sortType === "rating" ? "active" : ""}`}
+            onClick={() => setSortType(sortType === "rating" ? "" : "rating")}
+          >
+            <span className="filter-text">⭐ Ratings 4.0+</span>
+          </button>
+          
+          <button
+            className={`filter-btn sort-btn ${sortType === "bestseller" ? "active" : ""}`}
+            onClick={() => setSortType(sortType === "bestseller" ? "" : "bestseller")}
+          >
+            <span className="filter-text">🔥 Bestseller</span>
+          </button>
         </div>
 
         {filterType !== "all" && (
@@ -422,7 +693,7 @@ function UrbanWrap() {
         )}
       </div>
 
-      {/* 🔥 NEW: ORDER AGAIN SECTION */}
+      {/* 🔥 ORDER AGAIN SECTION */}
       {recentItems.length > 0 && (
         <div className="order-again-section">
           <h3 className="order-again-title">🔄 Order Again</h3>
@@ -466,6 +737,197 @@ function UrbanWrap() {
         </div>
       )}
 
+      {/* 🔥 NEW: TOP PICKS SECTION */}
+      {topPicks.length > 0 && (
+        <div className="top-picks-section">
+          <h3 className="top-picks-title">🌟 Top Picks</h3>
+          <div className="top-picks-grid">
+            {topPicks.map((item) => {
+              const qty = getItemQty(item.itemId);
+              return (
+                <div key={item.itemId} className="top-pick-card">
+                  <div className="top-pick-badge">⭐ Bestseller</div>
+                  <img src={item.img} alt={item.name} className="top-pick-img" />
+                  <div className="top-pick-content">
+                    <div className="top-pick-header">
+                      {renderFoodTypeIndicator(item)}
+                      <h4 className="top-pick-name">{item.name}</h4>
+                    </div>
+                    <div className="top-pick-info">
+                      <div className="top-pick-rating">⭐ {item.rating}</div>
+                      <div className="top-pick-price">₹{item.price}</div>
+                    </div>
+                    {qty === 0 ? (
+                      <button
+                        className="top-pick-add-btn"
+                        onClick={() => handleItemClick(item, item.category, item.itemId)}
+                      >
+                        ADD
+                      </button>
+                    ) : (
+                      <div className="top-pick-qty-box">
+                        <button onClick={() => decreaseQty(item.itemId)}>-</button>
+                        <span>{qty}</span>
+                        <button onClick={() => increaseQty(item.itemId)}>+</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 NEW: ITEMS UPTO 40% OFF SECTION */}
+      {discountedItems.length > 0 && (
+        <div className="discount-section">
+          <div className="discount-header">
+            <h3 className="discount-title">💰 Items upto 40% OFF</h3>
+            <a href="#" className="view-coupon">View coupon details</a>
+          </div>
+          <div className="discount-carousel">
+            {discountedItems.map((item) => {
+              const qty = getItemQty(item.itemId);
+              const originalPrice = Math.round(item.price / (1 - item.discount / 100));
+              return (
+                <div key={item.itemId} className="discount-card">
+                  {renderFoodTypeIndicator(item)}
+                  <img src={item.img} alt={item.name} className="discount-img" />
+                  <div className="discount-info">
+                    <h4 className="discount-item-name">{item.name}</h4>
+                    {item.rating && <div className="discount-badge">Highly reordered</div>}
+                    <div className="discount-pricing">
+                      <span className="discount-price">₹{item.price}</span>
+                      <span className="original-price">₹{originalPrice}</span>
+                    </div>
+                    <div className="discount-percent">{item.discount}% OFF</div>
+                    <p className="discount-desc">{item.desc?.substring(0, 50)}... more</p>
+                  </div>
+                  {qty === 0 ? (
+                    <button
+                      className="discount-add-btn"
+                      onClick={() => handleItemClick(item, item.category, item.itemId)}
+                    >
+                      ADD +
+                    </button>
+                  ) : (
+                    <div className="discount-qty-box">
+                      <button onClick={() => decreaseQty(item.itemId)}>−</button>
+                      <span>{qty}</span>
+                      <button onClick={() => increaseQty(item.itemId)}>+</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 NEW: CATEGORY PRICE BANNERS WITH DROPDOWN */}
+      {categoryBanners.length > 0 && (
+        <div className="category-banners">
+          {categoryBanners.map((banner, idx) => {
+            const category = menuData.find(cat => cat.category === banner.category);
+            const isExpanded = expandedBanner === idx;
+            
+            return (
+              <div key={idx} className="category-banner-wrapper">
+                <div 
+                  className="category-banner-card"
+                  onClick={() => setExpandedBanner(isExpanded ? null : idx)}
+                >
+                  <h4>{banner.category.replace('_', ' ')}: Starts @₹{banner.startingPrice}</h4>
+                  <span className="banner-arrow">{isExpanded ? '▲' : '▼'}</span>
+                </div>
+                
+                {isExpanded && category && (
+                  <div className="banner-items-dropdown">
+                    {category.items.slice(0, 4).map((item, itemIdx) => {
+                      const itemId = item.id || `${category.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase();
+                      const qty = getItemQty(itemId);
+                      
+                      return (
+                        <div key={itemIdx} className="banner-dropdown-item">
+                          <div className="banner-item-info">
+                            {renderFoodTypeIndicator(item)}
+                            <div className="banner-item-details">
+                              <p className="banner-item-name">{item.name}</p>
+                              <p className="banner-item-price">₹{item.price}</p>
+                            </div>
+                          </div>
+                          {qty === 0 ? (
+                            <button
+                              className="banner-item-add"
+                              onClick={() => handleItemClick(item, category.category, itemId)}
+                            >
+                              ADD
+                            </button>
+                          ) : (
+                            <div className="banner-item-qty">
+                              <button onClick={() => decreaseQty(itemId)}>−</button>
+                              <span>{qty}</span>
+                              <button onClick={() => increaseQty(itemId)}>+</button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {category.items.length > 4 && (
+                      <p className="view-all-text">
+                        + {category.items.length - 4} more items
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 🔥 NEW: RECOMMENDED FOR YOU SECTION */}
+      {recommendedItems.length > 0 && (
+        <div className="recommended-section">
+          <h3 className="recommended-title">🎯 Recommended for you</h3>
+          <div className="recommended-grid">
+            {recommendedItems.map((item) => {
+              const qty = getItemQty(item.itemId);
+              return (
+                <div key={item.itemId} className="recommended-card">
+                  <img src={item.img} alt={item.name} className="recommended-img" />
+                  <div className="recommended-content">
+                    <div className="recommended-header">
+                      {renderFoodTypeIndicator(item)}
+                      <h4 className="recommended-name">{item.name}</h4>
+                    </div>
+                    <div className="recommended-info">
+                      <span className="recommended-rating">⭐ {item.rating}</span>
+                      <span className="recommended-price">₹{item.price}</span>
+                    </div>
+                    {qty === 0 ? (
+                      <button
+                        className="recommended-add-btn"
+                        onClick={() => handleItemClick(item, item.category, item.itemId)}
+                      >
+                        ADD
+                      </button>
+                    ) : (
+                      <div className="recommended-qty-box">
+                        <button onClick={() => decreaseQty(item.itemId)}>-</button>
+                        <span>{qty}</span>
+                        <button onClick={() => increaseQty(item.itemId)}>+</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="menu-title-divider">MENU</div>
 
       {loading ? (
@@ -481,7 +943,7 @@ function UrbanWrap() {
           >
             Show All Items
           </button>
-          </div>
+        </div>
       ) : (
         <>
           {filteredMenuData.map((section, idx) => {
@@ -506,7 +968,6 @@ function UrbanWrap() {
                 {isOpen && (
                   <div className="item-list">
                     {section.items.map((item, index) => {
-                      // 🔥 FIX: Generate truly unique itemId using name to avoid collisions
                       const itemId = item.id || `${section.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase();
                       const qty = getItemQty(itemId);
 
@@ -714,6 +1175,63 @@ function UrbanWrap() {
           <a href="/cart" className="view-cart-btn">
             VIEW CART
           </a>
+        </div>
+      )}
+
+      {/* 🔥 NEW: PAIRING SUGGESTIONS MODAL */}
+      {showPairingModal && pairingSuggestions.length > 0 && (
+        <div className="pairing-modal-overlay" onClick={() => setShowPairingModal(false)}>
+          <div className="pairing-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="pairing-header">
+              <h3>✨ You will love pairing it with</h3>
+              <button className="close-pairing" onClick={() => setShowPairingModal(false)}>✕</button>
+            </div>
+            <div className="pairing-items">
+              {pairingSuggestions.map((item) => {
+                const qty = getItemQty(item.itemId);
+                return (
+                  <div key={item.itemId} className="pairing-card">
+                    {renderFoodTypeIndicator(item)}
+                    <img src={item.img} alt={item.name} className="pairing-img" />
+                    <div className="pairing-details">
+                      <h4 className="pairing-name">{item.name}</h4>
+                      <div className="pairing-meta">
+                        <span className="pairing-price">₹{item.price}</span>
+                        <span className="pairing-rating">⭐ {item.rating}</span>
+                      </div>
+                      {qty === 0 ? (
+                        <button
+                          className="pairing-add-btn"
+                          onClick={() => {
+                            addToCart({
+                              id: item.itemId,
+                              name: item.name,
+                              price: item.price,
+                              img: item.img,
+                              qty: 1,
+                              basePrice: item.price,
+                            });
+                          }}
+                        >
+                          ADD +
+                        </button>
+                      ) : (
+                        <div className="pairing-qty-box">
+                          <button onClick={() => decreaseQty(item.itemId)}>−</button>
+                          <span>{qty}</span>
+                          <button onClick={() => increaseQty(item.itemId)}>+</button>
+                        </div>
+                      )}
+                      <p className="customizable-text">customisable</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button className="continue-btn" onClick={() => setShowPairingModal(false)}>
+              Continue →
+            </button>
+          </div>
         </div>
       )}
     </div>

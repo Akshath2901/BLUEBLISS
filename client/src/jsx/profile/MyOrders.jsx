@@ -1,3 +1,6 @@
+// ============================================
+// MyOrders.jsx - CORRECTED VERSION
+// ============================================
 import { useEffect, useState } from "react";
 import { auth, db } from "../../lib/firebase";
 import {
@@ -11,7 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./profile.css";
 
-export default function MyOrders() {
+export default function MyOrders({ onRateOrder }) { // ✅ ADD THIS PROP
   const [orders, setOrders] = useState([]);
   const [view, setView] = useState("recent"); // recent | all
   const navigate = useNavigate();
@@ -42,7 +45,6 @@ export default function MyOrders() {
           return {
             id: doc.id,
             ...data,
-            // 🔐 GUARANTEE items is always an array
             items: Array.isArray(data.items) ? data.items : [],
           };
         });
@@ -90,11 +92,6 @@ export default function MyOrders() {
           <div
             key={order.id}
             className="order-card-premium"
-            onClick={() =>
-              navigate("/track-order", {
-                state: { orderId: order.orderId },
-              })
-            }
           >
             {/* HEADER */}
             <div className="order-card-header">
@@ -122,14 +119,15 @@ export default function MyOrders() {
               </p>
             </div>
 
-            {/* ⭐ RATE ORDER */}
-            {order.status === "delivered" && !order.rating && (
+            {/* ⭐ RATE ORDER BUTTON - Only show if delivered and not rated */}
+            {order.status === "delivered" && !order.rating && onRateOrder && (
               <button
                 className="rate-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate("/rate-order", {
-                    state: { orderDocId: order.id },
+                  onRateOrder({
+                    orderDocId: order.id,
+                    orderId: order.orderId,
                   });
                 }}
               >
@@ -137,8 +135,30 @@ export default function MyOrders() {
               </button>
             )}
 
-            {/* FOOTER */}
-            <div className="order-card-footer">
+            {/* SHOW RATING IF EXISTS */}
+            {order.rating && (
+              <div className="order-rating-display">
+                <div className="stars-small">
+                  {"★".repeat(order.rating.stars)}
+                  <span className="stars-empty">
+                    {"★".repeat(5 - order.rating.stars)}
+                  </span>
+                </div>
+                {order.rating.review && (
+                  <p className="review-snippet">"{order.rating.review}"</p>
+                )}
+              </div>
+            )}
+
+            {/* FOOTER - Track Order */}
+            <div 
+              className="order-card-footer"
+              onClick={() =>
+                navigate("/track-order", {
+                  state: { orderId: order.orderId },
+                })
+              }
+            >
               Track Order →
             </div>
           </div>

@@ -34,14 +34,18 @@ export function CartProvider({ children }) {
   /* =========================
      LOCAL STORAGE
   ========================= */
-  const loadCartFromLocalStorage = () => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    } else {
-      setCart([]);
-    }
-  };
+const loadCartFromLocalStorage = () => {
+  try {
+    if (typeof window === "undefined") return;
+
+    const savedCart = window.localStorage.getItem("cart");
+    setCart(savedCart ? JSON.parse(savedCart) : []);
+  } catch (error) {
+    console.error("❌ localStorage error:", error);
+    setCart([]);
+  }
+};
+
 
   const saveCartToLocalStorage = (updatedCart) => {
     localStorage.setItem("cart", JSON.stringify(updatedCart));
@@ -50,24 +54,21 @@ export function CartProvider({ children }) {
   /* =========================
      FIREBASE
   ========================= */
-  const loadCartFromFirebase = async (userId) => {
-    try {
-      setLoading(true);
-      const cartRef = doc(db, "userCarts", userId);
-      const snapshot = await getDoc(cartRef);
+const loadCartFromFirebase = async (userId) => {
+  try {
+    const cartRef = doc(db, "userCarts", userId);
+    const snapshot = await getDoc(cartRef);
 
-      if (snapshot.exists()) {
-        setCart(snapshot.data().items || []);
-      } else {
-        setCart([]);
-      }
-    } catch (err) {
-      console.error("❌ Error loading cart:", err);
+    if (snapshot.exists()) {
+      setCart(snapshot.data().items || []);
+    } else {
       setCart([]);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (err) {
+    console.error("❌ Error loading cart:", err);
+    setCart([]);
+  }
+};
 
   const saveCartToFirebase = async (updatedCart) => {
     if (!currentUser) return;
@@ -89,13 +90,15 @@ export function CartProvider({ children }) {
   ========================= */
   
   // 🔥 FIX: Separate sync function that doesn't trigger state update
-  const syncCart = (updatedCart) => {
-    if (currentUser) {
-      saveCartToFirebase(updatedCart);
-    } else {
-      saveCartToLocalStorage(updatedCart);
-    }
-  };
+ const syncCart = (updatedCart) => {
+  if (!Array.isArray(updatedCart)) return;
+
+  if (currentUser?.uid) {
+    saveCartToFirebase(updatedCart);
+  } else {
+    saveCartToLocalStorage(updatedCart);
+  }
+};
 
   // 🔥 FIX: Removed syncCart from inside setCart callback
   const addToCart = (item) => {

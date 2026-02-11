@@ -5,7 +5,8 @@ import { db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import "./OfferBanner.css";
 
-export function OfferBanner() {
+export default function OfferBanner() {
+
   const [offers, setOffers] = useState([]);
   const [currentOffer, setCurrentOffer] = useState(0);
   const navigate = useNavigate();

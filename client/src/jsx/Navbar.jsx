@@ -5,8 +5,12 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import AIChat from "./AIChat";
-import { OfferBanner } from "./OfferBanner";
+import OfferBanner from "./OfferBanner";
+
+
+
 import "./Navbar.css";
+import { useVegFilter } from "../context/VegFilterContext";
 
 function Navbar() {
   const [userLocation, setUserLocation] = useState("Detecting...");
@@ -16,40 +20,40 @@ function Navbar() {
   const auth = getAuth();
   const currentRoute = useLocation().pathname;
   const navigate = useNavigate();
+  const { isVegOnly, toggleVegOnly } = useVegFilter();
+
 
   // ---------------------- LOCATION DETECTOR ----------------------
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
+ // ---------------------- LOCATION DETECTOR (SAFE) ----------------------
+useEffect(() => {
+  if (typeof window === "undefined") return;
 
-          try {
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`,
-              {
-                headers: {
-                  "User-Agent": "bluebliss/1.0",
-                  "Accept-Language": "en",
-                },
-              }
-            );
+  if (!("geolocation" in navigator)) {
+    setUserLocation("Not supported");
+    return;
+  }
 
-            const data = await res.json();
-            const address =
-              `${data.address.road || ""}, ${data.address.suburb || ""}, ${data.address.city || ""}`.trim();
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      try {
+        const { latitude, longitude } = position.coords;
 
-            setUserLocation(address || "Location unavailable");
-          } catch {
-            setUserLocation("Error fetching location");
-          }
-        },
-        () => setUserLocation("Permission denied")
-      );
-    } else {
-      setUserLocation("Not supported");
-    }
-  }, []);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        );
+
+        const data = await res.json();
+        const address =
+          `${data.address?.road || ""}, ${data.address?.suburb || ""}, ${data.address?.city || ""}`.trim();
+
+        setUserLocation(address || "Location unavailable");
+      } catch {
+        setUserLocation("Error fetching location");
+      }
+    },
+    () => setUserLocation("Permission denied")
+  );
+}, []);
 
   // ---------------------- AUTH STATE ----------------------
   useEffect(() => {
@@ -165,6 +169,14 @@ function Navbar() {
                 </Link>
               </li>
             </ul>
+{/* 🔥 GLOBAL VEG ONLY TOGGLE */}
+<button
+  className={`veg-global-toggle ${isVegOnly ? "active" : ""}`}
+  onClick={toggleVegOnly}
+  title="Show only veg items"
+>
+  🟢 Veg Only
+</button>
 
             {/* Cart */}
             <button className="btn-cart" onClick={() => navigate("/cart")}>
@@ -208,8 +220,8 @@ function Navbar() {
         </div>
       </nav>
 
-      {/* AI Chat Component */}
-      <AIChat />
+      {/* AI Chat Component
+     <AIChat />  */}
     </>
   );
 }

@@ -1634,3 +1634,452 @@
     font-size: 11px;
   }
 }
+/* Rating Page Styles */
+.rate-order-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.rate-order-card {
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.rate-order-card h2 {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.order-subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 0.9rem;
+}
+
+/* Star Rating Section */
+.star-rating-section {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.rating-question {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 1.125rem;
+}
+
+.stars-container {
+  font-size: 3.5rem;
+  letter-spacing: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.star {
+  cursor: pointer;
+  color: #ddd;
+  transition: color 0.2s;
+  user-select: none;
+}
+
+.star.active {
+  color: #ffc107;
+}
+
+.rating-label {
+  color: #ff6b35;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-top: 1rem;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: #ff6b35;
+}
+
+.char-count {
+  font-size: 0.875rem;
+  color: #999;
+  margin-top: 0.25rem;
+  text-align: right;
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.btn-secondary,
+.btn-primary {
+  flex: 1;
+  padding: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-secondary {
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #f5f5f5;
+}
+
+.btn-primary {
+  background-color: #ff6b35;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #e55a28;
+}
+
+.btn-primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Rate Button in Orders */
+.rate-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #ff6b35;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+.rate-btn:hover {
+  background-color: #e55a28;
+}
+
+/* Order Rating Display */
+.order-rating-display {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.stars-small {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.stars-empty {
+  color: #ddd;
+}
+
+.review-snippet {
+  margin-top: 0.5rem;
+  color: #666;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* My Ratings Page */
+.ratings-grid {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.rating-card {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.rating-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.rating-card-header h4 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.rating-date {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.rating-stars-large {
+  font-size: 1.5rem;
+  color: #ffc107;
+  margin-bottom: 1rem;
+}
+
+.rating-review {
+  padding: 1rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+}
+
+.rating-review p {
+  margin: 0;
+  color: #333;
+}
+
+.rating-complaint {
+  padding: 1rem;
+  background-color: #fff3e0;
+  border-radius: 8px;
+  border: 1px solid #ffe0b2;
+}
+
+.rating-complaint p {
+  margin: 0;
+  color: #e65100;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-hint {
+  font-size: 0.875rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .rate-order-container {
+    padding: 0.5rem;
+  }
+
+  .rate-order-card {
+    padding: 1.5rem;
+  }
+
+  .stars-container {
+    font-size: 2.5rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+}
+/* ==================== SETTINGS SECTION ==================== */
+.settings-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.settings-container h2 {
+  margin-bottom: 2rem;
+  color: #333;
+  font-size: 1.75rem;
+}
+
+.settings-section-card {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.settings-section-card h3 {
+  margin-bottom: 1.5rem;
+  color: #333;
+  font-size: 1.25rem;
+  border-bottom: 2px solid #f5f5f5;
+  padding-bottom: 0.5rem;
+}
+
+.setting-item {
+  margin-bottom: 1.5rem;
+}
+
+.setting-item label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.setting-value {
+  padding: 0.75rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #555;
+  margin: 0;
+}
+
+.email-display {
+  background-color: #fff3e0;
+  border: 1px solid #ffe0b2;
+}
+
+.email-note {
+  display: block;
+  margin-top: 0.5rem;
+  color: #999;
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.setting-item input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.setting-item input:focus {
+  outline: none;
+  border-color: #ff6b35;
+}
+
+.settings-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.edit-btn {
+  background-color: #ff6b35;
+  color: #fff;
+  width: 100%;
+}
+
+.edit-btn:hover {
+  background-color: #e55a28;
+}
+
+.save-btn {
+  flex: 1;
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.save-btn:hover {
+  background-color: #45a049;
+}
+
+.save-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  flex: 1;
+  background-color: #fff;
+  border: 2px solid #e0e0e0;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.checkbox-item:hover {
+  background-color: #f5f5f5;
+}
+
+.checkbox-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #ff6b35;
+}
+
+.checkbox-item span {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 0.5rem;
+  }
+
+  .settings-section-card {
+    padding: 1.5rem;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+  }
+}

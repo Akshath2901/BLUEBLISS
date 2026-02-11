@@ -17,18 +17,30 @@ function Peppa() {
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState({});
   const [itemQty, setItemQty] = useState(1);
-  
+
   // Filter states
   const [filterType, setFilterType] = useState("all");
   const [filteredMenuData, setFilteredMenuData] = useState([]);
-  
-  // 🔥 NEW: State for order history
+
+  // 🔥 Search states (added)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Order history
   const [previousOrders, setPreviousOrders] = useState([]);
   const [recentItems, setRecentItems] = useState([]);
 
   const categoryRefs = useRef({});
+  const searchBarRef = useRef(null); // 🔥 Search bar ref (added)
+  // 🔥 Deals auto slider
+const [activeDealIndex, setActiveDealIndex] = useState(0);
+
+
   const { addToCart, increaseQty, decreaseQty, getItemQty, cart } =
     useContext(CartContext);
+
+
 
   // 🔥 CUSTOM CATEGORY ORDER - Put pizzas first!
   const categoryOrder = [
@@ -169,6 +181,18 @@ function Peppa() {
 
     fetchOffers();
   }, []);
+// 🔥 AUTO SLIDE DEALS (Swiggy style)
+useEffect(() => {
+  if (!offers.length) return;
+
+  const interval = setInterval(() => {
+    setActiveDealIndex((prev) =>
+      prev === offers.length - 1 ? 0 : prev + 1
+    );
+  }, 1800); // 1.8 sec like Swiggy
+
+  return () => clearInterval(interval);
+}, [offers]);
 
   // 🔥 NEW: FETCH ORDER HISTORY FOR "ORDER AGAIN" SECTION
   useEffect(() => {
@@ -230,6 +254,26 @@ function Peppa() {
       setFilteredMenuData(sortCategories(filtered));
     }
   }, [filterType, menuData]);
+  // 🔥 AUTO SCROLL TO MATCHING CATEGORY ON SEARCH
+useEffect(() => {
+  if (!searchQuery.trim()) return;
+
+  const matchedCategory = filteredMenuData.find(category =>
+    category.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    category.items.some(item =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
+  if (matchedCategory) {
+    const el = categoryRefs.current[matchedCategory.category];
+    el?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+}, [searchQuery, filteredMenuData]);
+
 
   const toggleCategory = (category) => {
     setOpenCategories((prev) => ({
@@ -372,37 +416,114 @@ function Peppa() {
     );
   };
 
-  return (
-    <div className="menu-wrapper">
-      {/* HEADER */}
-      <div className="restaurant-header">
-        <div className="header-top">
-          <div className="header-info">
-            <h1 className="rest-name">Peppanizze</h1>
-            <p className="rest-rating">⭐ 4.5 • ₹350 for two</p>
-            <p className="rest-category">Pizza, Italian, Fast Food</p>
-            <p className="rest-location">📍 Padmarao Nagar • 40-50 mins</p>
-          </div>
+return (
+  <div className="menu-wrapper">
+    {/* 🔥 FIXED SEARCH BAR AT TOP - ALWAYS VISIBLE */}
+    <div className="top-search-bar" ref={searchBarRef}>
+      <div className="top-search-wrapper">
+        <div className="search-input-group">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search for dishes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button
+              className="clear-search"
+              onClick={() => {
+                setSearchQuery("");
+                setIsSearching(false);
+              }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        <button
+          className={`veg-only-toggle ${
+            filterType === "veg" ? "active" : ""
+          }`}
+          onClick={() =>
+            setFilterType(filterType === "veg" ? "all" : "veg")
+          }
+        >
+          <span className="veg-icon">
+            <span className="veg-dot"></span>
+          </span>
+          <span className="veg-text">Veg Only</span>
+        </button>
+      </div>
+    </div>
+
+    {/* Search results banner */}
+    {isSearching && (
+      <div className="search-results-banner">
+        <p>
+          {filteredMenuData.reduce(
+            (sum, cat) => sum + cat.items.length,
+            0
+          )}{" "}
+          results for "{searchQuery}"
+        </p>
+        <button
+          className="clear-search-btn"
+          onClick={() => {
+            setSearchQuery("");
+            setIsSearching(false);
+          }}
+        >
+          Clear search
+        </button>
+      </div>
+    )}
+
+    {/* HEADER */}
+    <div className="restaurant-header">
+      <div className="header-top">
+        <div className="header-info">
+          <h1 className="rest-name">Peppanizze</h1>
+          <p className="rest-rating">⭐ 4.5 • ₹350 for two</p>
+          <p className="rest-category">Pizza, Italian, Fast Food</p>
+          <p className="rest-location">
+            📍 Padmarao Nagar • 40-50 mins
+          </p>
         </div>
       </div>
+    </div>
 
-      {/* LIVE DEALS SECTION */}
-      {offers.length > 0 && (
-        <div className="live-deals-section">
-          <h3 className="deals-title">🎉 Deals for you</h3>
-          <div className="deals-carousel">
-            {offers.slice(0, 3).map((offer) => (
-              <div key={offer.id} className="deal-card">
-                <div className="deal-icon">{offer.icon || "🎁"}</div>
-                <div className="deal-content">
-                  <p className="deal-text">{offer.title}</p>
-                  <p className="deal-code">USE {offer.code}</p>
-                </div>
-              </div>
-            ))}
+     {/* 🔥 LIVE DEALS – SWIGGY STYLE */}
+{offers.length > 0 && (
+  <div className="live-deals-section">
+    <h3 className="deals-title">🎉 Deals for you</h3>
+
+    <div className="deal-strip">
+      <div className="deal-strip-content">
+        <div className="deal-left">
+          <span className="deal-icon">
+            {offers[activeDealIndex]?.icon || "🎁"}
+          </span>
+
+          <div>
+            <div className="deal-main-text">
+              {offers[activeDealIndex]?.title}
+            </div>
+            <div className="deal-sub-text">
+              USE {offers[activeDealIndex]?.code}
+            </div>
           </div>
         </div>
-      )}
+
+        <div className="deal-counter">
+          {activeDealIndex + 1}/{offers.length}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* VEG/NON-VEG FILTER BUTTONS */}
       <div className="filter-section">

@@ -1,27 +1,67 @@
-// src/pages/Payment.jsx - UPDATED VERSION
-import React, { useState } from "react";
+// src/pages/Payment.jsx - UPDATED WITH USER DATA FETCH
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { auth, db } from "../lib/firebase";
-import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { collection, addDoc, doc, getDoc, Timestamp } from "firebase/firestore";
 import "../jsx/payment.css";
 
-// 🔥 ADD YOUR RESTAURANT INFO HERE
+// 🔥 RESTAURANT INFO
 const RESTAURANT_INFO = {
-  name: "Blue Bliss",  // ← REPLACE THIS
-  address: "opp. chikalguda, Railway Colony, police station, Secunderabad, Telangana 500061",  // ← REPLACE THIS
+  name: "Blue Bliss",
+  address: "opp. chikalguda, Railway Colony, police station, Secunderabad, Telangana 500061",
   coordinates: {
-    lat: 17.430833225925735,  // ← REPLACE WITH YOUR RESTAURANT'S LATITUDE
-    lng: 78.5133938400985   // ← REPLACE WITH YOUR RESTAURANT'S LONGITUDE
+    lat: 17.430833225925735,
+    lng: 78.5133938400985
   },
-  phone: "+91-7569534271"  // ← REPLACE WITH YOUR PHONE
+  phone: "+91-7569534271"
 };
 
 function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [fetchingUser, setFetchingUser] = useState(true);
   
   const { total, address, suggestion, noContact, cart, orderId, appliedOffer, offerDiscount, appliedVoucher, voucherDiscount, totalDiscount } = location.state || {};
+
+  // ✅ FETCH USER DATA FROM FIRESTORE
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setFetchingUser(false);
+        return;
+      }
+
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          setUserData(userSnap.data());
+        } else {
+          // Fallback to auth data if no Firestore profile
+          setUserData({
+            name: user.displayName || "User",
+            email: user.email,
+            phone: user.phoneNumber || ""
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setUserData({
+          name: user.displayName || "User",
+          email: user.email,
+          phone: ""
+        });
+      } finally {
+        setFetchingUser(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleFakePayment = async () => {
     if (!cart || cart.length === 0) {
@@ -41,7 +81,7 @@ function Payment() {
     // Simulate payment processing
     setTimeout(async () => {
       try {
-        // ✅ UPDATED ORDER STRUCTURE
+        // ✅ UPDATED ORDER STRUCTURE WITH REAL USER DATA
         const orderData = {
           // Basic info
           orderId: finalOrderId,
@@ -54,7 +94,7 @@ function Payment() {
           cart,
           total: Number(total),
           
-          // ✅ ENHANCED ADDRESS (with coordinates from CartPage)
+          // ✅ ENHANCED ADDRESS (with coordinates)
           address: {
             label: address.label || "home",
             fullAddress: address.fullAddress || 
@@ -66,31 +106,28 @@ function Payment() {
             state: address.state || "",
             pincode: address.pincode || "",
             landmark: address.landmark || "",
-            
-            // 🔥 GPS Coordinates (from AddressAutocomplete)
             coordinates: address.coordinates || null,
-            
-            // Delivery info from autocomplete
             deliveryInfo: address.deliveryInfo || null
           },
           
           // ✅ RESTAURANT INFO
           restaurant: RESTAURANT_INFO,
           
-          // ✅ CUSTOMER INFO
+          // ✅ CUSTOMER INFO FROM FIRESTORE
           customer: {
-            name: user?.displayName || "Guest User",
-            phone: user?.phoneNumber || user?.email || "",
-            email: user?.email || "guest@example.com"
+            name: userData?.name || user?.displayName || "Guest User",
+            phone: userData?.phone || user?.phoneNumber || "",
+            email: userData?.email || user?.email || "guest@example.com",
+            userId: user?.uid || "guest"
           },
           
-          // ✅ DELIVERY STRUCTURE (for third-party integration)
+          // ✅ DELIVERY STRUCTURE
           delivery: {
-            partner: null,           // Will be "dunzo", "shadowfax", etc.
-            taskId: null,            // Delivery partner's task ID
-            trackingUrl: null,       // Tracking link
-            currentLocation: null,   // Live GPS
-            estimatedDelivery: null, // ETA
+            partner: null,
+            taskId: null,
+            trackingUrl: null,
+            currentLocation: null,
+            estimatedDelivery: null,
             
             agent: {
               name: null,
@@ -98,7 +135,7 @@ function Payment() {
               vehicleNo: null
             },
             
-            partnerStatus: null,     // "assigned", "picked_up", "in_transit", "delivered"
+            partnerStatus: null,
             assignedAt: null,
             pickedUpAt: null,
             deliveredAt: null,
@@ -110,10 +147,10 @@ function Payment() {
           
           // ✅ PAYMENT INFO
           payment: {
-            method: "online",  // or "cod" based on selection
+            method: "online",
             status: "completed",
             transactionId: `TXN-${Date.now()}`,
-            codAmount: 0  // Set to total if COD
+            codAmount: 0
           },
           
           // Additional info
@@ -128,7 +165,7 @@ function Payment() {
           totalDiscount: totalDiscount || 0
         };
 
-        console.log("✅ Creating order with structure:", orderData);
+        console.log("✅ Creating order with user data:", orderData.customer);
 
         const docRef = await addDoc(collection(db, "orders"), orderData);
 
@@ -153,6 +190,25 @@ function Payment() {
     }, 1500);
   };
 
+  if (fetchingUser) {
+    return (
+      <div className="payment-page">
+        <div style={{ textAlign: "center", padding: "60px", color: "#fff" }}>
+          <div className="loader-spinner" style={{
+            width: 40,
+            height: 40,
+            border: "4px solid rgba(255,215,0,0.2)",
+            borderTop: "4px solid #ffd700",
+            borderRadius: "50%",
+            margin: "0 auto 20px",
+            animation: "spin 1s linear infinite"
+          }}></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="payment-page">
       <h1 className="payment-title">💳 Secure Payment</h1>
@@ -162,6 +218,32 @@ function Payment() {
         <div className="payment-left">
           <div className="payment-card">
             <h2>Order Summary</h2>
+            
+            {/* ✅ SHOW CUSTOMER INFO */}
+            {userData && (
+              <div style={{
+                padding: "16px",
+                background: "rgba(255, 215, 0, 0.1)",
+                borderRadius: "12px",
+                marginBottom: "20px",
+                border: "1px solid rgba(255, 215, 0, 0.3)"
+              }}>
+                <h3 style={{ fontSize: "14px", color: "#ffd700", marginBottom: "8px" }}>
+                  👤 Ordering As
+                </h3>
+                <p style={{ fontSize: "16px", fontWeight: "600", margin: "4px 0" }}>
+                  {userData.name}
+                </p>
+                <p style={{ fontSize: "13px", opacity: 0.7, margin: "2px 0" }}>
+                  📧 {userData.email}
+                </p>
+                {userData.phone && (
+                  <p style={{ fontSize: "13px", opacity: 0.7, margin: "2px 0" }}>
+                    📱 {userData.phone}
+                  </p>
+                )}
+              </div>
+            )}
             
             <div className="items-list">
               {cart?.map((item) => (
@@ -237,11 +319,17 @@ function Payment() {
             </button>
 
             <div className="secure-badge">
-              Your payment is 100% secure
+              🔒 Your payment is 100% secure
             </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

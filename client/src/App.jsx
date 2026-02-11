@@ -6,6 +6,7 @@ import { NavbarOffersProvider } from "./context/NavbarOffersContext.jsx";
 import { HomeOffersProvider } from "./context/HomeOffersContext.jsx";
 import { LoyaltyProvider } from "./context/LoyaltyContext.jsx";
 import ComboBuilder from "./jsx/ComboBuilder.jsx";
+import { VegFilterProvider } from "./context/VegFilterContext";
 
 /* ================ USER COMPONENTS ================ */
 import Navbar from "./jsx/Navbar";
@@ -31,6 +32,7 @@ import MyOrders from "./jsx/profile/MyOrders";
 import OrderDetails from "./jsx/profile/OrderDetails";
 import MyRatings from "./jsx/profile/MyRatings";
 import Help from "./jsx/profile/Help";
+import RateOrder from './jsx/profile/RateOrder';
 
 /* ================ ADMIN ================ */
 import AdminLogin from "./jsx/admin/AdminLogin";
@@ -83,6 +85,7 @@ export default function App() {
     <NavbarOffersProvider>
       <HomeOffersProvider>
         <LoyaltyProvider>
+           <VegFilterProvider>
           <Router>
             <Layout>
               <Routes>
@@ -114,12 +117,12 @@ export default function App() {
                 <Route path="/track-order" element={<Navigate to="/order-tracking" replace />} />
 
                 {/* PROFILE ROUTES */}
-                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-                <Route path="/order-details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
-                <Route path="/my-ratings" element={<ProtectedRoute><MyRatings /></ProtectedRoute>} />
-                <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
-
+               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+<Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+<Route path="/order-details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+<Route path="/my-ratings" element={<ProtectedRoute><MyRatings /></ProtectedRoute>} />
+<Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+{/* <Route path="/rate-order" element={<ProtectedRoute><RateOrder /></ProtectedRoute>} /> */}
                 {/* ADMIN LOGIN */}
                 <Route path="/admin-login" element={<AdminLogin />} />
 
@@ -139,6 +142,7 @@ export default function App() {
               </Routes>
             </Layout>
           </Router>
+          </VegFilterProvider>
         </LoyaltyProvider>
       </HomeOffersProvider>
     </NavbarOffersProvider>

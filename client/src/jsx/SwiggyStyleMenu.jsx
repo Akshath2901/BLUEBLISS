@@ -9,38 +9,49 @@ function SwiggyStyleMenu() {
   const [menuData, setMenuData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [offers, setOffers] = useState([]);
+  const [activeDealIndex, setActiveDealIndex] = useState(0);
   const [openCategories, setOpenCategories] = useState({});
   const [showCategoryNav, setShowCategoryNav] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedAddons, setSelectedAddons] = useState({});
   const [itemQty, setItemQty] = useState(1);
-  
+
   // Filter states
   const [filterType, setFilterType] = useState("all");
   const [filteredMenuData, setFilteredMenuData] = useState([]);
-  
-  // 🔥 NEW: State for order history
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // State for order history
   const [previousOrders, setPreviousOrders] = useState([]);
   const [recentItems, setRecentItems] = useState([]);
-  
-  // 🔥 NEW: Sort states
-  const [sortType, setSortType] = useState(""); // "", "rating", "bestseller"
+
+  // Sort states
+  const [sortType, setSortType] = useState("");
   const [topPicks, setTopPicks] = useState([]);
-  
-  // 🔥 NEW: Discount & Recommendations
+
+  // Discount & Recommendations
   const [discountedItems, setDiscountedItems] = useState([]);
   const [recommendedItems, setRecommendedItems] = useState([]);
   const [categoryBanners, setCategoryBanners] = useState([]);
   const [pairingSuggestions, setPairingSuggestions] = useState([]);
   const [showPairingModal, setShowPairingModal] = useState(false);
-  const [expandedBanner, setExpandedBanner] = useState(null); // Track which banner is expanded
+  const [expandedBanner, setExpandedBanner] = useState(null);
+ 
+
 
   const categoryRefs = useRef({});
+  const searchBarRef = useRef(null);
+  
+
   const { addToCart, increaseQty, decreaseQty, getItemQty, cart } =
     useContext(CartContext);
 
-  // 🔥 CUSTOM CATEGORY ORDER - Put burgers first!
+  // CUSTOM CATEGORY ORDER
   const categoryOrder = [
     "VEG BURGERS",
     "NON-VEG BURGERS",
@@ -62,7 +73,7 @@ function SwiggyStyleMenu() {
     });
   };
 
-  // 🔥 ENHANCED CUSTOMIZATION GROUPS - Multiple groups with selection limits
+  // ENHANCED CUSTOMIZATION GROUPS
   const customizationGroups = [
     {
       id: "meal",
@@ -114,6 +125,39 @@ function SwiggyStyleMenu() {
     }
   ];
 
+  // Render veg/non-veg indicator
+  const renderFoodTypeIndicator = (item) => {
+    const isVeg = item.type === "veg" || item.isVeg === true;
+    
+    return (
+      <span
+        style={{
+          display: "inline-block",
+          width: "16px",
+          height: "16px",
+          border: `2px solid ${isVeg ? "#48c479" : "#e74c3c"}`,
+          borderRadius: "2px",
+          position: "relative",
+          marginRight: "8px",
+          flexShrink: 0
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            backgroundColor: isVeg ? "#48c479" : "#e74c3c"
+          }}
+        />
+      </span>
+    );
+  };
+
   // FETCH MENU DATA
   useEffect(() => {
     const fetchMenu = async () => {
@@ -123,8 +167,6 @@ function SwiggyStyleMenu() {
         snapshot.forEach((doc) => categories.push(doc.data()));
 
         const categoriesWithImages = await resolveMenuImages(categories);
-        
-        // 🔥 SORT CATEGORIES - Burgers first!
         const sortedCategories = sortCategories(categoriesWithImages);
 
         const initialOpen = {};
@@ -136,7 +178,7 @@ function SwiggyStyleMenu() {
         setMenuData(sortedCategories);
         setFilteredMenuData(sortedCategories);
         
-        // 🔥 EXTRACT TOP PICKS (Bestsellers - items with rating > 4.5)
+        // EXTRACT TOP PICKS
         const allItems = [];
         sortedCategories.forEach(category => {
           category.items.forEach(item => {
@@ -148,15 +190,13 @@ function SwiggyStyleMenu() {
           });
         });
         
-        // Filter items with rating >= 4.5 and sort by rating
         const bestsellers = allItems
           .filter(item => parseFloat(item.rating) >= 4.5)
           .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
-          .slice(0, 6); // Show top 6
+          .slice(0, 6);
         
         setTopPicks(bestsellers);
         
-        // 🔥 EXTRACT DISCOUNTED ITEMS (items with discount field or calculated discount)
         const itemsWithDiscount = allItems
           .filter(item => item.discount && item.discount > 0)
           .sort((a, b) => b.discount - a.discount)
@@ -164,7 +204,6 @@ function SwiggyStyleMenu() {
         
         setDiscountedItems(itemsWithDiscount);
         
-        // 🔥 RECOMMENDED ITEMS (mix of high rating and popular)
         const recommended = allItems
           .filter(item => parseFloat(item.rating) >= 4.3)
           .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
@@ -172,7 +211,6 @@ function SwiggyStyleMenu() {
         
         setRecommendedItems(recommended);
         
-        // 🔥 CATEGORY PRICE BANNERS (find lowest price in each category)
         const banners = sortedCategories.map(category => {
           const minPrice = Math.min(...category.items.map(item => item.price));
           return {
@@ -180,7 +218,7 @@ function SwiggyStyleMenu() {
             startingPrice: minPrice,
             itemCount: category.items.length
           };
-        }).slice(0, 3); // Show top 3 categories
+        }).slice(0, 3);
         
         setCategoryBanners(banners);
       } catch (e) {
@@ -215,8 +253,20 @@ function SwiggyStyleMenu() {
 
     fetchOffers();
   }, []);
+useEffect(() => {
+  if (!offers.length) return;
 
-  // 🔥 NEW: FETCH ORDER HISTORY FOR "ORDER AGAIN" SECTION
+  const interval = setInterval(() => {
+    setActiveDealIndex((prev) =>
+      prev === offers.length - 1 ? 0 : prev + 1
+    );
+  }, 1500);
+
+  return () => clearInterval(interval);
+}, [offers]);
+
+
+  // FETCH ORDER HISTORY
   useEffect(() => {
     const fetchRecentOrders = async () => {
       const user = auth.currentUser;
@@ -232,10 +282,8 @@ function SwiggyStyleMenu() {
           orders.push({ id: doc.id, ...doc.data() });
         });
 
-        // Sort by timestamp (most recent first)
         orders.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        // Extract unique items from recent orders
         const itemMap = new Map();
         orders.slice(0, 5).forEach(order => {
           if (order.cart) {
@@ -260,9 +308,24 @@ function SwiggyStyleMenu() {
   useEffect(() => {
     let filtered = menuData;
     
+    // Apply search filter
+    if (searchQuery.trim()) {
+      setIsSearching(true);
+      filtered = menuData.map(category => ({
+        ...category,
+        items: category.items.filter(item => 
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          category.category.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      })).filter(category => category.items.length > 0);
+    } else {
+      setIsSearching(false);
+    }
+    
     // Apply veg/non-veg filter
     if (filterType !== "all") {
-      filtered = menuData.map(category => ({
+      filtered = filtered.map(category => ({
         ...category,
         items: category.items.filter(item => {
           if (filterType === "veg") {
@@ -282,7 +345,6 @@ function SwiggyStyleMenu() {
         items: category.items.filter(item => parseFloat(item.rating) >= 4.0)
       })).filter(category => category.items.length > 0);
     } else if (sortType === "bestseller") {
-      // 🔥 FIX: Show 10-11 bestseller items, prioritize burgers and sandwiches
       const allItems = [];
       filtered.forEach(category => {
         category.items.forEach(item => {
@@ -294,10 +356,8 @@ function SwiggyStyleMenu() {
         });
       });
       
-      // Filter items with rating >= 4.5
       let bestsellerItems = allItems.filter(item => parseFloat(item.rating) >= 4.5);
       
-      // Prioritize burgers and sandwiches
       const priority = bestsellerItems.filter(item => 
         item.categoryName.includes('BURGER') || 
         item.categoryName.includes('SANDWICH')
@@ -309,7 +369,6 @@ function SwiggyStyleMenu() {
       
       bestsellerItems = [...priority, ...others].slice(0, 11);
       
-      // Group back into categories
       const categoryMap = new Map();
       bestsellerItems.forEach(item => {
         if (!categoryMap.has(item.categoryName)) {
@@ -325,7 +384,29 @@ function SwiggyStyleMenu() {
     }
 
     setFilteredMenuData(sortCategories(filtered));
-  }, [filterType, sortType, menuData]);
+  }, [filterType, sortType, menuData, searchQuery]);
+
+  // AUTO SCROLL TO MATCHING CATEGORY ON SEARCH
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+
+    const matchedCategory = filteredMenuData.find(category =>
+      category.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      category.items.some(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    );
+
+    if (matchedCategory) {
+      const el = categoryRefs.current[matchedCategory.category];
+      if (el) {
+        el.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }
+  }, [searchQuery, filteredMenuData]);
 
   const toggleCategory = (category) => {
     setOpenCategories((prev) => ({
@@ -360,10 +441,8 @@ function SwiggyStyleMenu() {
   };
 
   const handleAddToCart = () => {
-    // Use consistent itemId - match the one used in menu display
     const itemId = selectedItem.itemId;
     
-    // Collect all selected addons from all groups
     const addonsList = [];
     let addonPrice = 0;
     
@@ -384,16 +463,15 @@ function SwiggyStyleMenu() {
       qty: itemQty,
       addons: addonsList,
       basePrice: selectedItem.price,
+      brand: "Shrimmers"
     });
 
     setShowItemModal(false);
-    
-    // 🔥 SHOW PAIRING SUGGESTIONS
     generatePairingSuggestions(selectedItem);
     setShowPairingModal(true);
   };
   
-  // 🔥 GENERATE SMART PAIRING SUGGESTIONS
+  // GENERATE SMART PAIRING SUGGESTIONS
   const generatePairingSuggestions = (addedItem) => {
     const allItems = [];
     menuData.forEach(category => {
@@ -406,24 +484,20 @@ function SwiggyStyleMenu() {
       });
     });
     
-    // Smart pairing logic based on category
     let pairings = [];
     
     if (addedItem.category.includes('BURGER')) {
-      // If added a burger, suggest fries and shakes
       pairings = allItems.filter(item => 
         item.category.includes('FRIES') || 
         item.category.includes('SHAKE') || 
         item.category.includes('MOJITO')
       ).slice(0, 3);
     } else if (addedItem.category.includes('FRIES')) {
-      // If added fries, suggest burgers and dips
       pairings = allItems.filter(item => 
         item.category.includes('BURGER') ||
         item.name.toLowerCase().includes('dip')
       ).slice(0, 3);
     } else {
-      // Default: suggest high-rated items from different category
       pairings = allItems
         .filter(item => item.category !== addedItem.category && parseFloat(item.rating) >= 4.3)
         .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
@@ -439,19 +513,14 @@ function SwiggyStyleMenu() {
 
     setSelectedAddons((prev) => {
       const updated = { ...prev };
-      
-      // Count currently selected items in this group
       const selectedInGroup = group.options.filter(opt => updated[opt.id]).length;
       
       if (updated[addonId]) {
-        // Deselect
         delete updated[addonId];
       } else {
-        // Check if we can select more
         if (selectedInGroup < group.maxSelection) {
           updated[addonId] = true;
         } else {
-          // Max selection reached
           alert(`You can only select up to ${group.maxSelection} items from ${group.title}`);
         }
       }
@@ -469,7 +538,6 @@ function SwiggyStyleMenu() {
     ? (selectedItem.price + addonTotal) * itemQty
     : 0;
 
-  // Get item counts for filter buttons
   const totalItems = menuData.reduce((sum, cat) => sum + cat.items.length, 0);
   const vegItems = menuData.reduce((sum, cat) => 
     sum + cat.items.filter(item => item.type === "veg" || item.isVeg === true).length, 0
@@ -478,70 +546,99 @@ function SwiggyStyleMenu() {
     sum + cat.items.filter(item => item.type === "nonveg" || item.type === "non-veg" || item.isVeg === false).length, 0
   );
 
-  // Render veg/non-veg indicator
-  const renderFoodTypeIndicator = (item) => {
-    const isVeg = item.type === "veg" || item.isVeg === true;
-    
-    return (
-      <span
-        style={{
-          display: "inline-block",
-          width: "16px",
-          height: "16px",
-          border: `2px solid ${isVeg ? "#48c479" : "#e74c3c"}`,
-          borderRadius: "2px",
-          position: "relative",
-          marginRight: "8px",
-          flexShrink: 0
-        }}
-      >
-        <span
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "6px",
-            height: "6px",
-            borderRadius: "50%",
-            backgroundColor: isVeg ? "#48c479" : "#e74c3c"
-          }}
-        />
-      </span>
-    );
-  };
-
   return (
     <div className="menu-wrapper">
+      {/* FIXED SEARCH BAR AT TOP */}
+      <div className="top-search-bar" ref={searchBarRef}>
+        <div className="top-search-wrapper">
+          <div className="search-input-group">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Search for dishes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button className="clear-search" onClick={() => {
+                setSearchQuery("");
+                setIsSearching(false);
+              }}>✕</button>
+            )}
+          </div>
+          
+          <button 
+            className={`veg-only-toggle ${filterType === "veg" ? "active" : ""}`}
+            onClick={() => setFilterType(filterType === "veg" ? "all" : "veg")}
+          >
+            <span className="veg-icon">
+              <span className="veg-dot"></span>
+            </span>
+            <span className="veg-text">Veg Only</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Search results banner */}
+      {isSearching && (
+        <div className="search-results-banner">
+          <p>
+            {filteredMenuData.reduce((sum, cat) => sum + cat.items.length, 0)} results for "{searchQuery}"
+          </p>
+          <button className="clear-search-btn" onClick={() => {
+            setSearchQuery("");
+            setIsSearching(false);
+          }}>Clear search</button>
+        </div>
+      )}
+
       {/* HEADER */}
       <div className="restaurant-header">
         <div className="header-top">
           <div className="header-info">
             <h1 className="rest-name">Shrimmers</h1>
-            <p className="rest-rating">⭐ 4.3 • 200 for two</p>
+            <p className="rest-rating">⭐ 4.3 • ₹200 for two</p>
             <p className="rest-category">Burgers, Fast Food</p>
             <p className="rest-location">📍 Padmarao Nagar • 55-65 mins</p>
           </div>
         </div>
       </div>
 
-      {/* LIVE DEALS SECTION */}
-      {offers.length > 0 && (
-        <div className="live-deals-section">
-          <h3 className="deals-title">🎉 Deals for you</h3>
-          <div className="deals-carousel">
-            {offers.slice(0, 3).map((offer, idx) => (
-              <div key={offer.id} className="deal-card">
-                <div className="deal-icon">{offer.icon || "🎁"}</div>
-                <div className="deal-content">
-                  <p className="deal-text">{offer.title}</p>
-                  <p className="deal-code">USE {offer.code}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+{/* LIVE DEALS SECTION – Swiggy style */}
+{offers.length > 0 && (
+  <div className="live-deals-section">
+    <h3 className="deals-title">🎉 Deals for you</h3>
+
+    <div className="deal-strip">
+  <div
+    key={offers[activeDealIndex].id}
+    className="deal-strip-content"
+  >
+    <div className="deal-left">
+      <span className="deal-icon">
+        {offers[activeDealIndex].icon || "🎁"}
+      </span>
+
+      <div className="deal-text-wrap">
+        <p className="deal-main-text">
+          {offers[activeDealIndex].title}
+        </p>
+        <p className="deal-sub-text">
+          USE <strong>{offers[activeDealIndex].code}</strong>
+        </p>
+      </div>
+    </div>
+
+    {/* RIGHT SIDE COUNTER (Swiggy style) */}
+    <div className="deal-counter">
+      {activeDealIndex + 1}/{offers.length}
+    </div>
+  </div>
+</div>
+
+  </div>
+)}
 
       {/* VEG/NON-VEG FILTER & SORT BUTTONS */}
       <div className="filter-section">
@@ -576,7 +673,6 @@ function SwiggyStyleMenu() {
             <span className="filter-count">{nonVegItems}</span>
           </button>
           
-          {/* 🔥 NEW: SORT BUTTONS */}
           <button
             className={`filter-btn sort-btn ${sortType === "rating" ? "active" : ""}`}
             onClick={() => setSortType(sortType === "rating" ? "" : "rating")}
@@ -599,7 +695,7 @@ function SwiggyStyleMenu() {
         )}
       </div>
 
-      {/* 🔥 NEW: ORDER AGAIN SECTION */}
+      {/* ORDER AGAIN SECTION */}
       {recentItems.length > 0 && (
         <div className="order-again-section">
           <h3 className="order-again-title">🔄 Order Again</h3>
@@ -612,103 +708,6 @@ function SwiggyStyleMenu() {
                   <div className="order-again-info">
                     <p className="order-again-name">{item.name}</p>
                     <p className="order-again-price">₹{item.price}</p>
-                  </div>
-                  {qty === 0 ? (
-                    <button
-                      className="order-again-add-btn"
-                      onClick={() => {
-                        addToCart({
-                          id: item.id,
-                          name: item.name,
-                          price: item.price,
-                          img: item.img,
-                          qty: 1,
-                          basePrice: item.price,
-                        });
-                      }}
-                    >
-                      ADD
-                    </button>
-                  ) : (
-                    <div className="order-again-qty-box">
-                      <button onClick={() => decreaseQty(item.id)}>-</button>
-                      <span>{qty}</span>
-                      <button onClick={() => increaseQty(item.id)}>+</button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 🔥 NEW: TOP PICKS SECTION */}
-      {topPicks.length > 0 && (
-        <div className="top-picks-section">
-          <h3 className="top-picks-title">🌟 Top Picks</h3>
-          <div className="top-picks-grid">
-            {topPicks.map((item) => {
-              const qty = getItemQty(item.itemId);
-              return (
-                <div key={item.itemId} className="top-pick-card">
-                  <div className="top-pick-badge">⭐ Bestseller</div>
-                  <img src={item.img} alt={item.name} className="top-pick-img" />
-                  <div className="top-pick-content">
-                    <div className="top-pick-header">
-                      {renderFoodTypeIndicator(item)}
-                      <h4 className="top-pick-name">{item.name}</h4>
-                    </div>
-                    <div className="top-pick-info">
-                      <div className="top-pick-rating">⭐ {item.rating}</div>
-                      <div className="top-pick-price">₹{item.price}</div>
-                    </div>
-                    {qty === 0 ? (
-                      <button
-                        className="top-pick-add-btn"
-                        onClick={() => handleItemClick(item, item.category, item.itemId)}
-                      >
-                        ADD
-                      </button>
-                    ) : (
-                      <div className="top-pick-qty-box">
-                        <button onClick={() => decreaseQty(item.itemId)}>-</button>
-                        <span>{qty}</span>
-                        <button onClick={() => increaseQty(item.itemId)}>+</button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 🔥 NEW: ITEMS UPTO 40% OFF SECTION */}
-      {discountedItems.length > 0 && (
-        <div className="discount-section">
-          <div className="discount-header">
-            <h3 className="discount-title">💰 Items upto 40% OFF</h3>
-            <a href="#" className="view-coupon">View coupon details</a>
-          </div>
-          <div className="discount-carousel">
-            {discountedItems.map((item) => {
-              const qty = getItemQty(item.itemId);
-              const originalPrice = Math.round(item.price / (1 - item.discount / 100));
-              return (
-                <div key={item.itemId} className="discount-card">
-                  {renderFoodTypeIndicator(item)}
-                  <img src={item.img} alt={item.name} className="discount-img" />
-                  <div className="discount-info">
-                    <h4 className="discount-item-name">{item.name}</h4>
-                    {item.rating && <div className="discount-badge">Highly reordered</div>}
-                    <div className="discount-pricing">
-                      <span className="discount-price">₹{item.price}</span>
-                      <span className="original-price">₹{originalPrice}</span>
-                    </div>
-                    <div className="discount-percent">{item.discount}% OFF</div>
-                    <p className="discount-desc">{item.desc?.substring(0, 50)}... more</p>
                   </div>
                   {qty === 0 ? (
                     <button
@@ -731,7 +730,7 @@ function SwiggyStyleMenu() {
         </div>
       )}
 
-      {/* 🔥 UPDATED: CATEGORY PRICE BANNERS WITH DROPDOWN */}
+      {/* CATEGORY PRICE BANNERS WITH DROPDOWN */}
       {categoryBanners.length > 0 && (
         <div className="category-banners">
           {categoryBanners.map((banner, idx) => {
@@ -793,7 +792,7 @@ function SwiggyStyleMenu() {
         </div>
       )}
 
-      {/* 🔥 NEW: RECOMMENDED FOR YOU SECTION */}
+      {/* RECOMMENDED FOR YOU SECTION */}
       {recommendedItems.length > 0 && (
         <div className="recommended-section">
           <h3 className="recommended-title">🎯 Recommended for you</h3>
@@ -845,7 +844,10 @@ function SwiggyStyleMenu() {
           <p>Try changing the filter to see more items</p>
           <button 
             className="reset-filter-btn"
-            onClick={() => setFilterType("all")}
+            onClick={() => {
+              setFilterType("all");
+              setSearchQuery("");
+            }}
           >
             Show All Items
           </button>
@@ -874,7 +876,6 @@ function SwiggyStyleMenu() {
                 {isOpen && (
                   <div className="item-list">
                     {section.items.map((item, index) => {
-                      // 🔥 FIX: Generate truly unique itemId using name to avoid collisions
                       const itemId = item.id || `${section.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase();
                       const qty = getItemQty(itemId);
 
@@ -913,13 +914,9 @@ function SwiggyStyleMenu() {
                               </button>
                             ) : (
                               <div className="qty-box">
-                                <button onClick={() => decreaseQty(itemId)}>
-                                  -
-                                </button>
+                                <button onClick={() => decreaseQty(itemId)}>-</button>
                                 <span>{qty}</span>
-                                <button onClick={() => increaseQty(itemId)}>
-                                  +
-                                </button>
+                                <button onClick={() => increaseQty(itemId)}>+</button>
                               </div>
                             )}
                           </div>
@@ -971,7 +968,7 @@ function SwiggyStyleMenu() {
         </div>
       )}
 
-      {/* ITEM DETAILS MODAL WITH CUSTOMIZATION GROUPS */}
+      {/* ITEM DETAILS MODAL */}
       {showItemModal && selectedItem && (
         <div
           className="modal-overlay"
@@ -1085,7 +1082,7 @@ function SwiggyStyleMenu() {
         </div>
       )}
 
-      {/* 🔥 NEW: PAIRING SUGGESTIONS MODAL */}
+      {/* PAIRING SUGGESTIONS MODAL */}
       {showPairingModal && pairingSuggestions.length > 0 && (
         <div className="pairing-modal-overlay" onClick={() => setShowPairingModal(false)}>
           <div className="pairing-modal" onClick={(e) => e.stopPropagation()}>
@@ -1117,6 +1114,7 @@ function SwiggyStyleMenu() {
                               img: item.img,
                               qty: 1,
                               basePrice: item.price,
+                              brand: "Shrimmers"
                             });
                           }}
                         >
@@ -1146,3 +1144,4 @@ function SwiggyStyleMenu() {
 }
 
 export default SwiggyStyleMenu;
+                      

@@ -1,150 +1,270 @@
-import express from "express";
-import { getPersonalizedAIResponse, generateRealTimeSuggestion } from "../llm.js";
-import userContextManager from "../userContextManager.js";
+// server/routes/smartAiRoutes.js
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import userContextManager from '../userContextManager.js';
+import { predefinedCombos, trendingDishes } from '../data/comboData.js';
 
 const router = express.Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// ===================== TRACK PAGE VISITS =====================
-router.post("/track-page", (req, res) => {
+// Load all menu data
+let allDishes = [];
+
+const loadAllMenus = () => {
   try {
-    const { userId, pageName, metadata } = req.body;
+    const loadMenuJSON = (filename) => {
+      const filePath = path.join(__dirname, `../ai/menus/${filename}`);
+      const data = fs.readFileSync(filePath, 'utf-8');
+      return JSON.parse(data);
+    };
 
-    if (!userId || !pageName) {
-      return res.status(400).json({
-        error: "userId and pageName are required"
+    const peppanizze = loadMenuJSON('Peppanizze.json');
+    const shimmers = loadMenuJSON('Shrimmers.json');
+    const urbanwrap = loadMenuJSON('Urbanwrap.json');
+
+    // Flatten and add restaurant info
+    allDishes = [];
+
+    peppanizze.forEach(cat => {
+      cat.items?.forEach(item => {
+        allDishes.push({
+          ...item,
+          category: cat.category,
+          restaurant: 'Peppanizze'
+        });
       });
-    }
-
-    userContextManager.trackPageVisit(userId, pageName, metadata);
-
-    res.json({
-      success: true,
-      message: `Tracked visit to ${pageName}`
     });
-  } catch (error) {
-    console.error("Track page error:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// ===================== TRACK RESTAURANT VIEWS =====================
-router.post("/track-restaurant", (req, res) => {
-  try {
-    const { userId, restaurantName } = req.body;
-
-    if (!userId || !restaurantName) {
-      return res.status(400).json({
-        error: "userId and restaurantName are required"
+    shimmers.forEach(cat => {
+      cat.items?.forEach(item => {
+        allDishes.push({
+          ...item,
+          category: cat.category,
+          restaurant: 'Shimmers'
+        });
       });
-    }
-
-    userContextManager.trackRestaurantView(userId, restaurantName);
-
-    res.json({
-      success: true,
-      message: `Tracked restaurant view: ${restaurantName}`
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// ===================== TRACK DISH CLICKS =====================
-router.post("/track-dish", (req, res) => {
-  try {
-    const { userId, dishName, restaurantName } = req.body;
-
-    if (!userId || !dishName || !restaurantName) {
-      return res.status(400).json({
-        error: "userId, dishName, and restaurantName are required"
+    urbanwrap.forEach(cat => {
+      cat.items?.forEach(item => {
+        allDishes.push({
+          ...item,
+          category: cat.category,
+          restaurant: 'Urbanwrap'
+        });
       });
-    }
-
-    userContextManager.trackDishClick(userId, dishName, restaurantName);
-
-    res.json({
-      success: true,
-      message: `Tracked dish click: ${dishName}`
     });
+
+    console.log(`✅ Smart AI loaded ${allDishes.length} dishes from all restaurants`);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error loading menus:', error);
   }
-});
+};
 
-// ===================== TRACK SEARCH QUERIES =====================
-router.post("/track-search", (req, res) => {
-  try {
-    const { userId, query } = req.body;
+// Initialize menus on startup
+loadAllMenus();
 
-    if (!userId || !query) {
-      return res.status(400).json({
-        error: "userId and query are required"
-      });
-    }
+// Parse user query for filters
+const parseUserQuery = (query) => {
+  const lower = query.toLowerCase();
+  
+  return {
+    query: lower,
+    maxPrice: extractPrice(lower),
+    minPrice: extractMinPrice(lower),
+    category: extractCategory(lower),
+    restaurant: extractRestaurant(lower),
+    spicy: lower.includes('spicy') || lower.includes('peri peri') || lower.includes('tandoori'),
+    cheese: lower.includes('cheese') || lower.includes('cheesy'),
+    paneer: lower.includes('paneer'),
+    chicken: lower.includes('chicken'),
+    nonVeg: lower.includes('chicken') || lower.includes('mutton') || lower.includes('lamb') || lower.includes('egg'),
+    veg: lower.includes('veg') || lower.includes('vegetarian'),
+    trending: lower.includes('trending') || lower.includes('popular'),
+    combo: lower.includes('combo')
+  };
+};
 
-    userContextManager.trackSearchQuery(userId, query);
-
-    res.json({
-      success: true,
-      message: `Tracked search: ${query}`
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const extractPrice = (query) => {
+  const match = query.match(/under\s+(\d+)|below\s+(\d+)|less\s+than\s+(\d+)|₹?\s*(\d+)/);
+  if (match) {
+    return parseInt(match[1] || match[2] || match[3] || match[4]);
   }
-});
+  return null;
+};
 
-// ===================== UPDATE CART =====================
-router.post("/update-cart", (req, res) => {
-  try {
-    const { userId, cartItems } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        error: "userId is required"
-      });
-    }
-
-    userContextManager.updateCart(userId, cartItems || []);
-
-    res.json({
-      success: true,
-      message: "Cart updated"
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const extractMinPrice = (query) => {
+  const match = query.match(/above\s+(\d+)|over\s+(\d+)|more\s+than\s+(\d+)|atleast\s+(\d+)/);
+  if (match) {
+    return parseInt(match[1] || match[2] || match[3] || match[4]);
   }
-});
+  return null;
+};
 
-// ===================== PERSONALIZED CHAT =====================
-router.post("/chat", async (req, res) => {
+const extractCategory = (query) => {
+  const categories = ['pizza', 'burger', 'wrap', 'fries', 'shake', 'mojito', 'sandwich', 'pasta', 'wings', 'bread'];
+  return categories.find(cat => query.includes(cat));
+};
+
+const extractRestaurant = (query) => {
+  if (query.includes('peppanizze')) return 'Peppanizze';
+  if (query.includes('shimmers')) return 'Shimmers';
+  if (query.includes('urbanwrap')) return 'Urbanwrap';
+  return null;
+};
+
+// Filter dishes based on criteria
+const filterDishes = (filters) => {
+  let results = allDishes;
+
+  // Price filtering
+  if (filters.maxPrice) {
+    results = results.filter(d => d.price <= filters.maxPrice);
+  }
+  if (filters.minPrice) {
+    results = results.filter(d => d.price >= filters.minPrice);
+  }
+
+  // Category filtering
+  if (filters.category) {
+    results = results.filter(d => 
+      d.category?.toLowerCase().includes(filters.category)
+    );
+  }
+
+  // Restaurant filtering
+  if (filters.restaurant) {
+    results = results.filter(d => d.restaurant === filters.restaurant);
+  }
+
+  // Ingredient preferences
+  if (filters.spicy) {
+    results = results.filter(d => 
+      d.name?.toUpperCase().includes('PERI PERI') ||
+      d.name?.toUpperCase().includes('TANDOORI') ||
+      d.name?.toUpperCase().includes('SPICY')
+    );
+  }
+
+  if (filters.cheese) {
+    results = results.filter(d => 
+      d.name?.toUpperCase().includes('CHEESE') ||
+      d.name?.toUpperCase().includes('CHEEZY')
+    );
+  }
+
+  if (filters.paneer) {
+    results = results.filter(d => d.name?.toUpperCase().includes('PANEER'));
+  }
+
+  if (filters.chicken && !filters.nonVeg) {
+    results = results.filter(d => d.name?.toUpperCase().includes('CHICKEN'));
+  }
+
+  if (filters.nonVeg && !filters.chicken) {
+    results = results.filter(d => 
+      d.name?.toUpperCase().includes('CHICKEN') ||
+      d.name?.toUpperCase().includes('MUTTON') ||
+      d.name?.toUpperCase().includes('LAMB') ||
+      d.name?.toUpperCase().includes('EGG')
+    );
+  }
+
+  // Sort by rating (descending)
+  results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+  return results;
+};
+
+// Main smart chat endpoint
+router.post('/chat', async (req, res) => {
   try {
     const { userId, message } = req.body;
 
-    if (!userId || !message) {
+    if (!message?.trim()) {
       return res.status(400).json({
-        error: "userId and message are required"
+        success: false,
+        error: 'Message is required'
       });
     }
 
-    // Get user's personalization context
-    const userContext = userContextManager.getUserContext(userId);
+    // Get user context for personalization
+    const userCtx = userContextManager.getUserContext(userId);
+    
+    // Track search query
+    userContextManager.trackSearchQuery(userId, message);
 
-    // Get AI response with context
-    const aiResponse = await getPersonalizedAIResponse(message, {
-      recentPages: userContext.recentPages,
-      viewedRestaurants: userContext.viewedRestaurants,
-      cartItems: userContext.cartItems,
-      previousOrders: `${userContext.totalOrders} past orders`,
-    });
+    // Parse the query
+    const filters = parseUserQuery(message);
+
+    // Get matching dishes
+    const matchedDishes = filterDishes(filters);
+
+    let aiResponse = '';
+
+    // Handle different query types
+    if (filters.combo) {
+      // Recommend combos
+      const relevantCombos = predefinedCombos.slice(0, 3);
+      aiResponse = `🎉 Here are our popular combos:\n\n`;
+      relevantCombos.forEach((combo, i) => {
+        aiResponse += `${i + 1}. **${combo.name}** - ₹${combo.comboPrice} (Save ₹${combo.savings})\n   ${combo.description_long}\n\n`;
+      });
+      aiResponse += `Which combo interests you?`;
+    } 
+    else if (filters.trending) {
+      // Show trending items
+      aiResponse = `🔥 Trending now:\n\n`;
+      trendingDishes.slice(0, 5).forEach((dish, i) => {
+        aiResponse += `${i + 1}. **${dish.name}** from ${dish.restaurant}\n   ${dish.reason}\n\n`;
+      });
+    }
+    else if (matchedDishes.length > 0) {
+      // Show filtered results
+      const topResults = matchedDishes.slice(0, 5);
+      const priceInfo = filters.maxPrice ? ` under ₹${filters.maxPrice}` : '';
+      const catInfo = filters.category ? ` ${filters.category}s` : '';
+
+      aiResponse = `✨ Found ${matchedDishes.length} items${catInfo}${priceInfo}! Here are the top picks:\n\n`;
+      
+      topResults.forEach((dish, i) => {
+        const rating = dish.rating ? `⭐ ${dish.rating}` : '';
+        aiResponse += `${i + 1}. **${dish.name}** - ₹${dish.price} ${rating}\n   ${dish.desc || ''} | From ${dish.restaurant}\n\n`;
+      });
+
+      if (matchedDishes.length > 5) {
+        aiResponse += `\n💡 Showing top 5 of ${matchedDishes.length} items. Want to see more or refine your search?`;
+      }
+    }
+    else {
+      // No exact match - provide helpful guidance
+      aiResponse = `🤔 Hmm, I couldn't find exactly that. Let me help!\n\n`;
+      aiResponse += `Try asking for:\n`;
+      aiResponse += `• Items by price: "Show me burgers under 299"\n`;
+      aiResponse += `• By type: "Pizza with paneer", "Spicy wraps"\n`;
+      aiResponse += `• By restaurant: "Peppanizze pizzas"\n`;
+      aiResponse += `• Trending: "What's trending today?"\n`;
+      aiResponse += `• Combos: "Show me combo deals"\n\n`;
+      aiResponse += `Or browse our restaurants: Peppanizze 🍕 | Shimmers 🍔 | Urbanwrap 🌯`;
+    }
+
+    // Add personalization if returning user
+    if (userCtx.isReturningUser && matchedDishes.length > 0) {
+      aiResponse += `\n\n💡 **Personalized tip**: Based on your previous orders, you might also like dishes with ${userCtx.favoriteCategories[0] || 'paneer'}!`;
+    }
 
     res.json({
       success: true,
-      userMessage: message,
       aiResponse,
-      timestamp: new Date().toISOString()
+      matchedCount: matchedDishes.length,
+      suggestions: matchedDishes.slice(0, 5)
     });
+
   } catch (error) {
-    console.error("Chat error:", error);
+    console.error('❌ Smart AI error:', error);
     res.status(500).json({
       success: false,
       error: error.message
@@ -152,100 +272,124 @@ router.post("/chat", async (req, res) => {
   }
 });
 
-// ===================== REAL-TIME PAGE SUGGESTIONS =====================
-router.post("/real-time-suggestion", async (req, res) => {
+// Update cart with tracking
+router.post('/update-cart', (req, res) => {
   try {
-    const { userId, currentPage } = req.body;
+    const { userId, cartItems } = req.body;
+    
+    userContextManager.updateCart(userId, cartItems);
 
-    if (!userId || !currentPage) {
-      return res.status(400).json({
-        error: "userId and currentPage are required"
-      });
+    // Track dish clicks
+    cartItems?.forEach(item => {
+      userContextManager.trackDishClick(userId, item.name, item.restaurant);
+    });
+
+    res.json({ success: true, message: 'Cart updated' });
+  } catch (error) {
+    console.error('Update cart error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Track page visits
+router.post('/track-page', (req, res) => {
+  try {
+    const { userId, pageName } = req.body;
+    userContextManager.trackPageVisit(userId, pageName);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get menu endpoint
+router.get('/menu', (req, res) => {
+  try {
+    res.json({
+      success: true,
+      dishes: allDishes,
+      count: allDishes.length
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Search endpoint for advanced queries
+router.post('/search', (req, res) => {
+  try {
+    const { query, maxPrice, minPrice, category, restaurant } = req.body;
+
+    let results = allDishes;
+
+    if (query) {
+      const q = query.toLowerCase();
+      results = results.filter(d => 
+        d.name?.toLowerCase().includes(q) ||
+        d.category?.toLowerCase().includes(q) ||
+        d.desc?.toLowerCase().includes(q)
+      );
     }
 
-    const userContext = userContextManager.getUserContext(userId);
-
-    const suggestion = await generateRealTimeSuggestion({
-      currentPage,
-      cartItems: userContext.currentCart.map(item => item.name),
-      recentPages: userContext.recentPages,
-      viewedRestaurants: userContext.viewedRestaurants,
-    });
-
-    res.json({
-      success: true,
-      suggestion,
-      page: currentPage,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    console.error("Suggestion error:", error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
-
-// ===================== GET USER CONTEXT =====================
-router.get("/user-context/:userId", (req, res) => {
-  try {
-    const { userId } = req.params;
-    const context = userContextManager.getUserContext(userId);
-
-    res.json({
-      success: true,
-      context
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ===================== TRENDING INSIGHTS =====================
-router.get("/trending-insights", (req, res) => {
-  try {
-    const insights = userContextManager.getTrendingInsights();
-
-    res.json({
-      success: true,
-      insights,
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ===================== ADD ORDER TO HISTORY =====================
-router.post("/add-order", (req, res) => {
-  try {
-    const { userId, orderDetails } = req.body;
-
-    if (!userId || !orderDetails) {
-      return res.status(400).json({
-        error: "userId and orderDetails are required"
-      });
+    if (maxPrice) {
+      results = results.filter(d => d.price <= maxPrice);
     }
 
-    userContextManager.addOrderToHistory(userId, orderDetails);
+    if (minPrice) {
+      results = results.filter(d => d.price >= minPrice);
+    }
+
+    if (category) {
+      results = results.filter(d => d.category?.toLowerCase().includes(category.toLowerCase()));
+    }
+
+    if (restaurant) {
+      results = results.filter(d => d.restaurant === restaurant);
+    }
+
+    // Sort by rating
+    results.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
     res.json({
       success: true,
-      message: "Order added to history"
+      results,
+      count: results.length
     });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// ===================== HEALTH CHECK =====================
-router.get("/health", (req, res) => {
-  res.json({
-    status: "✅ AI Service Healthy",
-    llm: "Ollama",
-    timestamp: new Date().toISOString()
-  });
+// Real-time suggestion endpoint (for global suggestions)
+router.post('/real-time-suggestion', (req, res) => {
+  try {
+    const { userId } = req.body;
+    const userCtx = userContextManager.getUserContext(userId);
+
+    if (!userCtx.currentCart || userCtx.currentCart.length === 0) {
+      return res.json({ success: true, suggestion: null });
+    }
+
+    // Generate combo suggestion based on cart
+    const cartTotal = userCtx.currentCart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+    const itemNames = userCtx.currentCart.map(item => item.name).join(', ');
+
+    let suggestion = '';
+    if (userCtx.currentCart.length >= 2) {
+      const savings = Math.floor(cartTotal * 0.15);
+      suggestion = `💡 You're buying multiple items! You could save ₹${savings} with our combo deals!`;
+    }
+
+    res.json({
+      success: true,
+      suggestion: suggestion || null
+    });
+
+  } catch (error) {
+    console.error('Suggestion error:', error);
+    res.json({ success: false, error: error.message });
+  }
 });
 
 export default router;

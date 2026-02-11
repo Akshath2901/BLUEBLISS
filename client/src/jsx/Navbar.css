@@ -727,3 +727,23 @@
     margin-left: 2px;
   }
 }
+.veg-global-toggle {
+  border: 1px solid #ddd;
+  background: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-right: 12px;
+  transition: all 0.2s ease;
+}
+
+.veg-global-toggle.active {
+  background: #48c479;
+  color: white;
+  border-color: #48c479;
+}
+
+.veg-global-toggle:hover {
+  transform: scale(1.03);
+}

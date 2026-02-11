@@ -15,20 +15,36 @@ export default function AIChat() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { cart } = useContext(CartContext);
+  const cartContext = useContext(CartContext);
+const cart = cartContext?.cart || [];
+
   const messagesEndRef = useRef(null);
   const lastSuggestionTimeRef = useRef(0);
   const lastCartStateRef = useRef(JSON.stringify(cart));
-  const userIdRef = useRef(localStorage.getItem('userId') || 'guest-' + Math.random());
+ const userIdRef = useRef(null);
+
 
   // Store userId on mount
-  useEffect(() => {
-    if (!localStorage.getItem('userId')) {
-      localStorage.setItem('userId', userIdRef.current);
+// Store userId on mount (SAFE)
+useEffect(() => {
+  try {
+    if (typeof window === "undefined") return;
+
+    const existingId = window.localStorage.getItem("userId");
+
+    if (existingId) {
+      userIdRef.current = existingId;
     } else {
-      userIdRef.current = localStorage.getItem('userId');
+      const newId = "guest-" + Math.random().toString(36).slice(2);
+      window.localStorage.setItem("userId", newId);
+      userIdRef.current = newId;
     }
-  }, []);
+  } catch (e) {
+    console.error("localStorage unavailable, using fallback userId");
+    userIdRef.current = "guest-" + Math.random().toString(36).slice(2);
+  }
+}, []);
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -40,6 +56,7 @@ export default function AIChat() {
 
   // Monitor cart changes and get AI suggestions
   useEffect(() => {
+     if (!Array.isArray(cart)) return;
     const currentCartState = JSON.stringify(cart);
     
     if (currentCartState !== lastCartStateRef.current) {

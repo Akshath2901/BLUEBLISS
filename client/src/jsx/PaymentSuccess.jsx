@@ -1,4 +1,4 @@
-// PaymentSuccess.jsx - UPDATED VERSION
+// PaymentSuccess.jsx - UPDATED VERSION WITH ANIMATIONS
 // ⚠️ REMOVED duplicate order creation - Payment.jsx already creates it
 
 import React, { useEffect, useState, useContext } from "react";
@@ -106,10 +106,27 @@ function PaymentSuccess() {
 
   if (loading) {
     return (
-      <div style={{ padding: 80, textAlign: "center", color: "#fff" }}>
-        <div style={{ fontSize: 40, marginBottom: 20 }}>⏳</div>
-        <h2>Processing your order...</h2>
-        <p>Please wait while we finalize everything</p>
+      <div style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg,#0f0e09,#1c1c1c)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "#fff"
+      }}>
+        <div style={{ textAlign: "center" }}>
+          <div className="loader-spinner" style={{
+            width: 60,
+            height: 60,
+            border: "4px solid rgba(212,175,55,0.2)",
+            borderTop: "4px solid #d4af37",
+            borderRadius: "50%",
+            margin: "0 auto 20px",
+            animation: "spin 1s linear infinite"
+          }}></div>
+          <h2 style={{ fontSize: 20, fontWeight: 600 }}>Processing your order...</h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}>Please wait while we finalize everything</p>
+        </div>
       </div>
     );
   }
@@ -125,11 +142,61 @@ function PaymentSuccess() {
     >
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
-        {/* SUCCESS HEADER */}
+        {/* SUCCESS HEADER WITH ANIMATED TICK */}
         <div style={{ textAlign: "center", marginBottom: 50 }}>
-          <div style={{ fontSize: 80, color: "#d4af37", animation: "bounce 1s" }}>
-            ✔
+          {/* Animated Success Circle with Tick */}
+          <div className="success-checkmark" style={{
+            width: 120,
+            height: 120,
+            margin: "0 auto 30px",
+            position: "relative"
+          }}>
+            {/* Outer Circle with Scale Animation */}
+            <div className="check-icon-circle" style={{
+              width: "100%",
+              height: "100%",
+              background: "linear-gradient(135deg, #22c55e, #16a34a)",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 40px rgba(34, 197, 94, 0.4)",
+              animation: "scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards"
+            }}>
+              {/* Checkmark with Draw Animation */}
+              <svg
+                width="60"
+                height="60"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline
+                  points="20 6 9 17 4 12"
+                  style={{
+                    strokeDasharray: 30,
+                    strokeDashoffset: 30,
+                    animation: "drawCheck 0.6s 0.3s ease-out forwards"
+                  }}
+                />
+              </svg>
+            </div>
+            {/* Success Ring Pulse */}
+            <div className="success-ring" style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              border: "3px solid rgba(34, 197, 94, 0.3)",
+              borderRadius: "50%",
+              animation: "ringPulse 2s infinite"
+            }}></div>
           </div>
+
           <h1
             style={{
               fontSize: 42,
@@ -137,12 +204,18 @@ function PaymentSuccess() {
               background: "linear-gradient(135deg,#ffd700,#d4af37)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              marginBottom: 10,
+              animation: "fadeInUp 0.6s 0.5s backwards"
             }}
           >
-            Order Successful
+            Payment Successful!
           </h1>
-          <p style={{ color: "rgba(255,255,255,0.7)" }}>
-            Your food is being prepared
+          <p style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: 16,
+            animation: "fadeInUp 0.6s 0.7s backwards"
+          }}>
+            Your order is confirmed and being prepared
           </p>
         </div>
 
@@ -353,6 +426,56 @@ function PaymentSuccess() {
       />
 
       <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes scaleIn {
+          0% {
+            transform: scale(0);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.1);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        @keyframes drawCheck {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+
+        @keyframes ringPulse {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.2);
+            opacity: 0.5;
+          }
+          100% {
+            transform: scale(1.4);
+            opacity: 0;
+          }
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
         @keyframes bounce {
           0%,100%{transform:translateY(0)}
           50%{transform:translateY(-16px)}
