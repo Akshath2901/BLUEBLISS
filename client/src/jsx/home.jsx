@@ -9,22 +9,22 @@ import SearchBar from "./SearchBar";
 import Footer from "./Footer";
 import "./home.css";
 
-import img1 from "../assets/IMG_2054.JPG";
-import img2 from "../assets/paneer tikka wrap.jpg";
+// import img1 from "../assets/IMG_2054.JPG";
+// import img2 from "../assets/paneer tikka wrap.jpg";
 
-import Burgers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
-import MilkShake from "/src/assets/brands/Biskoff.jpg";
+// import Burgers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
+// import MilkShake from "/src/assets/brands/Biskoff.jpg";
 
 // ⭐ NEW IMPORTS FOR CATEGORY IMAGES
-import AfricanPeri from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
-import PeriChickenWrap from "/src/assets/brands/peri peri chicken wrap.jpg";
-import PaneerFries from "/src/assets/paneer tikka wrap.jpg";
-import VegetrianaPizza from "/src/assets/VEGETRIANA PIZZA.jpg";
+// import AfricanPeri from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
+// import PeriChickenWrap from "/src/assets/brands/peri peri chicken wrap.jpg";
+// import PaneerFries from "/src/assets/paneer tikka wrap.jpg";
+// import VegetrianaPizza from "/src/assets/VEGETRIANA PIZZA.jpg";
 
 // Brand images
-import shrimmers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
-import peppanizzeLogo from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
-import urbanWrapLogo from "/src/assets/brands/peri peri chicken wrap.jpg";
+// import shrimmers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
+// import peppanizzeLogo from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
+// import urbanWrapLogo from "/src/assets/brands/peri peri chicken wrap.jpg";
 
 function Home() {
   const navigate = useNavigate();
