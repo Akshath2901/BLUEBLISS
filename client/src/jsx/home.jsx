@@ -26,6 +26,18 @@ import "./home.css";
 // import peppanizzeLogo from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
 // import urbanWrapLogo from "/src/assets/brands/peri peri chicken wrap.jpg";
 
+const img1 = "";
+const img2 = "";
+const Burgers = "";
+const MilkShake = "";
+const AfricanPeri = "";
+const PeriChickenWrap = "";
+const PaneerFries = "";
+const VegetrianaPizza = "";
+const shrimmers = "";
+const peppanizzeLogo = "";
+const urbanWrapLogo = "";
+
 function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
