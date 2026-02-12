@@ -38,7 +38,7 @@
    BASE STYLES
    ============================================ */
 
-* {
+* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -46,6 +46,14 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+body {
+  /* keep your existing body styles, just ADD these two: */
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
@@ -54,6 +62,9 @@ body {
   color: var(--white);
   line-height: 1.6;
   letter-spacing: -0.3px;
+  overflow-x: hidden;
+  width: 100%;
+
 }
 
 .home-container {
@@ -992,6 +1003,12 @@ body {
 }
 
 @media (max-width: 768px) {
+
+  .home-container {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
   .hero-slider {
     height: 520px;
   }
@@ -1159,7 +1176,7 @@ body {
   }
 
   .hero-content h2 {
-    font-size: 32px;
+    font-size: 28px;
     margin-bottom: 12px;
   }
 
@@ -1206,6 +1223,8 @@ body {
     gap: 8px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    max-width: 100vw;
+    overflow-y: hidden;
   }
 
   .cat-nav-btn {
@@ -1215,9 +1234,10 @@ body {
     display: none;
   }
 
-  .categories-slider {
+ .categories-slider {
     gap: 25px;
     padding: 15px 5px;
+    max-width: 100%;
   }
 
   .category-icon {
@@ -1243,10 +1263,11 @@ body {
     display: none;
   }
 
-  .offer-track {
+ .offer-track {
     height: 280px;
     width: 100%;
     position: relative;
+    overflow: hidden;
   }
 
   .offer-card {
@@ -1268,7 +1289,7 @@ body {
   }
 
   .offer-overlay {
-    padding: 20px 16px;
+    padding: 18px 14px;
     min-height: 260px;
     justify-content: center;
   }
@@ -1291,9 +1312,11 @@ body {
     font-size: 14px;
   }
 
-  .offer-code {
+ .offer-code {
     padding: 8px 12px;
     font-size: 12px;
+    flex-wrap: wrap;
+    word-break: break-all;
   }
 
   .offer-code strong {
@@ -1349,10 +1372,11 @@ body {
     font-size: 13px;
   }
 
-  .delivery-buttons {
+.delivery-buttons {
     flex-direction: column;
     gap: 12px;
-    padding: 0 10px;
+    padding: 0;
+    width: 100%;
   }
 
   .zomato-btn,
@@ -1391,5 +1415,31 @@ body {
   .reviews-track {
     gap: 20px;
     animation-duration: 40s;
+  }
+}
+@media (max-width: 360px) {
+  .hero-content h2 {
+    font-size: 24px;
+  }
+  .hero-content p {
+    font-size: 14px;
+  }
+  .category-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 40px;
+  }
+  .category-name {
+    font-size: 12px;
+  }
+  .offer-title {
+    font-size: 18px;
+  }
+  .brand-name {
+    font-size: 18px;
+  }
+  .review-card {
+    min-width: 230px;
+    max-width: 230px;
   }
 }
