@@ -583,12 +583,16 @@
     gap: 8px;
     min-width: auto;
   }
+.btn-cart {
+    display: none;
+  }
 
-  .btn-cart,
-  .btn-login,
-  .btn-signup {
-    padding: 8px 12px;
-    font-size: 12px;
+  .auth-buttons {
+    display: none;
+  }
+
+  .user-profile-btn {
+    display: none;
   }
 
   .user-icon {
@@ -676,38 +680,6 @@
   .navbar-right {
     gap: 6px;
     order: 2;
-  }
-
-  .btn-cart {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-
-  .auth-buttons {
-    gap: 6px;
-  }
-
-  .btn-login,
-  .btn-signup {
-    padding: 6px 10px;
-    font-size: 10px;
-  }
-
-  .user-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-
-  .user-profile-btn {
-    padding: 3px 6px;
-    font-size: 10px;
-  }
-
-  .user-avatar {
-    width: 20px;
-    height: 20px;
-    font-size: 9px;
   }
 
   .profile-dropdown {

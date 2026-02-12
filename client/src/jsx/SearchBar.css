@@ -30,12 +30,18 @@
 }
 
 .search-input-wrapper:hover {
-  border-color: #4a90e2;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+  border-color: #d4af37;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
 }
 
 .search-input-wrapper:focus-within {
-  border-color: #4a90e2;
+  border-color: #d4af37;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25);
+  border-radius: 50px 50px 20px 20px;
+}
+
+.search-input-wrapper:focus-within {
+  border-color: #d4af37;
   box-shadow: 0 4px 16px rgba(74, 144, 226, 0.25);
   border-radius: 50px 50px 20px 20px;
 }
@@ -91,25 +97,24 @@
 }
 
 .search-btn {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
+  background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+  color: #0f0e09;
   border: none;
   padding: 10px 24px;
   border-radius: 25px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
 }
 
 .search-btn:hover {
-  background: linear-gradient(135deg, #357abd 0%, #2868a8 100%);
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
   transform: translateY(-1px);
 }
-
 .search-btn:active {
   transform: translateY(0);
   box-shadow: 0 2px 6px rgba(74, 144, 226, 0.3);
@@ -123,7 +128,7 @@
   left: 0;
   right: 0;
   background: white;
-  border: 2px solid #4a90e2;
+  border: 2px solid #d4af37;
   border-top: none;
   border-radius: 0 0 20px 20px;
   max-height: 450px;
@@ -156,7 +161,7 @@
 .ai-label {
   font-size: 11px;
   font-weight: 700;
-  color: #4a90e2;
+  color:  #b8860b;
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -210,7 +215,7 @@
 
 .suggestion-price {
   font-weight: 700;
-  color: #4a90e2;
+  color: #b8860b;
 }
 
 .suggestion-restaurant {
@@ -330,6 +335,14 @@
 
 .ai-suggestions-dropdown::-webkit-scrollbar-thumb:hover {
   background: #4a90e2;
+}
+/* Local suggestion brand highlight */
+.local-suggestion {
+  transition: all 0.2s ease;
+}
+
+.local-suggestion:hover {
+  background: #fffbea !important;
 }
 
 /* Responsive Design */

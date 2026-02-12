@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import SearchBar from "./SearchBar";
+import GoogleReviewCard from "./GoogleReviewCard";
 import Footer from "./Footer";
 import "./home.css";
 
@@ -41,7 +42,6 @@ const urbanWrapLogo = "";
 function Home() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentOffer, setCurrentOffer] = useState(0);
   const [offers, setOffers] = useState([]);
 
   // Hero Slider Images
@@ -161,13 +161,7 @@ function Home() {
   }, [heroImages.length]);
 
   // Auto Slide Offers
-  useEffect(() => {
-    if (offers.length === 0) return;
-    const interval = setInterval(() => {
-      setCurrentOffer((prev) => (prev + 1) % offers.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [offers.length]);
+
 
   // ⭐ AI TOAST NOTIFICATION - Show on homepage
   useEffect(() => {
@@ -187,13 +181,7 @@ function Home() {
   const handleBrandClick = (route) => navigate(route);
 
   // Offer Slider Controls
-  const nextOffer = () => {
-    setCurrentOffer((prev) => (prev + 1) % offers.length);
-  };
-  
-  const prevOffer = () => {
-    setCurrentOffer((prev) => (prev - 1 + offers.length) % offers.length);
-  };
+
 
   return (
     <div className="home-container">
@@ -216,7 +204,12 @@ function Home() {
           <div className="transparent-search">
             <SearchBar onSearch={handleSearch} />
           </div>
-          <button className="explore-btn" onClick={() => navigate("/explore")}>Explore Menu</button>
+          <button className="explore-btn" onClick={() => {
+  const brandsSection = document.querySelector(".brands-section");
+  if (brandsSection) {
+    brandsSection.scrollIntoView({ behavior: "smooth" });
+  }
+}}>Explore Menu</button>
         </div>
 
         <div className="slide-indicators">
@@ -281,67 +274,37 @@ function Home() {
         </div>
       </section>
 
-      {/* ⭐ SPECIAL OFFERS SECTION - MOBILE OPTIMIZED */}
+{/* ⭐ SPECIAL OFFERS SECTION - REDESIGNED */}
       <section className="offers-section">
         <div className="offers-container">
-          <h2 className="offers-title">🎉 Special Offers for You</h2>
+          <h2 className="offers-title">🎉 Special Offers</h2>
           <p className="offers-subtitle">Limited time deals you don't want to miss</p>
 
-          {offers.length > 0 ? (
-            <>
-              <div className="offers-slider">
-                <button className="offer-nav-btn offer-nav-prev" onClick={prevOffer} aria-label="Previous offer">
-                  ‹
-                </button>
-
-                <div className="offer-track">
-                  {offers.map((offer, index) => (
-                    <div
-                      key={offer.id}
-                      className={`offer-card ${index === currentOffer ? "active" : ""}`}
-                    >
-                      <div 
-                        className="offer-overlay"
-                        style={{
-                          background: `linear-gradient(135deg, ${offer.bgColor || "#d4af37"} 0%, ${offer.bgColorAlt || "#ffd700"} 100%)`
-                        }}
-                      >
-                        <div className="offer-content">
-                          <span className="offer-badge">LIMITED OFFER</span>
-                          <h3 className="offer-title">
-                            {offer.icon && <span>{offer.icon}</span>} {offer.title}
-                          </h3>
-                          <p className="offer-description">{offer.description}</p>
-                          <div className="offer-code">
-                            <span>Use Code:</span>
-                            <strong>{offer.code}</strong>
-                          </div>
-                          <button className="claim-btn">Claim Now →</button>
-                        </div>
+          {offers.length > 0 && (
+            <div className="offers-grid">
+              {offers.map((offer, index) => (
+                <div key={offer.id} className={`offer-card-new offer-card-${index % 3}`}>
+                  <div className="offer-card-inner-new">
+                    <div className="offer-card-left">
+                      <span className="offer-badge-new">LIMITED OFFER</span>
+                      <h3 className="offer-title-new">
+                        {offer.icon && <span>{offer.icon} </span>}
+                        {offer.title}
+                      </h3>
+                      <p className="offer-desc-new">{offer.description}</p>
+                    </div>
+                    <div className="offer-card-right">
+                      <div className="offer-code-new">
+                        <span className="offer-code-label">USE CODE</span>
+                        <strong className="offer-code-value">{offer.code}</strong>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
+              ))}
 
-                <button className="offer-nav-btn offer-nav-next" onClick={nextOffer} aria-label="Next offer">
-                  ›
-                </button>
-              </div>
-
-              <div className="offer-indicators">
-                {offers.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`offer-indicator ${index === currentOffer ? "active" : ""}`}
-                    onClick={() => setCurrentOffer(index)}
-                    aria-label={`Go to offer ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            <div style={{ textAlign: "center", padding: "40px", color: "#999" }}>
-              <p>Loading offers...</p>
+              {/* Google Review Card inside offers */}
+              <GoogleReviewCard />
             </div>
           )}
         </div>
@@ -435,7 +398,31 @@ function Home() {
           </div>
         </div>
       </section>
+{/* CONNECT WITH US SECTION */}
+      <section className="connect-section">
+        <div className="connect-container">
+          <h2 className="connect-title">📱 Connect With Us</h2>
+          <p className="connect-subtitle">
+            Reach out for custom orders, bulk orders, or just say hi!
+          </p>
 
+         <div className="connect-cards">
+            <a href={`https://wa.me/917569534271?text=${encodeURIComponent("Hi BlueBliss! 🌿 I'd like to place an order.")}`} target="_blank" rel="noopener noreferrer" className="connect-card whatsapp-card">
+              <span className="connect-card-icon">💬</span>
+              <h3 className="connect-card-name">WhatsApp</h3>
+              <p className="connect-card-desc">Order directly, ask questions, or get support</p>
+              <span className="connect-card-cta">Chat Now →</span>
+            </a>
+
+            <a href="https://www.instagram.com/shrimmers_/" target="_blank" rel="noopener noreferrer" className="connect-card instagram-card">
+              <span className="connect-card-icon">📸</span>
+              <h3 className="connect-card-name">Instagram</h3>
+              <p className="connect-card-desc">Follow us for offers, behind the scenes & more</p>
+              <span className="connect-card-cta">Follow Us →</span>
+            </a>
+          </div>
+        </div>
+      </section>
       <Footer />
     </div>
   );

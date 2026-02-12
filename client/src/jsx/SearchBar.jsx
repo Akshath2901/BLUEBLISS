@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { CartContext } from "../context/CartContext";
 import "./SearchBar.css";
 
-function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anything..." }) {
+function SearchBar({ onSearch, placeholder = "Search dishes, cuisines, or brands..." }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState([]);
@@ -12,10 +12,65 @@ function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anythin
   const navigate = useNavigate();
   const { addToCart } = useContext(CartContext);
   const userIdRef = localStorage.getItem('userId') || 'guest-' + Math.random();
+// Local brand & menu suggestions
+  const localSuggestions = [
+    // Brands
+    { name: "Shrimmers", type: "brand", route: "/menu/shrimmers", icon: "✨" },
+    { name: "Peppanizze", type: "brand", route: "/menu/peppanizze", icon: "🌶️" },
+    { name: "UrbanWrap", type: "brand", route: "/menu/urbanwrap", icon: "🌯" },
 
+    // Burgers
+    { name: "Chicken Burger", type: "item", category: "Burgers", icon: "🍔" },
+    { name: "Peri Peri Crispy Chicken Burger", type: "item", category: "Burgers", icon: "🍔" },
+    { name: "Veg Burger", type: "item", category: "Burgers", icon: "🍔" },
+    { name: "Cheese Burger", type: "item", category: "Burgers", icon: "🍔" },
+
+    // Pizza
+    { name: "Chicken Pizza", type: "item", category: "Pizza", icon: "🍕" },
+    { name: "Vegetriana Pizza", type: "item", category: "Pizza", icon: "🍕" },
+    { name: "Cheezy 7 Pizza", type: "item", category: "Pizza", icon: "🍕" },
+    { name: "Peri Peri Pizza", type: "item", category: "Pizza", icon: "🍕" },
+
+    // Wraps
+    { name: "Chicken Wrap", type: "item", category: "Wraps", icon: "🌯" },
+    { name: "Peri Peri Chicken Wrap", type: "item", category: "Wraps", icon: "🌯" },
+    { name: "Paneer Tikka Wrap", type: "item", category: "Wraps", icon: "🌯" },
+    { name: "Veg Wrap", type: "item", category: "Wraps", icon: "🌯" },
+
+    // Fries & Sides
+    { name: "French Fries", type: "item", category: "Fries", icon: "🍟" },
+    { name: "Peri Peri Fries", type: "item", category: "Fries", icon: "🍟" },
+    { name: "Paneer Fries", type: "item", category: "Fries", icon: "🍟" },
+    { name: "Loaded Fries", type: "item", category: "Fries", icon: "🍟" },
+
+    // Shakes
+    { name: "Chocolate Milkshake", type: "item", category: "Shakes", icon: "🥤" },
+    { name: "Biscoff Milkshake", type: "item", category: "Shakes", icon: "🥤" },
+    { name: "Oreo Milkshake", type: "item", category: "Shakes", icon: "🥤" },
+    { name: "Strawberry Milkshake", type: "item", category: "Shakes", icon: "🥤" },
+
+    // Peri Peri
+    { name: "African Peri Peri Veg", type: "item", category: "Peri Peri", icon: "🔥" },
+    { name: "African Peri Peri Chicken", type: "item", category: "Peri Peri", icon: "🔥" },
+  ];
+
+  const [filteredLocal, setFilteredLocal] = useState([]);
   // Fetch AI suggestions as user types
-  useEffect(() => {
-    if (searchQuery.trim().length > 2) {
+useEffect(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    // Local suggestions — start from 1 character
+    if (query.length >= 1) {
+      const matches = localSuggestions.filter((item) =>
+        item.name.toLowerCase().includes(query)
+      );
+      setFilteredLocal(matches.slice(0, 6));
+    } else {
+      setFilteredLocal([]);
+    }
+
+    // AI suggestions — kick in after 3 characters
+    if (query.length > 2) {
       fetchAiSuggestions();
     } else {
       setAiSuggestions([]);
@@ -45,15 +100,33 @@ function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anythin
     }
   };
 
-  const handleSearch = (e) => {
+ const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Regular search - redirects to search results page
+      const query = searchQuery.trim().toLowerCase();
+
+      // Brand-specific routing
+      const brandRoutes = {
+        shrimmers: "/menu/shrimmers",
+        peppanizze: "/menu/peppanizze",
+        urbanwrap: "/menu/urbanwrap",
+        "urban wrap": "/menu/urbanwrap",
+      };
+
+      for (const [key, route] of Object.entries(brandRoutes)) {
+        if (query.includes(key)) {
+          navigate(route);
+          setSearchQuery("");
+          setAiSuggestions([]);
+          return;
+        }
+      }
+
+      // Regular search
       onSearch(searchQuery);
       setAiSuggestions([]);
     }
   };
-
   const handleQuickAddToCart = (item, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -72,12 +145,28 @@ function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anythin
     setAiSuggestions([]);
   };
 
-  const handleSuggestionClick = (item) => {
+ const handleSuggestionClick = (item) => {
+    const name = item.name.toLowerCase();
+    const brandRoutes = {
+      shrimmers: "/menu/shrimmers",
+      peppanizze: "/menu/peppanizze",
+      urbanwrap: "/menu/urbanwrap",
+      "urban wrap": "/menu/urbanwrap",
+    };
+
+    for (const [key, route] of Object.entries(brandRoutes)) {
+      if (name.includes(key)) {
+        setSearchQuery('');
+        setAiSuggestions([]);
+        navigate(route);
+        return;
+      }
+    }
+
     setSearchQuery('');
     setAiSuggestions([]);
     navigate(`/search?q=${encodeURIComponent(item.name)}`);
   };
-
   const handleClear = () => {
     setSearchQuery("");
     setAiSuggestions([]);
@@ -145,9 +234,45 @@ function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anythin
         </div>
 
         {/* AI SUGGESTIONS DROPDOWN */}
-        {isFocused && searchQuery.trim().length > 2 && (
+{/* SUGGESTIONS DROPDOWN */}
+        {isFocused && searchQuery.trim().length >= 1 && (filteredLocal.length > 0 || searchQuery.trim().length > 2) && (
           <div className="ai-suggestions-dropdown">
-            {loading ? (
+            {/* LOCAL SUGGESTIONS */}
+            {filteredLocal.length > 0 && (
+              <>
+                <div className="suggestions-header">
+                  <span className="ai-label">🔍 Quick Suggestions</span>
+                </div>
+                <div className="suggestions-list">
+                  {filteredLocal.map((item, idx) => (
+                    <div
+                      key={"local-" + idx}
+                      className="suggestion-item local-suggestion"
+                      onClick={() => handleLocalSuggestionClick(item)}
+                    >
+                      <div className="suggestion-content">
+                        <div className="suggestion-name">
+                          {item.icon} {item.name}
+                        </div>
+                        <div className="suggestion-meta">
+                          {item.type === "brand" ? (
+                            <span className="suggestion-restaurant" style={{ background: "#ffd700", color: "#0f0e09" }}>
+                              ⭐ Brand
+                            </span>
+                          ) : (
+                            <span className="suggestion-restaurant">{item.category}</span>
+                          )}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: "12px", color: "#999" }}>
+                        {item.type === "brand" ? "View Menu →" : "Search →"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+           {searchQuery.trim().length > 2 && (loading ? (
               <div className="suggestions-loading">
                 <span className="loading-spinner">⏳</span> AI finding items...
               </div>
@@ -197,7 +322,7 @@ function SearchBar({ onSearch, placeholder = "🤖 Search dishes, ask AI anythin
               <div className="suggestions-empty">
                 <p>Try: "burgers under 299" or "spicy items"</p>
               </div>
-            )}
+            ))}
           </div>
         )}
       </form>

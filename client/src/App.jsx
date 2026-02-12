@@ -21,6 +21,8 @@ import Payment from "./jsx/Payment";
 import PaymentSuccess from "./jsx/PaymentSuccess";
 import OrderTracking from "./jsx/OrderTracking";
 import ProtectedRoute from "./jsx/ProtectedRoute";
+import BottomNav from "./jsx/BottomNav";
+import FloatingButtons from "./jsx/FloatingButtons";
 
 /* ================ AUTH PAGES ================ */
 import LoginPage from "./jsx/LoginPage";
@@ -73,6 +75,8 @@ function Layout({ children }) {
   return (
     <>
       <Navbar />
+      <BottomNav />
+      <FloatingButtons />
       <AiToastNotification />
       <GlobalAISuggester />
       {children}

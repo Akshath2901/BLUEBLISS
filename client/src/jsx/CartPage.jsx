@@ -822,7 +822,62 @@ function CartPage() {
                 </p>
               </div>
             )}
+{cart.length > 0 && (
+              <button
+                className="whatsapp-order-btn"
+                onClick={() => {
+                  const itemsList = cart
+                    .map(
+                      (item) =>
+                        `• ${item.qty}x ${item.name} (₹${item.price * item.qty})`
+                    )
+                    .join("\n");
 
+                  const message = encodeURIComponent(
+                    `Hi BlueBliss! 🌿\n\nI'd like to order:\n\n${itemsList}\n\n📦 Subtotal: ₹${subtotal}\n💰 Total: ₹${total}\n\n📍 Address: ${
+                      selectedAddressData
+                        ? selectedAddressData.fullAddress ||
+                          `${selectedAddressData.street}, ${selectedAddressData.area}, ${selectedAddressData.city}`
+                        : "Will share shortly"
+                    }\n\nPlease confirm my order. Thank you!`
+                  );
+
+                  window.open(
+                    `https://wa.me/917569534271?text=${message}`,
+                    "_blank"
+                  );
+                }}
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  background: "linear-gradient(135deg, #25d366, #128c7e)",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "14px",
+                  fontSize: "16px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                  boxShadow: "0 6px 20px rgba(37, 211, 102, 0.3)",
+                  transition: "all 0.3s ease",
+                  marginBottom: "12px",
+                  fontFamily: "'Inter', sans-serif",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "translateY(-2px)";
+                  e.target.style.boxShadow = "0 8px 28px rgba(37, 211, 102, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "translateY(0)";
+                  e.target.style.boxShadow = "0 6px 20px rgba(37, 211, 102, 0.3)";
+                }}
+              >
+                💬 Order via WhatsApp
+              </button>
+            )}
             <button
               className="pay-btn"
               onClick={handleProceedToPayment}
