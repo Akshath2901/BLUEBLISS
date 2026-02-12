@@ -547,40 +547,57 @@ function CartPage() {
               </div>
             )}
 
-            {cart.length > 0 && loyaltyData?.unlockedVouchers?.filter(v => v.status === "available").length > 0 && (
-              <div className="section-card voucher-card" style={{ background: "linear-gradient(135deg, #1c1c1c 0%, #262626 100%)", border: "2px solid rgba(212, 175, 55, 0.3)" }}>
-                <h4 style={{ margin: "0 0 15px 0", color: "#fff", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <span style={{ fontSize: "20px" }}>🎟️</span> Your Loyalty Vouchers
-                </h4>
-
-                {appliedVoucher ? (
-                  <div style={{
-                    background: "linear-gradient(135deg, #4caf50, #45a049)",
-                    padding: "15px",
-                    borderRadius: "12px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    color: "#fff",
-                    marginBottom: "15px"
-                  }}>
-                    <div>
-                      <p style={{ fontSize: "13px", margin: "0 0 5px 0", opacity: 0.9 }}>✓ Voucher Applied</p>
-                      <p style={{ fontSize: "18px", fontWeight: "700", margin: 0 }}>₹{appliedVoucher.amount} Discount</p>
-                    </div>
-                    <button onClick={handleRemoveVoucher} style={{
-                      background: "rgba(255,255,255,0.2)",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#fff",
-                      padding: "8px 15px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                      fontSize: "13px"
-                    }}>Remove</button>
+{cart.length > 0 && loyaltyData?.unlockedVouchers?.filter(v => v.status === "available").length > 0 && (
+              <div style={{
+                background: 'rgba(28,28,28,0.8)',
+                border: '1px solid rgba(212,175,55,0.15)',
+                borderRadius: '8px',
+                marginBottom: '10px',
+                overflow: 'hidden'
+              }}>
+                <div
+                  onClick={() => {
+                    const el = document.getElementById('voucher-dropdown');
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                  }}
+                  style={{
+                    padding: '10px 14px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>🎟️</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>
+                      {appliedVoucher ? `Voucher Applied • ₹${appliedVoucher.amount} off` : 'Loyalty Vouchers'}
+                    </span>
                   </div>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px" }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {appliedVoucher && (
+                      <button onClick={(e) => { e.stopPropagation(); handleRemoveVoucher(); }} style={{
+                        background: 'rgba(226,55,68,0.2)',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: '#e23744',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}>Remove</button>
+                    )}
+                    {!appliedVoucher && (
+                      <span style={{ fontSize: '11px', color: '#4caf50', fontWeight: '600' }}>
+                        {loyaltyData.unlockedVouchers.filter(v => v.status === "available" && new Date(v.expiryDate) > new Date()).length} available
+                      </span>
+                    )}
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>▼</span>
+                  </div>
+                </div>
+
+                <div id="voucher-dropdown" style={{ display: 'none', padding: '0 14px 10px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {loyaltyData?.unlockedVouchers
                       ?.filter(v => v.status === "available" && new Date(v.expiryDate) > new Date())
                       .map(voucher => (
@@ -588,153 +605,134 @@ function CartPage() {
                           key={voucher.voucherId}
                           onClick={() => handleApplyVoucher(voucher)}
                           style={{
-                            padding: "12px",
-                            background: "linear-gradient(135deg, #ffd700, #d4af37)",
-                            border: "none",
-                            borderRadius: "10px",
-                            color: "#000",
-                            fontWeight: "700",
-                            cursor: "pointer",
-                            textAlign: "center",
-                            transition: "transform 0.2s ease",
-                            fontSize: "14px"
+                            padding: '6px 14px',
+                            background: appliedVoucher?.voucherId === voucher.voucherId ? 'linear-gradient(135deg, #4caf50, #45a049)' : 'linear-gradient(135deg, #ffd700, #d4af37)',
+                            border: 'none',
+                            borderRadius: '6px',
+                            color: appliedVoucher?.voucherId === voucher.voucherId ? '#fff' : '#000',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            fontSize: '12px',
+                            transition: 'transform 0.2s ease'
                           }}
-                          onMouseEnter={(e) => e.target.style.transform = "scale(1.05)"}
-                          onMouseLeave={(e) => e.target.style.transform = "scale(1)"}
                         >
-                          <div style={{ fontSize: "16px", marginBottom: "4px" }}>🎁</div>
-                          ₹{voucher.amount}
+                          🎁 ₹{voucher.amount}
                         </button>
                       ))}
                   </div>
-                )}
+                </div>
               </div>
             )}
+ {cart.length > 0 && (getEligibleOffers(cart, subtotal, offers).length > 0 || getIneligibleOffers(cart, subtotal, offers).length > 0) && (
+              <div style={{
+                background: 'rgba(28,28,28,0.8)',
+                border: '1px solid rgba(212,175,55,0.15)',
+                borderRadius: '8px',
+                marginBottom: '10px',
+                overflow: 'hidden'
+              }}>
+                <div
+                  onClick={() => {
+                    const el = document.getElementById('offers-dropdown');
+                    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                  }}
+                  style={{
+                    padding: '10px 14px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '14px' }}>🎁</span>
+                    <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>
+                      {appliedOffer ? `${appliedOffer.code} Applied • ₹${offerDiscount} off` : 'Smart Offers'}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {appliedOffer && (
+                      <button onClick={(e) => { e.stopPropagation(); handleRemoveOffer(); }} style={{
+                        background: 'rgba(226,55,68,0.2)',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: '#e23744',
+                        padding: '3px 8px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        cursor: 'pointer'
+                      }}>Remove</button>
+                    )}
+                    {!appliedOffer && getEligibleOffers(cart, subtotal, offers).length > 0 && (
+                      <span style={{ fontSize: '11px', color: '#4caf50', fontWeight: '600' }}>
+                        {getEligibleOffers(cart, subtotal, offers).length} available
+                      </span>
+                    )}
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>▼</span>
+                  </div>
+                </div>
 
-            {cart.length > 0 && (
-              <div className="section-card coupon-card">
-                <h4><span className="icon">🎁</span> Smart Offers</h4>
+                <div id="offers-dropdown" style={{ display: 'none', padding: '0 14px 10px' }}>
+                  {!appliedOffer && getEligibleOffers(cart, subtotal, offers).length > 0 && (
+                    <div style={{ marginBottom: '8px' }}>
+                      <p style={{ fontSize: '11px', fontWeight: '600', color: '#4caf50', marginBottom: '6px' }}>✨ Eligible</p>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {getEligibleOffers(cart, subtotal, offers).map((offer) => {
+                          const discount = calculateOfferDiscount(cart, subtotal, offer);
+                          return (
+                            <button
+                              key={offer.id}
+                              onClick={() => handleApplyOffer(offer)}
+                              style={{
+                                padding: '6px 12px',
+                                background: `linear-gradient(135deg, ${offer.bgColor}, ${offer.bgColorAlt})`,
+                                border: 'none',
+                                borderRadius: '6px',
+                                color: '#fff',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                fontSize: '11px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px'
+                              }}
+                            >
+                              {offer.icon} {offer.code} • Save ₹{discount.discount}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-                {appliedOffer && (
-                  <div style={{
-                    background: "linear-gradient(135deg, #4caf50, #45a049)",
-                    padding: "15px",
-                    borderRadius: "12px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    color: "#fff",
-                    marginBottom: "15px",
-                  }}>
+                  {getIneligibleOffers(cart, subtotal, offers).length > 0 && (
                     <div>
-                      <p style={{ fontSize: "13px", margin: "0 0 5px 0", opacity: 0.9 }}>✓ Offer Applied</p>
-                      <p style={{ fontSize: "16px", fontWeight: "700", margin: 0 }}>
-                        {appliedOffer.icon} {appliedOffer.code} - Save ₹{offerDiscount}
-                      </p>
-                      <p style={{ fontSize: "12px", margin: "5px 0 0 0", opacity: 0.8 }}>
-                        {appliedOffer.title}
-                      </p>
-                    </div>
-                    <button onClick={handleRemoveOffer} style={{
-                      background: "rgba(255,255,255,0.2)",
-                      border: "none",
-                      borderRadius: "8px",
-                      color: "#fff",
-                      padding: "8px 15px",
-                      cursor: "pointer",
-                      fontWeight: "600",
-                      fontSize: "13px",
-                      whiteSpace: "nowrap"
-                    }}>Remove</button>
-                  </div>
-                )}
-
-                {!appliedOffer && getEligibleOffers(cart, subtotal, offers).length > 0 && (
-                  <div style={{ marginBottom: "20px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: "700", color: "#4caf50", marginBottom: "10px" }}>
-                      ✨ Eligible Offers (Click to apply)
-                    </p>
-                    <div style={{ display: "grid", gap: "10px" }}>
-                      {getEligibleOffers(cart, subtotal, offers).map((offer) => {
-                        const discount = calculateOfferDiscount(cart, subtotal, offer);
-                        return (
-                          <button
+                      <p style={{ fontSize: '11px', fontWeight: '600', color: '#ff9800', marginBottom: '6px' }}>🔒 Almost there</p>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {getIneligibleOffers(cart, subtotal, offers).slice(0, 2).map((offer) => (
+                          <div
                             key={offer.id}
-                            onClick={() => handleApplyOffer(offer)}
                             style={{
-                              padding: "12px",
-                              background: `linear-gradient(135deg, ${offer.bgColor}, ${offer.bgColorAlt})`,
-                              border: "none",
-                              borderRadius: "10px",
-                              color: "#fff",
-                              fontWeight: "700",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              transition: "transform 0.2s ease",
+                              padding: '5px 10px',
+                              background: 'rgba(255,152,0,0.1)',
+                              border: '1px solid rgba(255,152,0,0.3)',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              color: 'rgba(255,255,255,0.6)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px'
                             }}
-                            onMouseEnter={(e) => (e.target.style.transform = "translateY(-2px)")}
-                            onMouseLeave={(e) => (e.target.style.transform = "translateY(0)")}
                           >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <div>
-                                <p style={{ margin: "0 0 4px 0", fontSize: "13px", fontWeight: "700" }}>
-                                  {offer.icon} {offer.code}
-                                </p>
-                                <p style={{ margin: 0, fontSize: "12px", opacity: 0.9 }}>
-                                  {offer.title}
-                                </p>
-                              </div>
-                              <div style={{ textAlign: "right" }}>
-                                <p style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: "900" }}>
-                                  ₹{discount.discount}
-                                </p>
-                                <p style={{ margin: 0, fontSize: "11px", opacity: 0.85 }}>Save</p>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {getIneligibleOffers(cart, subtotal, offers).length > 0 && (
-                  <div style={{ marginBottom: "15px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: "700", color: "#ff9800", marginBottom: "10px" }}>
-                      🔒 Almost There! (Unlock these offers)
-                    </p>
-                    <div style={{ display: "grid", gap: "10px" }}>
-                      {getIneligibleOffers(cart, subtotal, offers).slice(0, 2).map((offer) => (
-                        <div
-                          key={offer.id}
-                          style={{
-                            padding: "12px",
-                            background: `linear-gradient(135deg, ${offer.bgColor}33, ${offer.bgColorAlt}33)`,
-                            border: `2px solid ${offer.bgColor}66`,
-                            borderRadius: "10px",
-                            color: "#fff",
-                            opacity: 0.7,
-                          }}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <div>
-                              <p style={{ margin: "0 0 4px 0", fontSize: "13px", fontWeight: "700" }}>
-                                {offer.icon} {offer.code}
-                              </p>
-                              <p style={{ margin: 0, fontSize: "12px" }}>{offer.title}</p>
-                            </div>
-                            <p style={{ margin: 0, fontSize: "11px", textAlign: "right", fontWeight: "700", color: "#ff9800" }}>
-                              {offer.amountNeeded ? `Need ₹${offer.amountNeeded} more` : offer.reason}
-                            </p>
+                            {offer.icon} {offer.code} — {offer.amountNeeded ? `₹${offer.amountNeeded} more` : offer.reason}
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
-
             {cart.length > 0 && (
               <div className="section-card bill-card">
                 <div 
@@ -822,7 +820,7 @@ function CartPage() {
                 </p>
               </div>
             )}
-{cart.length > 0 && (
+{/* {cart.length > 0 && (
               <button
                 className="whatsapp-order-btn"
                 onClick={() => {
@@ -877,7 +875,7 @@ function CartPage() {
               >
                 💬 Order via WhatsApp
               </button>
-            )}
+            )} */}
             <button
               className="pay-btn"
               onClick={handleProceedToPayment}
@@ -895,6 +893,60 @@ function CartPage() {
             <p className="secure-payment">
               🔒 100% Secure Payment | All major cards accepted
             </p>
+              {/* PASTE WHATSAPP BUTTON HERE — but make it smaller */}
+            {cart.length > 0 && (
+              <button
+                className="whatsapp-order-btn"
+                onClick={() => {
+                  const itemsList = cart
+                    .map(
+                      (item) =>
+                        `• ${item.qty}x ${item.name} (₹${item.price * item.qty})`
+                    )
+                    .join("\n");
+
+                  const message = encodeURIComponent(
+                    `Hi BlueBliss! 🌿\n\nI'd like to order:\n\n${itemsList}\n\n📦 Subtotal: ₹${subtotal}\n💰 Total: ₹${total}\n\n📍 Address: ${
+                      selectedAddressData
+                        ? selectedAddressData.fullAddress ||
+                          `${selectedAddressData.street}, ${selectedAddressData.area}, ${selectedAddressData.city}`
+                        : "Will share shortly"
+                    }\n\nPlease confirm my order. Thank you!`
+                  );
+
+                  window.open(
+                    `https://wa.me/917569534271?text=${message}`,
+                    "_blank"
+                  );
+                }}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  background: "transparent",
+                  color: "#25d366",
+                  border: "1px solid rgba(37, 211, 102, 0.3)",
+                  borderRadius: "8px",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                  marginTop: "8px",
+                  fontFamily: "'Inter', sans-serif",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "rgba(37, 211, 102, 0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "transparent";
+                }}
+              >
+                💬 Or order via WhatsApp
+              </button>
+            )}
           </div>
         </div>
       </div>

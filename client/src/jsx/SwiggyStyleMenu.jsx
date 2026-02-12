@@ -41,12 +41,9 @@ function SwiggyStyleMenu() {
   const [pairingSuggestions, setPairingSuggestions] = useState([]);
   const [showPairingModal, setShowPairingModal] = useState(false);
   const [expandedBanner, setExpandedBanner] = useState(null);
- 
-
 
   const categoryRefs = useRef({});
   const searchBarRef = useRef(null);
-  
 
   const { addToCart, increaseQty, decreaseQty, getItemQty, cart } =
     useContext(CartContext);
@@ -66,7 +63,6 @@ function SwiggyStyleMenu() {
     return [...categories].sort((a, b) => {
       const indexA = categoryOrder.indexOf(a.category.toUpperCase());
       const indexB = categoryOrder.indexOf(b.category.toUpperCase());
-      
       if (indexA === -1) return 1;
       if (indexB === -1) return -1;
       return indexA - indexB;
@@ -128,7 +124,6 @@ function SwiggyStyleMenu() {
   // Render veg/non-veg indicator
   const renderFoodTypeIndicator = (item) => {
     const isVeg = item.type === "veg" || item.isVeg === true;
-    
     return (
       <span
         style={{
@@ -177,7 +172,7 @@ function SwiggyStyleMenu() {
         setOpenCategories(initialOpen);
         setMenuData(sortedCategories);
         setFilteredMenuData(sortedCategories);
-        
+
         // EXTRACT TOP PICKS
         const allItems = [];
         sortedCategories.forEach(category => {
@@ -189,28 +184,25 @@ function SwiggyStyleMenu() {
             });
           });
         });
-        
+
         const bestsellers = allItems
           .filter(item => parseFloat(item.rating) >= 4.5)
           .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
           .slice(0, 6);
-        
         setTopPicks(bestsellers);
-        
+
         const itemsWithDiscount = allItems
           .filter(item => item.discount && item.discount > 0)
           .sort((a, b) => b.discount - a.discount)
           .slice(0, 6);
-        
         setDiscountedItems(itemsWithDiscount);
-        
+
         const recommended = allItems
           .filter(item => parseFloat(item.rating) >= 4.3)
           .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
           .slice(0, 6);
-        
         setRecommendedItems(recommended);
-        
+
         const banners = sortedCategories.map(category => {
           const minPrice = Math.min(...category.items.map(item => item.price));
           return {
@@ -219,7 +211,6 @@ function SwiggyStyleMenu() {
             itemCount: category.items.length
           };
         }).slice(0, 3);
-        
         setCategoryBanners(banners);
       } catch (e) {
         console.log(e);
@@ -253,18 +244,16 @@ function SwiggyStyleMenu() {
 
     fetchOffers();
   }, []);
-useEffect(() => {
-  if (!offers.length) return;
 
-  const interval = setInterval(() => {
-    setActiveDealIndex((prev) =>
-      prev === offers.length - 1 ? 0 : prev + 1
-    );
-  }, 1500);
-
-  return () => clearInterval(interval);
-}, [offers]);
-
+  useEffect(() => {
+    if (!offers.length) return;
+    const interval = setInterval(() => {
+      setActiveDealIndex((prev) =>
+        prev === offers.length - 1 ? 0 : prev + 1
+      );
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [offers]);
 
   // FETCH ORDER HISTORY
   useEffect(() => {
@@ -307,13 +296,13 @@ useEffect(() => {
   // APPLY FILTER AND SORT
   useEffect(() => {
     let filtered = menuData;
-    
+
     // Apply search filter
     if (searchQuery.trim()) {
       setIsSearching(true);
       filtered = menuData.map(category => ({
         ...category,
-        items: category.items.filter(item => 
+        items: category.items.filter(item =>
           item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           item.desc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           category.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -322,7 +311,7 @@ useEffect(() => {
     } else {
       setIsSearching(false);
     }
-    
+
     // Apply veg/non-veg filter
     if (filterType !== "all") {
       filtered = filtered.map(category => ({
@@ -337,7 +326,7 @@ useEffect(() => {
         })
       })).filter(category => category.items.length > 0);
     }
-    
+
     // Apply sorting
     if (sortType === "rating") {
       filtered = filtered.map(category => ({
@@ -355,20 +344,20 @@ useEffect(() => {
           });
         });
       });
-      
+
       let bestsellerItems = allItems.filter(item => parseFloat(item.rating) >= 4.5);
-      
-      const priority = bestsellerItems.filter(item => 
-        item.categoryName.includes('BURGER') || 
+
+      const priority = bestsellerItems.filter(item =>
+        item.categoryName.includes('BURGER') ||
         item.categoryName.includes('SANDWICH')
       );
-      const others = bestsellerItems.filter(item => 
-        !item.categoryName.includes('BURGER') && 
+      const others = bestsellerItems.filter(item =>
+        !item.categoryName.includes('BURGER') &&
         !item.categoryName.includes('SANDWICH')
       );
-      
+
       bestsellerItems = [...priority, ...others].slice(0, 11);
-      
+
       const categoryMap = new Map();
       bestsellerItems.forEach(item => {
         if (!categoryMap.has(item.categoryName)) {
@@ -379,7 +368,7 @@ useEffect(() => {
         }
         categoryMap.get(item.categoryName).items.push(item);
       });
-      
+
       filtered = Array.from(categoryMap.values());
     }
 
@@ -442,10 +431,10 @@ useEffect(() => {
 
   const handleAddToCart = () => {
     const itemId = selectedItem.itemId;
-    
+
     const addonsList = [];
     let addonPrice = 0;
-    
+
     customizationGroups.forEach(group => {
       group.options.forEach(option => {
         if (selectedAddons[option.id]) {
@@ -470,7 +459,7 @@ useEffect(() => {
     generatePairingSuggestions(selectedItem);
     setShowPairingModal(true);
   };
-  
+
   // GENERATE SMART PAIRING SUGGESTIONS
   const generatePairingSuggestions = (addedItem) => {
     const allItems = [];
@@ -483,17 +472,17 @@ useEffect(() => {
         });
       });
     });
-    
+
     let pairings = [];
-    
+
     if (addedItem.category.includes('BURGER')) {
-      pairings = allItems.filter(item => 
-        item.category.includes('FRIES') || 
-        item.category.includes('SHAKE') || 
+      pairings = allItems.filter(item =>
+        item.category.includes('FRIES') ||
+        item.category.includes('SHAKE') ||
         item.category.includes('MOJITO')
       ).slice(0, 3);
     } else if (addedItem.category.includes('FRIES')) {
-      pairings = allItems.filter(item => 
+      pairings = allItems.filter(item =>
         item.category.includes('BURGER') ||
         item.name.toLowerCase().includes('dip')
       ).slice(0, 3);
@@ -503,7 +492,7 @@ useEffect(() => {
         .sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating))
         .slice(0, 3);
     }
-    
+
     setPairingSuggestions(pairings);
   };
 
@@ -514,7 +503,7 @@ useEffect(() => {
     setSelectedAddons((prev) => {
       const updated = { ...prev };
       const selectedInGroup = group.options.filter(opt => updated[opt.id]).length;
-      
+
       if (updated[addonId]) {
         delete updated[addonId];
       } else {
@@ -528,6 +517,19 @@ useEffect(() => {
     });
   };
 
+  // FILTER CLICK HANDLER
+  const handleFilterClick = (type) => {
+    if (filterType === type) {
+      setFilterType("all");
+    } else {
+      setFilterType(type);
+      setSortType("");
+      setTimeout(() => {
+        document.querySelector(".menu-title-divider")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  };
+
   const addonTotal = customizationGroups.reduce((sum, group) => {
     return sum + group.options.reduce((groupSum, option) => {
       return groupSum + (selectedAddons[option.id] ? option.price : 0);
@@ -539,10 +541,10 @@ useEffect(() => {
     : 0;
 
   const totalItems = menuData.reduce((sum, cat) => sum + cat.items.length, 0);
-  const vegItems = menuData.reduce((sum, cat) => 
+  const vegItems = menuData.reduce((sum, cat) =>
     sum + cat.items.filter(item => item.type === "veg" || item.isVeg === true).length, 0
   );
-  const nonVegItems = menuData.reduce((sum, cat) => 
+  const nonVegItems = menuData.reduce((sum, cat) =>
     sum + cat.items.filter(item => item.type === "nonveg" || item.type === "non-veg" || item.isVeg === false).length, 0
   );
 
@@ -567,10 +569,10 @@ useEffect(() => {
               }}>✕</button>
             )}
           </div>
-          
-          <button 
+
+          <button
             className={`veg-only-toggle ${filterType === "veg" ? "active" : ""}`}
-            onClick={() => setFilterType(filterType === "veg" ? "all" : "veg")}
+            onClick={() => handleFilterClick("veg")}
           >
             <span className="veg-icon">
               <span className="veg-dot"></span>
@@ -598,93 +600,81 @@ useEffect(() => {
         <div className="header-top">
           <div className="header-info">
             <h1 className="rest-name">Shrimmers</h1>
-            <p className="rest-rating">⭐ 4.3 • ₹200 for two</p>
+            <p className="rest-rating">⭐ 4.2 rating on Zomato & Swiggy</p>
             <p className="rest-category">Burgers, Fast Food</p>
             <p className="rest-location">📍 Padmarao Nagar • 55-65 mins</p>
           </div>
         </div>
       </div>
 
-{/* LIVE DEALS SECTION – Swiggy style */}
-{offers.length > 0 && (
-  <div className="live-deals-section">
-    <h3 className="deals-title">🎉 Deals for you</h3>
-
-    <div className="deal-strip">
-  <div
-    key={offers[activeDealIndex].id}
-    className="deal-strip-content"
-  >
-    <div className="deal-left">
-      <span className="deal-icon">
-        {offers[activeDealIndex].icon || "🎁"}
-      </span>
-
-      <div className="deal-text-wrap">
-        <p className="deal-main-text">
-          {offers[activeDealIndex].title}
-        </p>
-        <p className="deal-sub-text">
-          USE <strong>{offers[activeDealIndex].code}</strong>
-        </p>
-      </div>
-    </div>
-
-    {/* RIGHT SIDE COUNTER (Swiggy style) */}
-    <div className="deal-counter">
-      {activeDealIndex + 1}/{offers.length}
-    </div>
-  </div>
-</div>
-
-  </div>
-)}
+      {/* LIVE DEALS SECTION */}
+      {offers.length > 0 && (
+        <div className="live-deals-section">
+          <h3 className="deals-title">🎉 Deals for you</h3>
+          <div className="deal-strip">
+            <div key={offers[activeDealIndex].id} className="deal-strip-content">
+              <div className="deal-left">
+                <span className="deal-icon">
+                  {offers[activeDealIndex].icon || "🎁"}
+                </span>
+                <div className="deal-text-wrap">
+                  <p className="deal-main-text">
+                    {offers[activeDealIndex].title}
+                  </p>
+                  <p className="deal-sub-text">
+                    USE <strong>{offers[activeDealIndex].code}</strong>
+                  </p>
+                </div>
+              </div>
+              <div className="deal-counter">
+                {activeDealIndex + 1}/{offers.length}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* VEG/NON-VEG FILTER & SORT BUTTONS */}
       <div className="filter-section">
         <div className="filter-buttons">
           <button
-            className={`filter-btn ${filterType === "all" ? "active" : ""}`}
-            onClick={() => setFilterType("all")}
+            className={`filter-btn ${filterType === "all" && sortType === "" ? "active" : ""}`}
+            onClick={() => { setFilterType("all"); setSortType(""); }}
           >
-            <span className="filter-text">All Items</span>
+            <span className="filter-text">All</span>
             <span className="filter-count">{totalItems}</span>
           </button>
-          
+
           <button
             className={`filter-btn veg-filter ${filterType === "veg" ? "active" : ""}`}
-            onClick={() => setFilterType("veg")}
+            onClick={() => handleFilterClick("veg")}
           >
-            <span className="veg-indicator">
-              <span className="veg-dot"></span>
-            </span>
-            <span className="filter-text">Veg Only</span>
+            <span className="veg-indicator"><span className="veg-dot"></span></span>
+            <span className="filter-text">Veg</span>
             <span className="filter-count">{vegItems}</span>
           </button>
-          
+
           <button
             className={`filter-btn nonveg-filter ${filterType === "nonveg" ? "active" : ""}`}
-            onClick={() => setFilterType("nonveg")}
+            onClick={() => handleFilterClick("nonveg")}
           >
-            <span className="nonveg-indicator">
-              <span className="nonveg-dot"></span>
-            </span>
+            <span className="nonveg-indicator"><span className="nonveg-dot"></span></span>
             <span className="filter-text">Non-Veg</span>
             <span className="filter-count">{nonVegItems}</span>
           </button>
-          
+
           <button
             className={`filter-btn sort-btn ${sortType === "rating" ? "active" : ""}`}
             onClick={() => setSortType(sortType === "rating" ? "" : "rating")}
           >
-            <span className="filter-text">⭐ Ratings 4.0+</span>
+            <span className="filter-text">⭐ 4.0+</span>
           </button>
-          
+
           <button
             className={`filter-btn sort-btn ${sortType === "bestseller" ? "active" : ""}`}
             onClick={() => setSortType(sortType === "bestseller" ? "" : "bestseller")}
           >
-            <span className="filter-text">🔥 Bestseller</span>
+            <span className="filter-text">🔥 Best</span>
           </button>
         </div>
 
@@ -736,23 +726,23 @@ useEffect(() => {
           {categoryBanners.map((banner, idx) => {
             const category = menuData.find(cat => cat.category === banner.category);
             const isExpanded = expandedBanner === idx;
-            
+
             return (
               <div key={idx} className="category-banner-wrapper">
-                <div 
+                <div
                   className="category-banner-card"
                   onClick={() => setExpandedBanner(isExpanded ? null : idx)}
                 >
                   <h4>{banner.category.replace('_', ' ')}: Starts @₹{banner.startingPrice}</h4>
                   <span className="banner-arrow">{isExpanded ? '▲' : '▼'}</span>
                 </div>
-                
+
                 {isExpanded && category && (
                   <div className="banner-items-dropdown">
                     {category.items.slice(0, 4).map((item, itemIdx) => {
                       const itemId = item.id || `${category.category}-${item.name}`.replace(/\s+/g, '_').toLowerCase();
                       const qty = getItemQty(itemId);
-                      
+
                       return (
                         <div key={itemIdx} className="banner-dropdown-item">
                           <div className="banner-item-info">
@@ -842,7 +832,7 @@ useEffect(() => {
           <div className="empty-icon">🍽️</div>
           <h3>No items found</h3>
           <p>Try changing the filter to see more items</p>
-          <button 
+          <button
             className="reset-filter-btn"
             onClick={() => {
               setFilterType("all");
@@ -889,7 +879,7 @@ useEffect(() => {
                             <p className="item-price">₹{item.price}</p>
                             <p className="item-rating">⭐ {item.rating}</p>
                             <p className="item-desc">{item.desc}</p>
-                            
+
                             <button
                               className="more-details-btn"
                               onClick={() => handleItemClick(item, section.category, itemId)}
@@ -993,7 +983,7 @@ useEffect(() => {
 
             <div className="modal-body">
               <img src={selectedItem.img} alt={selectedItem.name} className="modal-img" />
-              
+
               <div className="modal-info">
                 <p className="modal-price">₹{selectedItem.price}</p>
                 <p className="modal-rating">⭐ {selectedItem.rating}</p>
@@ -1006,7 +996,7 @@ useEffect(() => {
                   <div key={group.id} className="customization-group">
                     <h3>{group.title}</h3>
                     <p className="addons-subtitle">{group.subtitle}</p>
-                    
+
                     {group.options.map((option) => (
                       <div key={option.id} className="addon-item">
                         <label className="addon-label">
@@ -1144,4 +1134,3 @@ useEffect(() => {
 }
 
 export default SwiggyStyleMenu;
-                      

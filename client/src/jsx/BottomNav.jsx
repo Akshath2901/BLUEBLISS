@@ -33,14 +33,15 @@ function BottomNav() {
     { label: "Account", icon: "👤", path: "/profile" },
   ];
 
-  const handleTabClick = (tab) => {
+ const handleTabClick = (tab) => {
     if (tab.path === "brands-scroll") {
       scrollToBrands();
+    } else if (tab.path === "/" && location === "/") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       navigate(tab.path);
     }
   };
-
   const isActive = (tab) => {
     if (tab.path === "brands-scroll") return false;
     return location === tab.path;

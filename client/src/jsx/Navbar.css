@@ -578,10 +578,10 @@
   .nav-links a {
     font-size: 12px;
   }
-
-  .navbar-right {
-    gap: 8px;
+.navbar-right {
+    gap: 12px;
     min-width: auto;
+    flex-wrap: wrap;
   }
 .btn-cart {
     display: none;
@@ -667,19 +667,20 @@
     font-size: 11px;
   }
 
-  .nav-links {
-    gap: 8px;
+ .nav-links {
+    gap: 12px;
     display: flex;
     flex-wrap: wrap;
   }
 
   .nav-links a {
-    font-size: 11px;
+    font-size: 13px;
+    font-weight: 600;
   }
-
   .navbar-right {
-    gap: 6px;
+    gap: 10px;
     order: 2;
+    flex-wrap: wrap;
   }
 
   .profile-dropdown {
@@ -709,6 +710,16 @@
   margin-right: 12px;
   transition: all 0.2s ease;
 }
+.veg-global-toggle {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-right: 0;
+  }
+.veg-global-toggle {
+    padding: 7px 14px;
+    font-size: 13px;
+    margin-right: 0;
+  }
 
 .veg-global-toggle.active {
   background: #48c479;

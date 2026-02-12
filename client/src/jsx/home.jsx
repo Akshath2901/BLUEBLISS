@@ -199,7 +199,7 @@ function Home() {
         </div>
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h2>Welcome to <span>BlueBliss</span> 🌿</h2>
+          <h2>Welcome to <span>BlueBliss</span> </h2>
           <p>Your one-stop destination for fresh, delicious, and soulful food.</p>
           <div className="transparent-search">
             <SearchBar onSearch={handleSearch} />
