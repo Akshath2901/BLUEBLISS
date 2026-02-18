@@ -1,184 +1,146 @@
-// src/utils/OffersHelper.js - Multi-functional Offer System
-
-/**
- * 🎁 OFFER TYPES:
- * 1. FLAT: Fixed amount discount (e.g., ₹99 off)
- * 2. PERCENTAGE: Percentage discount (e.g., 20% off)
- * 3. CATEGORY: Category-specific discount (e.g., ₹99 off on Burgers)
- * 4. FREE_ITEM: Free item on minimum order (e.g., Free dessert on ₹500+)
- */
+// src/utils/OffersHelper.js
+// ✅ FIXED: Uses structured Firestore fields directly (discountValue, offerType, etc.)
+// instead of trying to parse discount values from title/description text.
 
 export const OFFER_TYPES = {
-  FLAT: "flat",
+  FLAT:       "flat",
   PERCENTAGE: "percentage",
-  CATEGORY: "category",
-  FREE_ITEM: "free_item",
+  CATEGORY:   "category",
+  FREE_ITEM:  "free_item",
 };
 
 /**
- * Parse offer details from title and description
- */
-export const parseOfferDetails = (offer) => {
-  const title = offer.title || "";
-  const description = offer.description || "";
-  const fullText = `${title} ${description}`.toLowerCase();
-
-  let minAmount = 0;
-  let maxDiscount = 0;
-  let discountType = "flat";
-  let discountValue = 0;
-  let applicableCategory = null;
-  let minItemCount = 1;
-
-  // 🔍 Find minimum amount (e.g., "above 400", "on orders of 500")
-  const minMatch = fullText.match(
-    /(?:above|on orders?(?:\s+of)?|on(?:\s+orders?)?|₹)?\s*(\d+)(?:\s*(?:and|on|above|or more))?/
-  );
-  if (minMatch) {
-    minAmount = parseInt(minMatch[1]);
-  }
-
-  // 🔍 Find discount value
-  const amountMatch = fullText.match(
-    /(?:upto|get|off|discount|save|₹)\s*₹?(\d+)/
-  );
-  if (amountMatch) {
-    maxDiscount = parseInt(amountMatch[1]);
-  }
-
-  // 🔍 Check if percentage discount
-  if (fullText.includes("%")) {
-    discountType = "percentage";
-    const percentMatch = fullText.match(/(\d+)%/);
-    if (percentMatch) {
-      discountValue = parseInt(percentMatch[1]);
-    }
-  } else {
-    discountType = "flat";
-    discountValue = maxDiscount;
-  }
-
-  // 🔍 Check for category (e.g., "on burgers", "on pizzas")
-  const categoryMatch = fullText.match(
-    /on\s+(burgers?|pizzas?|wraps?|desserts?|drinks?|beverages?|sides?|starters?|appetizers?)/i
-  );
-  if (categoryMatch) {
-    applicableCategory = categoryMatch[1].toLowerCase();
-  }
-
-  // 🔍 Check for free item (e.g., "free dessert", "free drink")
-  const freeItemMatch = fullText.match(/free\s+(dessert|drink|beverage|item|side|appetizer)/i);
-  if (freeItemMatch) {
-    discountType = "free_item";
-  }
-
-  return {
-    minAmount,
-    maxDiscount,
-    discountType,
-    discountValue,
-    applicableCategory,
-    minItemCount,
-  };
-};
-
-/**
- * Check if cart is eligible for offer
+ * Check if cart is eligible for an offer.
+ * Uses the structured fields saved by Super Admin.
  */
 export const isOfferEligible = (cart, subtotal, offer) => {
-  const offerDetails = parseOfferDetails(offer);
+  const minOrder    = Number(offer.minOrderAmount) || 0;
+  const offerType   = offer.offerType || "flat";
+  const category    = (offer.applicableCategory || "").toLowerCase().trim();
 
-  // ✅ Check minimum amount
-  if (subtotal < offerDetails.minAmount) {
+  // ✅ Check minimum order amount
+  if (subtotal < minOrder) {
     return {
-      eligible: false,
-      reason: `Minimum order ₹${offerDetails.minAmount} required`,
-      amountNeeded: offerDetails.minAmount - subtotal,
+      eligible:     false,
+      reason:       `Minimum order ₹${minOrder} required`,
+      amountNeeded: minOrder - subtotal,
     };
   }
 
-  // ✅ Check category restriction
-  if (offerDetails.applicableCategory) {
+  // ✅ Check category restriction (only for category-type offers)
+  if (offerType === "category" && category) {
+    // Normalize: lowercase + strip trailing 's' to match "pizza"↔"pizzas", "burger"↔"burgers" etc.
+    const normalize = (str) => str.toLowerCase().trim().replace(/s$/, "");
+    const normalizedOfferCat = normalize(category);
+
     const hasCategory = cart.some((item) => {
-      const itemCategory = (item.category || "").toLowerCase();
-      return itemCategory.includes(offerDetails.applicableCategory);
+      const normalizedItemCat = normalize(item.category || "");
+      return (
+        normalizedItemCat === normalizedOfferCat ||          // exact match after normalize
+        normalizedItemCat.includes(normalizedOfferCat) ||   // item cat contains offer cat
+        normalizedOfferCat.includes(normalizedItemCat)      // offer cat contains item cat
+      );
     });
 
     if (!hasCategory) {
       return {
-        eligible: false,
-        reason: `This offer is only for ${offerDetails.applicableCategory}`,
-        itemsNeeded: `Add ${offerDetails.applicableCategory}`,
+        eligible:    false,
+        reason:      `This offer is only for ${category}`,
+        itemsNeeded: `Add ${category}`,
       };
     }
   }
 
   return {
     eligible: true,
-    reason: "✓ You're eligible for this offer!",
+    reason:   "✓ You're eligible for this offer!",
   };
 };
 
 /**
- * Calculate actual discount for the cart
+ * Calculate the actual discount amount for the cart.
+ * Uses structured fields: offerType, discountValue, minOrderAmount, maxDiscount.
  */
 export const calculateOfferDiscount = (cart, subtotal, offer) => {
   const eligibility = isOfferEligible(cart, subtotal, offer);
-  const offerDetails = parseOfferDetails(offer);
 
   if (!eligibility.eligible) {
     return {
-      discount: 0,
-      eligible: false,
-      reason: eligibility.reason,
+      discount:     0,
+      eligible:     false,
+      reason:       eligibility.reason,
       amountNeeded: eligibility.amountNeeded,
     };
   }
 
+  const offerType     = offer.offerType   || "flat";
+  const discountValue = Number(offer.discountValue) || 0;
+  const maxDiscount   = Number(offer.maxDiscount)   || 0;
+
   let discount = 0;
 
-  if (offerDetails.discountType === "percentage") {
-    // Percentage discount
-    discount = Math.floor((subtotal * offerDetails.discountValue) / 100);
-    if (offerDetails.maxDiscount > 0) {
-      discount = Math.min(discount, offerDetails.maxDiscount);
+  if (offerType === "flat") {
+    // e.g. ₹99 off — capped at subtotal so discount never exceeds order value
+    discount = Math.min(discountValue, subtotal);
+
+  } else if (offerType === "percentage") {
+    // e.g. 20% off
+    discount = Math.floor((subtotal * discountValue) / 100);
+    // Apply max discount cap if set
+    if (maxDiscount > 0) {
+      discount = Math.min(discount, maxDiscount);
     }
-  } else if (offerDetails.discountType === "flat") {
-    // Flat discount
-    discount = Math.min(offerDetails.discountValue, subtotal);
-  } else if (offerDetails.discountType === "free_item") {
-    // Free item (calculate as max discount or fixed amount)
-    discount = offerDetails.maxDiscount || 0;
+
+  } else if (offerType === "category") {
+    // Discount only on items in the applicable category
+    const category         = (offer.applicableCategory || "").toLowerCase();
+    const categorySubtotal = cart
+      .filter((item) => (item.category || "").toLowerCase().includes(category))
+      .reduce((sum, item) => sum + item.price * item.qty, 0);
+
+    if (discountValue > 0 && discountValue <= 100 && offer.discountUnit === "%") {
+      // Percentage on category items
+      discount = Math.floor((categorySubtotal * discountValue) / 100);
+    } else {
+      // Flat amount on category items
+      discount = Math.min(discountValue, categorySubtotal);
+    }
+    if (maxDiscount > 0) {
+      discount = Math.min(discount, maxDiscount);
+    }
+
+  } else if (offerType === "free_item") {
+    // Treat as a flat discount equal to discountValue
+    // (the actual free item logic is handled at order level)
+    discount = Math.min(discountValue, subtotal);
   }
 
   return {
     discount,
-    eligible: true,
-    reason: "✓ Offer applied successfully!",
-    discountType: offerDetails.discountType,
-    discountValue: offerDetails.discountValue,
+    eligible:      true,
+    reason:        "✓ Offer applied successfully!",
+    discountType:  offerType,
+    discountValue,
   };
 };
 
 /**
- * Get eligible offers for current cart
+ * Returns all active offers that the current cart is eligible for,
+ * sorted best savings first.
  */
 export const getEligibleOffers = (cart, subtotal, offers) => {
   return offers
     .filter((offer) => offer.isActive)
+    .filter((offer) => isOfferEligible(cart, subtotal, offer).eligible)
     .map((offer) => {
       const result = calculateOfferDiscount(cart, subtotal, offer);
-      return {
-        ...offer,
-        ...result,
-        savings: result.discount,
-      };
+      return { ...offer, ...result, savings: result.discount };
     })
-    .sort((a, b) => b.savings - a.savings); // Sort by best savings
+    .sort((a, b) => b.savings - a.savings);
 };
 
 /**
- * Get ineligible offers with reason
+ * Returns active offers the cart is NOT yet eligible for (with reason shown).
  */
 export const getIneligibleOffers = (cart, subtotal, offers) => {
   return offers
@@ -186,44 +148,41 @@ export const getIneligibleOffers = (cart, subtotal, offers) => {
     .filter((offer) => !isOfferEligible(cart, subtotal, offer).eligible)
     .map((offer) => {
       const eligibility = isOfferEligible(cart, subtotal, offer);
-      const offerDetails = parseOfferDetails(offer);
       return {
         ...offer,
-        eligible: false,
-        reason: eligibility.reason,
+        eligible:     false,
+        reason:       eligibility.reason,
         amountNeeded: eligibility.amountNeeded,
-        minAmount: offerDetails.minAmount,
+        minAmount:    Number(offer.minOrderAmount) || 0,
       };
     });
 };
 
 /**
- * Format offer display text
+ * Validate an offer code entered manually by the user.
  */
-export const formatOfferText = (offer) => {
-  const offerDetails = parseOfferDetails(offer);
-
-  let displayText = offer.title || "";
-
-  if (offerDetails.discountType === "percentage") {
-    displayText += ` - ${offerDetails.discountValue}% off`;
-  } else if (offerDetails.discountType === "flat") {
-    displayText += ` - ₹${offerDetails.discountValue} off`;
-  }
-
-  if (offerDetails.minAmount > 0) {
-    displayText += ` on ₹${offerDetails.minAmount}+`;
-  }
-
-  return displayText;
+export const validateOfferCode = (offers, code) => {
+  return (
+    offers.find(
+      (o) => o.isActive && o.code?.toUpperCase() === code?.toUpperCase()
+    ) || null
+  );
 };
 
 /**
- * Check if offer code exists and is valid
+ * Format a short display string for an offer badge/chip.
  */
-export const validateOfferCode = (offers, code) => {
-  const offer = offers.find(
-    (o) => o.code.toUpperCase() === code.toUpperCase() && o.isActive
-  );
-  return offer || null;
+export const formatOfferText = (offer) => {
+  const offerType     = offer.offerType   || "flat";
+  const discountValue = Number(offer.discountValue) || 0;
+  const minOrder      = Number(offer.minOrderAmount) || 0;
+
+  let text = "";
+  if (offerType === "percentage")   text = `${discountValue}% off`;
+  else if (offerType === "flat")    text = `₹${discountValue} off`;
+  else if (offerType === "category")text = `₹${discountValue} off on ${offer.applicableCategory || "selected items"}`;
+  else if (offerType === "free_item")text = "Free item";
+
+  if (minOrder > 0) text += ` on ₹${minOrder}+`;
+  return text;
 };

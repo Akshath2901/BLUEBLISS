@@ -1,4 +1,4 @@
-// src/admin/AdminOrders.jsx - ENHANCED WITH FULL USER DETAILS
+// src/admin/AdminOrders.jsx - ENHANCED WITH FULL USER DETAILS + REJECT BUTTON
 import React, { useEffect, useState } from "react";
 import { collection, query, orderBy, onSnapshot, updateDoc, doc } from "firebase/firestore";
 import { db } from "../../lib/firebase";
@@ -85,12 +85,12 @@ export default function AdminOrders() {
   const updateOrderStatus = async (firestoreDocId, newStatus) => {
     try {
       console.log(`🔄 Updating order ${firestoreDocId} to ${newStatus}...`);
-      
+
       await updateDoc(doc(db, "orders", firestoreDocId), {
         status: newStatus,
         updatedAt: new Date(),
       });
-      
+
       console.log(`✅ Order ${firestoreDocId} updated to ${newStatus}`);
     } catch (error) {
       console.error("❌ Error updating order:", error);
@@ -112,13 +112,17 @@ export default function AdminOrders() {
 
       {/* STATUS TABS */}
       <div className="tabs">
-        {["pending", "approved", "ready", "delivered"].map(tab => {
-          const count = orders.filter(o => o.status === tab).length;
+        {["pending", "approved", "ready", "delivered", "rejected"].map(tab => {
+          const count = dedupedOrders.filter(o => o.status === tab).length;
           return (
             <button
               key={tab}
               className={`tab ${activeTab === tab ? "active" : ""}`}
               onClick={() => setActiveTab(tab)}
+              style={tab === "rejected" ? {
+                borderColor: activeTab === tab ? "#f44336" : "transparent",
+                color: activeTab === tab ? "#f44336" : undefined,
+              } : {}}
             >
               {tab.toUpperCase()} <span className="tab-count">({count})</span>
             </button>
@@ -129,9 +133,9 @@ export default function AdminOrders() {
       {/* ORDERS GRID */}
       <div className="orders-grid">
         {filteredOrders.length === 0 ? (
-          <div style={{ 
-            gridColumn: "1 / -1", 
-            textAlign: "center", 
+          <div style={{
+            gridColumn: "1 / -1",
+            textAlign: "center",
             padding: "60px",
             color: "#999"
           }}>
@@ -144,7 +148,9 @@ export default function AdminOrders() {
             <div key={order.id} className="order-card enhanced-order-card">
               {/* ✅ ENHANCED HEADER WITH ORDER ID & STATUS */}
               <div className="order-header" style={{
-                background: "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
+                background: order.status === "rejected"
+                  ? "linear-gradient(135deg, #f44336 0%, #c62828 100%)"
+                  : "linear-gradient(135deg, #ffd700 0%, #ffed4e 100%)",
                 padding: "16px",
                 borderRadius: "12px 12px 0 0",
                 display: "flex",
@@ -152,7 +158,7 @@ export default function AdminOrders() {
                 alignItems: "center",
                 marginBottom: "16px"
               }}>
-                <h3 style={{ margin: 0, fontSize: "20px", color: "#1c1c1c", fontWeight: "800" }}>
+                <h3 style={{ margin: 0, fontSize: "20px", color: order.status === "rejected" ? "#fff" : "#1c1c1c", fontWeight: "800" }}>
                   #{order.orderId}
                 </h3>
                 <span className={`status-badge ${order.status}`} style={{
@@ -161,10 +167,11 @@ export default function AdminOrders() {
                   fontSize: "12px",
                   fontWeight: "700",
                   textTransform: "uppercase",
-                  background: order.status === "pending" ? "#ff9800" :
-                             order.status === "approved" ? "#2196f3" :
-                             order.status === "ready" ? "#9c27b0" :
-                             "#4caf50",
+                  background: order.status === "pending"   ? "#ff9800" :
+                               order.status === "approved"  ? "#2196f3" :
+                               order.status === "ready"     ? "#9c27b0" :
+                               order.status === "rejected"  ? "rgba(255,255,255,0.25)" :
+                               "#4caf50",
                   color: "#fff"
                 }}>
                   {order.status}
@@ -180,9 +187,9 @@ export default function AdminOrders() {
                   marginBottom: "16px",
                   border: "2px solid rgba(76, 175, 80, 0.2)"
                 }}>
-                  <h4 style={{ 
-                    fontSize: "14px", 
-                    color: "#4caf50", 
+                  <h4 style={{
+                    fontSize: "14px",
+                    color: "#4caf50",
                     marginBottom: "12px",
                     fontWeight: "700",
                     display: "flex",
@@ -191,17 +198,17 @@ export default function AdminOrders() {
                   }}>
                     <span>👤</span> CUSTOMER DETAILS
                   </h4>
-                  
+
                   <div style={{ display: "grid", gap: "8px" }}>
                     <p style={{ margin: 0, fontSize: "16px", fontWeight: "700", color: "#1c1c1c" }}>
                       {order.customer?.name || order.userName || "Guest"}
                     </p>
-                    
+
                     <p style={{ margin: 0, fontSize: "14px", color: "#666", display: "flex", alignItems: "center", gap: "6px" }}>
                       <span>📧</span>
                       {order.customer?.email || "No email"}
                     </p>
-                    
+
                     {order.customer?.phone && (
                       <p style={{ margin: 0, fontSize: "14px", color: "#666", display: "flex", alignItems: "center", gap: "6px" }}>
                         <span>📱</span>
@@ -221,9 +228,9 @@ export default function AdminOrders() {
                   marginBottom: "16px",
                   border: "2px solid rgba(33, 150, 243, 0.2)"
                 }}>
-                  <h4 style={{ 
-                    fontSize: "14px", 
-                    color: "#2196f3", 
+                  <h4 style={{
+                    fontSize: "14px",
+                    color: "#2196f3",
                     marginBottom: "12px",
                     fontWeight: "700",
                     display: "flex",
@@ -232,19 +239,19 @@ export default function AdminOrders() {
                   }}>
                     <span>📍</span> DELIVERY ADDRESS
                   </h4>
-                  
+
                   <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "#333" }}>
                     <strong>{order.address?.label?.toUpperCase() || "HOME"}:</strong><br />
-                    {order.address?.fullAddress || 
+                    {order.address?.fullAddress ||
                      `${order.address?.houseNo ? order.address.houseNo + ', ' : ''}${order.address?.street}, ${order.address?.area}, ${order.address?.city}`}
                   </p>
-                  
+
                   {order.address?.landmark && (
                     <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#666", display: "flex", alignItems: "center", gap: "6px" }}>
                       <span>📌</span> {order.address.landmark}
                     </p>
                   )}
-                  
+
                   {order.address?.pincode && (
                     <p style={{ margin: "8px 0 0 0", fontSize: "13px", color: "#666" }}>
                       <strong>PIN:</strong> {order.address.pincode}
@@ -259,9 +266,9 @@ export default function AdminOrders() {
                   borderRadius: "10px",
                   marginBottom: "16px"
                 }}>
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
                     marginBottom: "12px",
                     paddingBottom: "12px",
                     borderBottom: "2px solid #e0e0e0"
@@ -309,9 +316,9 @@ export default function AdminOrders() {
                 {(order.suggestion || order.noContact) && (
                   <div style={{ marginBottom: "16px" }}>
                     {order.suggestion && (
-                      <div style={{ 
-                        padding: "12px", 
-                        background: "#fffbf0", 
+                      <div style={{
+                        padding: "12px",
+                        background: "#fffbf0",
                         borderRadius: "8px",
                         fontSize: "13px",
                         marginBottom: "8px",
@@ -323,9 +330,9 @@ export default function AdminOrders() {
                     )}
 
                     {order.noContact && (
-                      <div style={{ 
-                        padding: "10px", 
-                        fontSize: "13px", 
+                      <div style={{
+                        padding: "10px",
+                        fontSize: "13px",
                         color: "#d32f2f",
                         fontWeight: "600",
                         background: "#ffebee",
@@ -339,43 +346,69 @@ export default function AdminOrders() {
                 )}
 
                 {/* ✅ ORDER TIMESTAMP */}
-                <div style={{ 
-                  fontSize: "12px", 
-                  color: "#999", 
+                <div style={{
+                  fontSize: "12px",
+                  color: "#999",
                   textAlign: "right",
                   marginBottom: "16px",
                   paddingTop: "12px",
                   borderTop: "1px solid #e0e0e0"
                 }}>
-                  🕒 Placed on: {order.createdAt?.toDate ? 
-                    order.createdAt.toDate().toLocaleString('en-IN', { 
-                      dateStyle: 'medium', 
-                      timeStyle: 'short' 
+                  🕒 Placed on: {order.createdAt?.toDate ?
+                    order.createdAt.toDate().toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short'
                     }) : 'N/A'}
                 </div>
               </div>
 
               {/* ✅ ACTION BUTTONS */}
               <div className="order-actions">
+
+                {/* PENDING — Accept + Reject side by side */}
                 {order.status === "pending" && (
-                  <button
-                    className="btn btn-accept"
-                    onClick={() => updateOrderStatus(order.id, "approved")}
-                    style={{
-                      background: "linear-gradient(135deg, #4caf50, #45a049)",
-                      color: "#fff",
-                      border: "none",
-                      padding: "14px",
-                      borderRadius: "10px",
-                      fontSize: "14px",
-                      fontWeight: "700",
-                      cursor: "pointer",
-                      width: "100%",
-                      transition: "all 0.3s ease"
-                    }}
-                  >
-                    ✅ ACCEPT ORDER
-                  </button>
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button
+                      className="btn btn-accept"
+                      onClick={() => updateOrderStatus(order.id, "approved")}
+                      style={{
+                        background: "linear-gradient(135deg, #4caf50, #45a049)",
+                        color: "#fff",
+                        border: "none",
+                        padding: "14px",
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        flex: 1,
+                        transition: "all 0.3s ease"
+                      }}
+                    >
+                      ✅ ACCEPT
+                    </button>
+                    <button
+                      className="btn btn-reject"
+                      onClick={() => {
+                        if (window.confirm(`Reject order #${order.orderId}?\nThis cannot be undone.`)) {
+                          updateOrderStatus(order.id, "rejected");
+                        }
+                      }}
+                      style={{
+                        background: "linear-gradient(135deg, #f44336, #c62828)",
+                        color: "#fff",
+                        border: "none",
+                        padding: "14px",
+                        borderRadius: "10px",
+                        fontSize: "14px",
+                        fontWeight: "700",
+                        cursor: "pointer",
+                        flex: 1,
+                        transition: "all 0.3s ease"
+                      }}
+                    >
+                      ❌ REJECT
+                    </button>
+                  </div>
                 )}
 
                 {order.status === "approved" && (
@@ -419,9 +452,9 @@ export default function AdminOrders() {
                 )}
 
                 {order.status === "delivered" && (
-                  <div style={{ 
-                    textAlign: "center", 
-                    color: "#4caf50", 
+                  <div style={{
+                    textAlign: "center",
+                    color: "#4caf50",
                     fontWeight: "700",
                     padding: "14px",
                     background: "rgba(76, 175, 80, 0.1)",
@@ -431,6 +464,22 @@ export default function AdminOrders() {
                     ✅ Order Delivered Successfully
                   </div>
                 )}
+
+                {/* ✅ REJECTED STATE */}
+                {order.status === "rejected" && (
+                  <div style={{
+                    textAlign: "center",
+                    color: "#f44336",
+                    fontWeight: "700",
+                    padding: "14px",
+                    background: "rgba(244, 67, 54, 0.08)",
+                    borderRadius: "10px",
+                    border: "2px solid rgba(244, 67, 54, 0.3)"
+                  }}>
+                    ❌ Order Rejected
+                  </div>
+                )}
+
               </div>
             </div>
           ))
