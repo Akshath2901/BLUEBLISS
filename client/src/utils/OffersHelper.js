@@ -92,19 +92,23 @@ export const calculateOfferDiscount = (cart, subtotal, offer) => {
     }
 
   } else if (offerType === "category") {
-    // Discount only on items in the applicable category
-    const category         = (offer.applicableCategory || "").toLowerCase();
+    // Same normalize helper as isOfferEligible — strips trailing 's', lowercases
+    const normalize = (str) => str.toLowerCase().trim().replace(/s$/, "");
+    const normalizedOfferCat = normalize(offer.applicableCategory || "");
+
     const categorySubtotal = cart
-      .filter((item) => (item.category || "").toLowerCase().includes(category))
+      .filter((item) => {
+        const normalizedItemCat = normalize(item.category || "");
+        return (
+          normalizedItemCat === normalizedOfferCat ||
+          normalizedItemCat.includes(normalizedOfferCat) ||
+          normalizedOfferCat.includes(normalizedItemCat)
+        );
+      })
       .reduce((sum, item) => sum + item.price * item.qty, 0);
 
-    if (discountValue > 0 && discountValue <= 100 && offer.discountUnit === "%") {
-      // Percentage on category items
-      discount = Math.floor((categorySubtotal * discountValue) / 100);
-    } else {
-      // Flat amount on category items
-      discount = Math.min(discountValue, categorySubtotal);
-    }
+    // Flat discount on matching category items, capped by maxDiscount if set
+    discount = Math.min(discountValue, categorySubtotal);
     if (maxDiscount > 0) {
       discount = Math.min(discount, maxDiscount);
     }

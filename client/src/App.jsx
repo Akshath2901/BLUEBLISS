@@ -1,6 +1,4 @@
 // src/App.jsx
-// ✅ UPDATED: AdminMenuStock route added for Step 3
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 
@@ -25,6 +23,7 @@ import PaymentSuccess from "./jsx/PaymentSuccess";
 import OrderTracking from "./jsx/OrderTracking";
 import ProtectedRoute from "./jsx/ProtectedRoute";
 import BottomNav from "./jsx/BottomNav";
+import LiveOrderBar from "./jsx/LiveOrderBar"; // ✅ NEW
 import FloatingButtons from "./jsx/FloatingButtons";
 import ComboBuilder from "./jsx/ComboBuilder.jsx";
 
@@ -52,8 +51,8 @@ import AdminStockManagement from "./jsx/admin/AdminStockManagement";
 import AdminIngredients from "./jsx/admin/AdminIngredients";
 import MenuIngredientsManager from "./jsx/admin/MenuIngredientsManager";
 import FixMenuTypeMigration from "./jsx/admin/MenuTypeMigration";
-import AdminMenuStock from "./jsx/admin/AdminMenuStock"; // ✅ STEP 3
-import SuperAdminDashboard from "./jsx/superadmin/SuperAdminDashboard"; // ✅ STEP 4
+import AdminMenuStock from "./jsx/admin/AdminMenuStock";
+import SuperAdminDashboard from "./jsx/superadmin/SuperAdminDashboard";
 
 /* ================ MENU ================ */
 import SwiggyStyleMenu from "./jsx/SwiggyStyleMenu";
@@ -67,6 +66,8 @@ import AiToastNotification from "./jsx/AiToastNotification";
 /* ================ LAYOUT ================ */
 function Layout({ children }) {
   const location = useLocation();
+
+  // Admin + auth pages get no shell
   if (
     location.pathname.startsWith("/admin") ||
     location.pathname === "/login" ||
@@ -74,9 +75,11 @@ function Layout({ children }) {
   ) {
     return <>{children}</>;
   }
+
   return (
     <>
       <Navbar />
+      <LiveOrderBar />   {/* ✅ Swiggy-style bar — sits above BottomNav, auto-hides when no active order */}
       <BottomNav />
       <FloatingButtons />
       <AiToastNotification />
@@ -129,7 +132,7 @@ export default function App() {
                     <Route path="/my-ratings" element={<ProtectedRoute><MyRatings /></ProtectedRoute>} />
                     <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
 
-                    {/* SUPER ADMIN — SECRET ROUTE */}
+                    {/* SUPER ADMIN */}
                     <Route path="/super-admin" element={<SuperAdminDashboard />} />
 
                     {/* ADMIN LOGIN */}
@@ -142,12 +145,11 @@ export default function App() {
                       <Route path="order/:id" element={<AdminOrderDetails />} />
                       <Route path="sales" element={<AdminSales />} />
                       <Route path="settings" element={<AdminSettings />} />
-                    
                       <Route path="stock" element={<AdminStockManagement />} />
                       <Route path="ingredients" element={<AdminIngredients />} />
                       <Route path="menu-ingredients" element={<MenuIngredientsManager />} />
                       <Route path="migrate-menu" element={<FixMenuTypeMigration />} />
-                      <Route path="menu-stock" element={<AdminMenuStock />} /> {/* ✅ STEP 3 */}
+                      <Route path="menu-stock" element={<AdminMenuStock />} />
                     </Route>
                   </Routes>
                 </Layout>
