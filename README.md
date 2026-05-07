@@ -1,25 +1,34 @@
 # 🍽️ BlueBliss Foods & Technologies
 
-BlueBliss is a full-stack cloud kitchen web application that enables users to browse menus, place food orders, and get real-time assistance through an AI-powered chatbot. Built with a React.js frontend and Node.js backend, deployed on Vercel.
+BlueBliss is a full-stack cloud kitchen management platform with three integrated panels — a customer-facing food ordering interface, a staff admin panel for kitchen operations, and a super admin dashboard for owner-level business analytics. Built with React.js and Node.js, deployed on Vercel.
 
 🔗 **Live Demo:** [bluebliss-dev.vercel.app](https://bluebliss-dev.vercel.app)
 
 ---
 
 ## 📸 Screenshots
-> Add screenshots of your homepage, menu, cart, and chatbot UI here
+> Add screenshots of customer UI, admin panel, and super admin dashboard here
 
 ---
 
 ## ✨ Features
 
-- 🛒 **Menu Browsing** — Browse items across multiple food categories
-- 📦 **Order Management** — Place and manage food orders seamlessly
-- 🤖 **AI Chatbot** — Real-time customer support for order queries and food recommendations
+### 🧑‍💻 Customer Interface
+- 🛒 **Menu Browsing** — Browse food items across multiple categories
+- 📦 **Order Placement** — Seamless cart and order flow
+- 🤖 **AI Chatbot** — Real-time assistance for order queries and food recommendations
 - 🔐 **User Authentication** — Secure login and registration
-- 📡 **RESTful API** — Structured Node.js + Express.js server-side routing
-- 📱 **Responsive Design** — Fully responsive across desktop and mobile
-- 🚀 **Production Deployed** — Hosted on Vercel with 10+ deployments
+
+### 🧑‍🍳 Staff Admin Panel
+- ✅ **Order Management** — Accept, update, and track incoming customer orders
+- 📦 **Stock Management** — Monitor and update ingredient/item stock levels
+- 🍕 **Menu Management** — Add, edit, or remove menu items in real time
+- 📋 POC-level operational dashboard for kitchen staff
+
+### 👑 Super Admin Panel
+- 📊 **Sales Analytics** — Detailed revenue reports and order trends
+- 👥 **Staff Performance Tracking** — Monitor staff activity and order handling metrics
+- 🏪 **Business Overview** — Owner-level insights across all operations
 
 ---
 
@@ -40,15 +49,18 @@ BlueBliss is a full-stack cloud kitchen web application that enables users to br
 
 ```
 BLUEBLISS/
-├── client/               # React.js frontend
+├── client/                   # React.js frontend
 │   ├── src/
-│   │   ├── components/   # Reusable UI components
-│   │   ├── pages/        # Route-level pages
+│   │   ├── components/       # Reusable UI components
+│   │   ├── pages/
+│   │   │   ├── Customer/     # Customer ordering interface
+│   │   │   ├── Admin/        # Staff admin panel
+│   │   │   └── SuperAdmin/   # Owner analytics dashboard
 │   │   └── App.js
-├── server/               # Node.js backend
-│   ├── routes/           # Express route handlers
-│   ├── controllers/      # Business logic
-│   ├── models/           # Database models
+├── server/                   # Node.js backend
+│   ├── routes/               # Express route handlers
+│   ├── controllers/          # Business logic
+│   ├── models/               # Database models
 │   └── index.js
 └── .gitignore
 ```
@@ -104,12 +116,22 @@ App runs on `http://localhost:3000`
 
 ---
 
+## 🔐 Role-Based Access
+
+| Role | Access |
+|---|---|
+| Customer | Browse menu, place orders, AI chatbot |
+| Staff (Admin) | Accept orders, manage stock, update menu |
+| Owner (Super Admin) | Sales reports, staff performance, full business overview |
+
+---
+
 ## 🤖 AI Chatbot
 
 The integrated AI chatbot provides:
 - Real-time answers to menu and order queries
 - Food recommendations based on user preferences
-- Order support and assistance
+- Order status support and assistance
 
 ---
 
