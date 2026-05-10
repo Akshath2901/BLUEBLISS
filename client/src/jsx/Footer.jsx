@@ -1,66 +1,117 @@
+// src/jsx/Footer.jsx — BlueBliss V2.0 Premium Footer
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import "./Footer.css";
 
-function Footer() {
+const BRANDS = [
+  { name: "Shrimmers",  icon: "✨", route: "/menu/shrimmers"  },
+  { name: "Peppanizze", icon: "🌶️", route: "/menu/peppanizze" },
+  { name: "UrbanWrap",  icon: "🌯", route: "/menu/urbanwrap"  },
+];
+
+export default function Footer() {
+  const navigate = useNavigate();
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="footer">
-      <div className="footer-container">
-        {/* Top Section */}
+    <footer className="site-footer">
+      <div className="footer-wrap">
+
+        {/* ── TOP ──────────────────────────────────────────── */}
         <div className="footer-top">
+
+          {/* Brand side */}
           <div className="footer-brand">
-            <h2 className="footer-logo">BlueBliss Foods & Technologies</h2>
-            <p className="footer-tagline">
-              Bringing happiness through every bite 🍴
+            <p className="footer-logo">
+              bluebliss <span className="footer-gem">✦</span>
             </p>
+            <p className="footer-tagline">
+              Three kitchens. One city.<br />Infinite cravings.
+            </p>
+            <p className="footer-city">
+              <span className="footer-pin">📍</span>
+              Padmarao Nagar, Hyderabad
+            </p>
+
+            {/* Social */}
+            <div className="footer-socials">
+              <a
+                href="https://www.instagram.com/shrimmers_/"
+                target="_blank" rel="noopener noreferrer"
+                className="footer-social-btn"
+                aria-label="Instagram"
+              >
+                <i className="fab fa-instagram" />
+              </a>
+              <a
+                href={`https://wa.me/917569534271?text=${encodeURIComponent("Hi BlueBliss! 🌿")}`}
+                target="_blank" rel="noopener noreferrer"
+                className="footer-social-btn"
+                aria-label="WhatsApp"
+              >
+                <i className="fab fa-whatsapp" />
+              </a>
+              <a
+                href="#"
+                className="footer-social-btn"
+                aria-label="Facebook"
+              >
+                <i className="fab fa-facebook-f" />
+              </a>
+            </div>
           </div>
 
-          <div className="footer-links">
-            <div>
-              <h4>Company</h4>
+          {/* Links side */}
+          <div className="footer-links-wrap">
+            <div className="footer-col">
+              <p className="footer-col-head">Company</p>
               <ul>
-                <li>About Us</li>
-                <li>Careers</li>
-                <li>Blog</li>
-                <li>Contact</li>
+                <li><button onClick={() => navigate("/about")}>About Us</button></li>
+                <li><button onClick={() => navigate("/contact")}>Contact</button></li>
+                <li><button>Careers</button></li>
+                <li><button>Blog</button></li>
               </ul>
             </div>
-            <div>
-              <h4>Support</h4>
-              <ul>
-                <li>FAQs</li>
-                <li>Privacy Policy</li>
-                <li>Terms & Conditions</li>
-              </ul>
-            </div>
-            <div>
-              <h4>Our Brands</h4>
-              <ul>
-                <li>Shrimmers</li>
-                <li>Peppanizze</li>
-                <li>UrbanWrap</li>
-              </ul>
-            </div>
-          </div>
 
-          <div className="footer-social">
-            <h4>Follow Us</h4>
-            <div className="social-icons">
-              <a href="#"><i className="fab fa-facebook-f"></i></a>
-              <a href="#"><i className="fab fa-instagram"></i></a>
-              <a href="#"><i className="fab fa-twitter"></i></a>
-              <a href="#"><i className="fab fa-linkedin-in"></i></a>
+            <div className="footer-col">
+              <p className="footer-col-head">Support</p>
+              <ul>
+                <li><button>FAQs</button></li>
+                <li><button>Privacy Policy</button></li>
+                <li><button>Terms & Conditions</button></li>
+                <li><button>Refund Policy</button></li>
+              </ul>
+            </div>
+
+            <div className="footer-col">
+              <p className="footer-col-head">Our Brands</p>
+              <ul>
+                {BRANDS.map(b => (
+                  <li key={b.name}>
+                    <button onClick={() => navigate(b.route)}>
+                      {b.icon} {b.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
+        {/* ── DIVIDER ──────────────────────────────────────── */}
+        <div className="footer-divider" />
+
+        {/* ── BOTTOM ───────────────────────────────────────── */}
         <div className="footer-bottom">
-          <p>© 2025 BlueBliss Foods & Technologies. All rights reserved.</p>
-          <p>Crafted with ❤️ by BlueBliss Team</p>
+          <p className="footer-copy">
+            © {year} BlueBliss Foods & Technologies. All rights reserved.
+          </p>
+          <p className="footer-made">
+            Crafted with <span className="footer-heart">❤️</span> in Hyderabad, India
+          </p>
         </div>
+
       </div>
     </footer>
   );
 }
-
-export default Footer;

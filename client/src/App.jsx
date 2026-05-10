@@ -2,6 +2,9 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from "react-router-dom";
 
+/* ================ THEME ================ */
+import { ThemeProvider } from "./context/ThemeContext.jsx";   // ← ADD THIS
+
 /* ================ CONTEXT PROVIDERS ================ */
 import { NavbarOffersProvider } from "./context/NavbarOffersContext.jsx";
 import { HomeOffersProvider } from "./context/HomeOffersContext.jsx";
@@ -14,7 +17,6 @@ import Navbar from "./jsx/Navbar";
 import Home from "./jsx/home";
 import About from "./jsx/About";
 import Contact from "./jsx/Contact";
-import SearchResults from "./jsx/SearchResults";
 import CartPage from "./jsx/CartPage";
 import Billing from "./jsx/Billing";
 import PaymentGateway from "./jsx/PaymentGateway";
@@ -23,7 +25,8 @@ import PaymentSuccess from "./jsx/PaymentSuccess";
 import OrderTracking from "./jsx/OrderTracking";
 import ProtectedRoute from "./jsx/ProtectedRoute";
 import BottomNav from "./jsx/BottomNav";
-import LiveOrderBar from "./jsx/LiveOrderBar"; // ✅ NEW
+import LiveOrderBar from "./jsx/LiveOrderBar";
+import CartBar from "./jsx/CartBar";
 import FloatingButtons from "./jsx/FloatingButtons";
 import ComboBuilder from "./jsx/ComboBuilder.jsx";
 
@@ -67,7 +70,6 @@ import AiToastNotification from "./jsx/AiToastNotification";
 function Layout({ children }) {
   const location = useLocation();
 
-  // Admin + auth pages get no shell
   if (
     location.pathname.startsWith("/admin") ||
     location.pathname === "/login" ||
@@ -79,7 +81,8 @@ function Layout({ children }) {
   return (
     <>
       <Navbar />
-      <LiveOrderBar />   {/* ✅ Swiggy-style bar — sits above BottomNav, auto-hides when no active order */}
+      <CartBar />
+      <LiveOrderBar />
       <BottomNav />
       <FloatingButtons />
       <AiToastNotification />
@@ -92,72 +95,73 @@ function Layout({ children }) {
 /* ================ APP ================ */
 export default function App() {
   return (
-    <RestaurantStatusProvider>
-      <NavbarOffersProvider>
-        <HomeOffersProvider>
-          <LoyaltyProvider>
-            <VegFilterProvider>
-              <Router>
-                <Layout>
-                  <Routes>
-                    {/* PUBLIC ROUTES */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/contact" element={<Contact />} />
-                    <Route path="/search" element={<SearchResults />} />
-                    <Route path="/combo-builder" element={<ComboBuilder />} />
+    <ThemeProvider>                          {/* ← WRAPS EVERYTHING */}
+      <RestaurantStatusProvider>
+        <NavbarOffersProvider>
+          <HomeOffersProvider>
+            <LoyaltyProvider>
+              <VegFilterProvider>
+                <Router>
+                  <Layout>
+                    <Routes>
+                      {/* PUBLIC ROUTES */}
+                      <Route path="/" element={<Home />} />
+                      <Route path="/about" element={<About />} />
+                      <Route path="/contact" element={<Contact />} />
+                      <Route path="/combo-builder" element={<ComboBuilder />} />
 
-                    {/* MENU ROUTES */}
-                    <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
-                    <Route path="/menu/peppanizze" element={<Peppa />} />
-                    <Route path="/menu/urbanwrap" element={<UrbanWrap />} />
+                      {/* MENU ROUTES */}
+                      <Route path="/menu/shrimmers" element={<SwiggyStyleMenu />} />
+                      <Route path="/menu/peppanizze" element={<Peppa />} />
+                      <Route path="/menu/urbanwrap" element={<UrbanWrap />} />
 
-                    {/* AUTH ROUTES */}
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
+                      {/* AUTH ROUTES */}
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/signup" element={<SignupPage />} />
 
-                    {/* PROTECTED USER ROUTES */}
-                    <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-                    <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                    <Route path="/payment-gateway" element={<ProtectedRoute><PaymentGateway /></ProtectedRoute>} />
-                    <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
-                    <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-                    <Route path="/order-tracking" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
-                    <Route path="/track-order" element={<Navigate to="/order-tracking" replace />} />
+                      {/* PROTECTED USER ROUTES */}
+                      <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+                      <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+                      <Route path="/payment-gateway" element={<ProtectedRoute><PaymentGateway /></ProtectedRoute>} />
+                      <Route path="/payment" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+                      <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                      <Route path="/order-tracking" element={<ProtectedRoute><OrderTracking /></ProtectedRoute>} />
+                      <Route path="/track-order" element={<Navigate to="/order-tracking" replace />} />
 
-                    {/* PROFILE ROUTES */}
-                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                    <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
-                    <Route path="/order-details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
-                    <Route path="/my-ratings" element={<ProtectedRoute><MyRatings /></ProtectedRoute>} />
-                    <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
+                      {/* PROFILE ROUTES */}
+                      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                      <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
+                      <Route path="/order-details/:id" element={<ProtectedRoute><OrderDetails /></ProtectedRoute>} />
+                      <Route path="/my-ratings" element={<ProtectedRoute><MyRatings /></ProtectedRoute>} />
+                      <Route path="/help" element={<ProtectedRoute><Help /></ProtectedRoute>} />
 
-                    {/* SUPER ADMIN */}
-                    <Route path="/super-admin" element={<SuperAdminDashboard />} />
+                      {/* SUPER ADMIN */}
+                      <Route path="/super-admin" element={<SuperAdminDashboard />} />
 
-                    {/* ADMIN LOGIN */}
-                    <Route path="/admin-login" element={<AdminLogin />} />
+                      {/* ADMIN LOGIN */}
+                      <Route path="/admin-login" element={<AdminLogin />} />
 
-                    {/* ADMIN ROUTES */}
-                    <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="orders" element={<AdminOrders />} />
-                      <Route path="order/:id" element={<AdminOrderDetails />} />
-                      <Route path="sales" element={<AdminSales />} />
-                      <Route path="settings" element={<AdminSettings />} />
-                      <Route path="stock" element={<AdminStockManagement />} />
-                      <Route path="ingredients" element={<AdminIngredients />} />
-                      <Route path="menu-ingredients" element={<MenuIngredientsManager />} />
-                      <Route path="migrate-menu" element={<FixMenuTypeMigration />} />
-                      <Route path="menu-stock" element={<AdminMenuStock />} />
-                    </Route>
-                  </Routes>
-                </Layout>
-              </Router>
-            </VegFilterProvider>
-          </LoyaltyProvider>
-        </HomeOffersProvider>
-      </NavbarOffersProvider>
-    </RestaurantStatusProvider>
+                      {/* ADMIN ROUTES */}
+                      <Route path="/admin" element={<AdminProtectedRoute><AdminLayout /></AdminProtectedRoute>}>
+                        <Route index element={<AdminDashboard />} />
+                        <Route path="orders" element={<AdminOrders />} />
+                        <Route path="order/:id" element={<AdminOrderDetails />} />
+                        <Route path="sales" element={<AdminSales />} />
+                        <Route path="settings" element={<AdminSettings />} />
+                        <Route path="stock" element={<AdminStockManagement />} />
+                        <Route path="ingredients" element={<AdminIngredients />} />
+                        <Route path="menu-ingredients" element={<MenuIngredientsManager />} />
+                        <Route path="migrate-menu" element={<FixMenuTypeMigration />} />
+                        <Route path="menu-stock" element={<AdminMenuStock />} />
+                      </Route>
+                    </Routes>
+                  </Layout>
+                </Router>
+              </VegFilterProvider>
+            </LoyaltyProvider>
+          </HomeOffersProvider>
+        </NavbarOffersProvider>
+      </RestaurantStatusProvider>
+    </ThemeProvider>
   );
 }

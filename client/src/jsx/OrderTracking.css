@@ -1,652 +1,395 @@
-/* ============================================
-   PREMIUM ORDER TRACKING CSS - BLACK & GOLD
-   ============================================ */
+/* ══════════════════════════════════════════════════════════════
+   BLUEBLISS — ORDER TRACKING V2.0
+   src/jsx/OrderTracking.css
+   Dynamic status color via --oc CSS variable set on .ot-page
+══════════════════════════════════════════════════════════════ */
 
-/* Import Premium Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-/* CSS Variables */
-:root {
-  /* Primary Colors */
-  --gold-primary: #d4af37;
-  --gold-light: #ffd700;
-  --gold-dark: #b8860b;
-  
-  /* Neutral Colors */
-  --black-primary: #0f0e09;
-  --gray-dark: #1c1c1c;
-  --gray-medium: #4a4a4a;
-  --white: #ffffff;
-  
-  /* Accent Colors */
-  --accent-green: #48c479;
-  --accent-green-dark: #3ba55d;
-  
-  /* Shadows */
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.2);
-  
-  /* Fonts */
-  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-secondary: 'Space Grotesk', sans-serif;
+/* ── Variables ──────────────────────────────────────────────── */
+.ot-page {
+  --ot-bg:        #0D0D0A;
+  --ot-surface:   rgba(20, 19, 14, 0.92);
+  --ot-surface2:  rgba(28, 26, 20, 0.7);
+  --ot-border:    rgba(242, 195, 90, 0.12);
+  --ot-border-md: rgba(242, 195, 90, 0.22);
+  --ot-gold:      #F2C35A;
+  --ot-gold-d:    #C9920A;
+  --ot-gold-glow: rgba(242, 195, 90, 0.22);
+  --ot-text:      #F0EBE0;
+  --ot-text-dim:  rgba(240, 235, 224, 0.55);
+  --ot-text-muted:rgba(240, 235, 224, 0.28);
+  --ot-green:     #4CAF50;
+  --ot-blur:      blur(24px) saturate(160%);
+  /* --oc and --oc-glow set dynamically inline */
+  --oc:     #FF9800;
+  --oc-glow:#FF980055;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+[data-theme="light"] .ot-page {
+  --ot-bg:        #F9F6EE;
+  --ot-surface:   rgba(255, 255, 255, 0.96);
+  --ot-surface2:  rgba(242, 237, 216, 0.7);
+  --ot-border:    rgba(184, 134, 11, 0.12);
+  --ot-border-md: rgba(184, 134, 11, 0.24);
+  --ot-gold:      #B8860B;
+  --ot-gold-d:    #8A6000;
+  --ot-gold-glow: rgba(184, 134, 11, 0.2);
+  --ot-text:      #1A1208;
+  --ot-text-dim:  rgba(26, 18, 8, 0.62);
+  --ot-text-muted:rgba(26, 18, 8, 0.38);
+  --ot-green:     #16A34A;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--font-primary);
-  background: linear-gradient(135deg, var(--black-primary) 0%, var(--gray-dark) 100%);
-  color: var(--white);
-}
-
-/* ============================================
-   TRACKING PAGE
-   ============================================ */
-
-.tracking-page {
-  max-width: 900px;
-  margin: 50px auto;
-  padding: 30px 20px;
+/* ══════════════════════════════════════════════════════════════
+   PAGE BASE
+══════════════════════════════════════════════════════════════ */
+.ot-page {
   min-height: 100vh;
-  animation: fadeIn 0.4s ease-in-out;
+  background: var(--ot-bg);
+  color: var(--ot-text);
+  font-family: 'DM Sans', sans-serif;
+  padding-bottom: 120px;
+  transition: background 0.35s ease;
 }
 
-/* ============================================
-   BACK BUTTON
-   ============================================ */
-
-.back-button {
-  padding: 10px 20px;
-  background: rgba(255, 215, 0, 0.1);
-  border: 2px solid rgba(212, 175, 55, 0.3);
-  border-radius: 10px;
-  color: var(--gold-light);
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: var(--font-primary);
-  letter-spacing: -0.2px;
-  margin-bottom: 30px;
+/* ══════════════════════════════════════════════════════════════
+   CENTERED STATES (loading / auth / empty)
+══════════════════════════════════════════════════════════════ */
+.ot-centered {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 70vh; padding: 20px 24px; text-align: center;
+  gap: 8px;
 }
 
-.back-button:hover {
-  background: var(--gold-light);
-  color: var(--black-primary);
-  border-color: var(--gold-light);
-  transform: translateX(-4px);
+/* Spinning loading emoji */
+.ot-spin-emoji {
+  font-size: 52px;
+  display: block;
+  animation: otSpin 1.6s linear infinite;
+  margin-bottom: 8px;
+}
+@keyframes otSpin { to { transform: rotate(360deg); } }
+
+.ot-loading-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: 3px; color: var(--ot-gold); margin: 0;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
+/* State icons & text */
+.ot-state-icon { font-size: 64px; display: block; margin-bottom: 8px; }
 
-.tracking-header {
-  text-align: center;
-  margin-bottom: 50px;
+.ot-state-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 28px; font-weight: 700;
+  color: var(--ot-text); margin: 8px 0 4px;
 }
 
-.tracking-title {
-  font-family: var(--font-secondary);
-  font-size: 42px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
+.ot-state-sub {
+  font-size: 14px; color: var(--ot-text-muted);
+  max-width: 260px; line-height: 1.65; margin: 0;
 }
 
-.tracking-order-id {
-  font-family: var(--font-secondary);
-  font-size: 28px;
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+/* Gold button */
+.ot-gold-btn {
+  padding: 13px 30px; margin-top: 20px;
+  background: linear-gradient(135deg, var(--ot-gold), var(--ot-gold-d));
+  border: none; border-radius: 12px;
+  color: #1A1208; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 800; cursor: pointer;
+  box-shadow: 0 4px 18px var(--ot-gold-glow);
+  transition: all 0.3s ease;
+}
+.ot-gold-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px var(--ot-gold-glow); }
+
+/* ══════════════════════════════════════════════════════════════
+   LAST ORDER CARD (no active orders state)
+══════════════════════════════════════════════════════════════ */
+.ot-last-order-card {
+  width: 100%; max-width: 360px; margin-top: 24px;
+  background: var(--ot-surface);
+  border: 1px solid var(--ot-border);
+  border-radius: 16px; padding: 18px 20px;
+  text-align: left;
 }
 
-/* ============================================
-   STATUS PROGRESS
-   ============================================ */
-
-.status-progress-container {
-  padding: 40px 30px;
-  background: linear-gradient(135deg, rgba(28, 28, 28, 0.8) 0%, rgba(15, 14, 9, 0.9) 100%);
-  border: 2px solid rgba(212, 175, 55, 0.2);
-  border-radius: 18px;
-  margin-bottom: 40px;
-  position: relative;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+.ot-last-order-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: 2px;
+  color: var(--ot-green); margin: 0 0 12px; text-transform: uppercase;
 }
 
-.progress-line-bg {
-  position: absolute;
-  top: 52px;
-  left: 12%;
-  right: 12%;
-  height: 4px;
-  background: rgba(212, 175, 55, 0.2);
-  border-radius: 2px;
-  z-index: 0;
-  overflow: hidden;
+.ot-last-item {
+  display: flex; justify-content: space-between; padding: 8px 0;
+}
+.ot-last-item.bordered { border-bottom: 1px solid var(--ot-border); }
+
+.ot-last-item-name { font-size: 13px; color: var(--ot-text-dim); }
+.ot-last-item-price { font-size: 13px; font-weight: 700; color: var(--ot-gold); }
+
+.ot-last-more { font-size: 11px; color: var(--ot-text-muted); margin: 6px 0 0; }
+
+.ot-last-total {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--ot-border-md); margin-top: 12px; padding-top: 12px;
+  font-size: 13px; color: var(--ot-text-dim);
+}
+.ot-last-total-amount {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 20px; font-weight: 700; color: var(--ot-gold);
 }
 
-.progress-line-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold-light), var(--gold-primary));
-  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 2px;
+/* ══════════════════════════════════════════════════════════════
+   TOP BAR & STICKY HEADER (active order view)
+══════════════════════════════════════════════════════════════ */
+.ot-top-bar {
+  padding: 20px 20px 0;
 }
 
-.status-steps {
-  display: flex;
+.ot-sticky-header {
+  position: sticky; top: 0; z-index: 50;
+  padding: 18px 20px 14px;
+  background: linear-gradient(180deg, var(--ot-bg) 60%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.ot-back {
+  background: var(--ot-surface2);
+  border: 1px solid var(--ot-border);
+  color: var(--ot-text-dim);
+  padding: 8px 16px; border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.25s ease; margin-bottom: 12px;
+  display: inline-block;
+}
+.ot-back:hover { background: var(--ot-gold); color: #1A1208; border-color: var(--ot-gold); }
+
+.ot-header-row {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.ot-live-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 24px; font-weight: 700;
+  color: var(--ot-gold); margin: 0;
+}
+
+.ot-order-id {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: 3px;
+  color: var(--ot-text-muted); margin: 2px 0 0;
+}
+
+/* Live badge — uses --oc dynamic color */
+.ot-live-badge {
+  display: flex; align-items: center; gap: 7px;
+  background: color-mix(in srgb, var(--oc) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--oc) 35%, transparent);
+  border-radius: 20px; padding: 7px 14px;
+  /* Fallback for no color-mix support */
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.3);
+}
+
+.ot-live-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--oc);
+  box-shadow: 0 0 6px var(--oc);
+  animation: otLivePulse 1.5s infinite;
+}
+@keyframes otLivePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.6); }
+}
+
+.ot-live-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px; letter-spacing: 2px;
+  color: var(--oc); text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BODY PADDING
+══════════════════════════════════════════════════════════════ */
+.ot-body { padding: 16px 20px 0; }
+
+/* ══════════════════════════════════════════════════════════════
+   STATUS BANNER  — uses --oc dynamic color
+══════════════════════════════════════════════════════════════ */
+.ot-status-banner {
+  background: color-mix(in srgb, var(--oc) 10%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--oc) 30%, transparent);
+  /* Fallback */
+  background: rgba(255, 152, 0, 0.08);
+  border-color: rgba(255, 152, 0, 0.28);
+  border-radius: 18px; padding: 20px;
+  margin-bottom: 16px;
+  animation: otFadeIn 0.4s ease both;
+}
+@keyframes otFadeIn {
+  from { opacity:0; transform: translateY(12px); }
+  to   { opacity:1; transform: none; }
+}
+
+.ot-banner-icon { font-size: 28px; margin: 0 0 8px; }
+
+.ot-banner-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px; font-weight: 800;
+  color: var(--oc); margin: 0 0 6px;
+}
+
+.ot-banner-msg {
+  font-size: 13px; color: var(--ot-text-dim);
+  margin: 0; line-height: 1.6;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STEP TRACKER
+══════════════════════════════════════════════════════════════ */
+.ot-step-tracker {
+  background: var(--ot-surface2);
+  border: 1px solid var(--ot-border);
+  border-radius: 18px; padding: 22px 16px;
+  margin-bottom: 16px;
+  display: flex; align-items: flex-start;
   justify-content: space-between;
   position: relative;
-  z-index: 1;
 }
 
-.status-step {
-  text-align: center;
-  transition: all 0.3s ease;
+.ot-step-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; position: relative;
 }
 
-.status-step.inactive {
-  opacity: 0.4;
+/* Connector line */
+.ot-connector {
+  position: absolute; top: 15px; right: 50%;
+  width: 100%; height: 2px;
+  background: var(--ot-border);
+  z-index: 0; transition: background 0.5s ease;
+}
+.ot-connector.done    { background: var(--ot-green); }
+.ot-connector.partial {
+  background: linear-gradient(90deg, var(--ot-green) 50%, var(--ot-border) 50%);
 }
 
-.status-step.active {
-  opacity: 1;
+/* Step circle */
+.ot-step-circle {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800;
+  position: relative; z-index: 1;
+  background: var(--ot-surface);
+  border: 2px solid var(--ot-border);
+  color: var(--ot-text-muted);
+  transition: all 0.4s ease;
 }
 
-.status-circle {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-}
-
-.status-step.inactive .status-circle {
-  background: rgba(212, 175, 55, 0.2);
-  box-shadow: none;
-}
-
-.status-step.active .status-circle {
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3);
-  transform: scale(1.05);
-}
-
-.status-label {
-  font-family: var(--font-primary);
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  margin: 0;
-  letter-spacing: -0.2px;
-}
-
-.status-step.inactive .status-label {
-  opacity: 0.6;
-}
-
-/* ============================================
-   STATUS CARD
-   ============================================ */
-
-.status-card {
-  padding: 28px;
-  background: linear-gradient(135deg, rgba(28, 28, 28, 0.8) 0%, rgba(15, 14, 9, 0.9) 100%);
-  border: 2px solid rgba(212, 175, 55, 0.2);
-  border-left: 6px solid var(--gold-light);
-  border-radius: 16px;
-  margin-bottom: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.status-card:hover {
-  border-color: rgba(212, 175, 55, 0.35);
-  box-shadow: 0 12px 48px rgba(212, 175, 55, 0.2);
-}
-
-.status-heading {
-  font-family: var(--font-secondary);
-  margin: 0 0 12px 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-}
-
-.status-message {
-  font-family: var(--font-primary);
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0;
-  line-height: 1.6;
-}
-
-/* ============================================
-   ORDER DETAILS GRID
-   ============================================ */
-
-.order-details-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-bottom: 40px;
-}
-
-.order-card {
-  padding: 28px;
-  background: linear-gradient(135deg, rgba(28, 28, 28, 0.8) 0%, rgba(15, 14, 9, 0.9) 100%);
-  border: 2px solid rgba(212, 175, 55, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: slideUp 0.5s ease backwards;
-  backdrop-filter: blur(10px);
-}
-
-.order-card:nth-child(1) { animation-delay: 0.2s; }
-.order-card:nth-child(2) { animation-delay: 0.3s; }
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.order-card:hover {
-  box-shadow: 0 12px 48px rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.35);
-  transform: translateY(-5px);
-}
-
-.order-card-title {
-  font-family: var(--font-secondary);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 20px;
-  letter-spacing: -0.3px;
-}
-
-/* ============================================
-   ORDER ITEMS
-   ============================================ */
-
-.order-items-list {
-  margin-bottom: 20px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 16px 0;
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-  transition: all 0.3s ease;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.order-item:hover {
-  padding-left: 8px;
-  color: var(--gold-light);
-}
-
-.item-details {
-  flex: 1;
-}
-
-.item-name {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--white);
-  margin: 0;
-  font-family: var(--font-secondary);
-  letter-spacing: -0.2px;
-}
-
-.item-qty {
+.ot-step-circle.done {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: var(--ot-green);
+  color: var(--ot-green);
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.65);
-  margin: 6px 0 0 0;
-  font-family: var(--font-primary);
 }
 
-.item-total {
-  font-weight: 700;
-  font-size: 16px;
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-family: var(--font-secondary);
+.ot-step-circle.current {
+  background: color-mix(in srgb, var(--oc) 15%, transparent);
+  border-color: var(--oc);
+  color: var(--oc);
+  /* Fallback */
+  background: rgba(255, 152, 0, 0.12);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--oc) 20%, transparent);
+  animation: otCurrentGlow 2s infinite;
 }
 
-/* ============================================
-   ORDER TOTAL
-   ============================================ */
-
-.order-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 2px solid rgba(212, 175, 55, 0.3);
-  font-size: 18px;
-  font-weight: 700;
-  font-family: var(--font-secondary);
+@keyframes otCurrentGlow {
+  0%, 100% { box-shadow: 0 0 14px var(--oc-glow, rgba(255,152,0,0.4)); }
+  50%       { box-shadow: 0 0 24px var(--oc-glow, rgba(255,152,0,0.6)); }
 }
 
-.total-label {
-  color: var(--white);
-  letter-spacing: -0.2px;
+/* Step label */
+.ot-step-label {
+  font-size: 9px; margin-top: 7px; text-align: center;
+  font-weight: 600; line-height: 1.3; max-width: 52px;
+  color: var(--ot-text-muted);
+  transition: color 0.3s ease;
+}
+.ot-step-label.done    { color: rgba(76, 175, 80, 0.65); }
+.ot-step-label.current { color: var(--oc); font-weight: 800; }
+
+/* ══════════════════════════════════════════════════════════════
+   CARD (items + address)
+══════════════════════════════════════════════════════════════ */
+.ot-card {
+  background: var(--ot-surface);
+  border: 1px solid var(--ot-border);
+  border-radius: 16px; padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+  transition: border-color 0.25s ease;
+}
+.ot-card:hover { border-color: var(--ot-border-md); }
+
+.ot-card-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: 3px;
+  color: var(--ot-gold); margin: 0 0 14px; text-transform: uppercase;
 }
 
-.total-price {
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-size: 24px;
+/* Item rows */
+.ot-item-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0;
+}
+.ot-item-row.bordered { border-bottom: 1px solid var(--ot-border); }
+
+.ot-item-info { flex: 1; }
+.ot-item-name { font-size: 14px; font-weight: 600; color: var(--ot-text); margin: 0 0 3px; }
+.ot-item-qty  { font-size: 11px; color: var(--ot-text-muted); margin: 0; }
+.ot-item-total { font-size: 14px; font-weight: 700; color: var(--ot-gold); flex-shrink: 0; }
+
+/* Total row */
+.ot-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--ot-border-md);
+  margin-top: 12px; padding-top: 12px;
+}
+.ot-total-label { font-size: 14px; font-weight: 700; color: var(--ot-text); }
+.ot-total-amount {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic; font-size: 22px; font-weight: 700; color: var(--ot-gold);
 }
 
-/* ============================================
-   ADDRESS SECTION
-   ============================================ */
+/* Address */
+.ot-address-label {
+  font-size: 14px; font-weight: 700; color: var(--ot-text);
+  text-transform: capitalize; margin: 0 0 6px;
+}
+.ot-address-text { font-size: 13px; color: var(--ot-text-dim); line-height: 1.6; margin: 0; }
+.ot-address-eta  { font-size: 12px; color: var(--ot-green); font-weight: 700; margin: 8px 0 0; }
 
-.address-details {
-  line-height: 1.8;
+/* ── No contact ── */
+.ot-no-contact {
+  padding: 13px 18px; border-radius: 12px;
+  background: rgba(226,55,68,0.08);
+  border: 1px solid rgba(226,55,68,0.22);
+  color: #E23744; font-weight: 700; font-size: 13px; text-align: center;
+  margin-bottom: 12px;
 }
 
-.address-label {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--white);
-  margin: 0 0 12px 0;
-  text-transform: capitalize;
-  font-family: var(--font-secondary);
-  letter-spacing: -0.2px;
-}
-
-.address-text {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.75);
-  margin: 8px 0;
-  font-family: var(--font-primary);
-}
-
-.address-landmark {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(212, 175, 55, 0.15);
-  font-family: var(--font-primary);
-}
-
-/* ============================================
-   LOADING & ERROR STATES
-   ============================================ */
-
-.tracking-loading-container,
-.tracking-error-container {
-  text-align: center;
-  padding: 100px 20px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--black-primary) 0%, var(--gray-dark) 100%);
-}
-
-.loading-spinner {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.spinner-emoji,
-.error-icon {
-  font-size: 60px;
-}
-
-.tracking-loading-container h2,
-.tracking-error-container h2 {
-  font-family: var(--font-secondary);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--white);
-  margin-bottom: 20px;
-  letter-spacing: -0.4px;
-}
-
-.back-home-btn {
-  margin-top: 30px;
-  padding: 14px 32px;
-  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold-primary) 100%);
-  border: none;
-  color: var(--black-primary);
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.3);
-  font-family: var(--font-primary);
-}
-
-.back-home-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-@media (max-width: 768px) {
-  .tracking-page {
-    margin: 30px auto;
-    padding: 20px 15px;
-  }
-
-  .tracking-title {
-    font-size: 32px;
-  }
-
-  .tracking-order-id {
-    font-size: 24px;
-  }
-
-  .order-details-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-
-  .status-progress-container {
-    padding: 30px 20px;
-  }
-
-  .status-circle {
-    width: 60px;
-    height: 60px;
-    font-size: 28px;
-  }
-
-  .status-label {
-    font-size: 13px;
-  }
-
-  .order-card {
-    padding: 20px;
-  }
-
-  .order-card-title {
-    font-size: 18px;
-  }
-}
-
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .tracking-page {
-    margin: 20px auto;
-    padding: 15px;
-  }
-
-  .back-button {
-    width: 100%;
-    padding: 12px;
-  }
-
-  .tracking-title {
-    font-size: 28px;
-  }
-
-  .tracking-order-id {
-    font-size: 20px;
-  }
-
-  .status-progress-container {
-    padding: 25px 15px;
-  }
-
-  .progress-line-bg {
-    left: 8%;
-    right: 8%;
-  }
-
-  .status-steps {
-    flex-wrap: wrap;
-  }
-
-  .status-step {
-    flex: 1;
-    min-width: 75px;
-  }
-
-  .status-circle {
-    width: 52px;
-    height: 52px;
-    font-size: 24px;
-  }
-
-  .status-label {
-    font-size: 11px;
-  }
-
-  .status-card {
-    padding: 20px;
-  }
-
-  .order-card {
-    padding: 18px;
-  }
-
-  .order-item {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .item-total {
-    align-self: flex-end;
-  }
-
-  .address-text {
-    font-size: 14px;
-  }
-}
-/* ============================================
-   🔥 FORCE DARK THEME FOR ORDER & ADDRESS CARDS
-   (Fix for white background override)
-   ============================================ */
-
-.tracking-page .order-details-grid .order-card {
-  background: linear-gradient(
-    135deg,
-    rgba(28, 28, 28, 0.88),
-    rgba(15, 14, 9, 0.95)
-  ) !important;
-
-  border: 2px solid rgba(212, 175, 55, 0.25) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45) !important;
-  color: var(--white) !important;
-}
-
-/* Order items rows */
-.tracking-page .order-item {
-  background: transparent !important;
-  color: var(--white) !important;
-}
-
-/* Address block text */
-.tracking-page .address-details {
-  background: transparent !important;
-  color: var(--white) !important;
-}
-
-/* Prevent any accidental white cards */
-.tracking-page .order-card * {
-  background-color: transparent;
-}
-
-/* Total row clarity */
-.tracking-page .order-total {
-  border-top: 2px solid rgba(212, 175, 55, 0.3) !important;
-}
-
-/* Extra safety: kill white cards if injected */
-.tracking-page div[style*="background: white"],
-.tracking-page div[style*="background-color: white"] {
-  background: transparent !important;
+  .ot-body { padding: 12px 14px 0; }
+  .ot-sticky-header { padding: 14px 14px 10px; }
+  .ot-step-tracker { padding: 18px 10px; }
+  .ot-step-circle { width: 28px; height: 28px; font-size: 12px; }
+  .ot-connector { top: 13px; }
+  .ot-step-label { font-size: 8px; max-width: 44px; }
+  .ot-card { padding: 14px; }
+  .ot-live-title { font-size: 20px; }
+  .ot-last-order-card { max-width: 100%; }
 }

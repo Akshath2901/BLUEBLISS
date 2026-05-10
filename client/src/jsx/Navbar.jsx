@@ -1,69 +1,88 @@
-// /src/jsx/Navbar.jsx
-import React, { useEffect, useState } from "react";
+// src/jsx/Navbar.jsx — BlueBliss V2.0 Premium
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { db } from "../lib/firebase";
-import { doc, getDoc, collection, query, where, orderBy, limit, onSnapshot } from "firebase/firestore";
+import {
+  doc, getDoc, collection, query,
+  where, orderBy, limit, onSnapshot
+} from "firebase/firestore";
 import AIChat from "./AIChat";
 import OfferBanner from "./OfferBanner";
+import ThemeToggle from "./ThemeToggle";
 import "./Navbar.css";
 import { useVegFilter } from "../context/VegFilterContext";
 
-const ACTIVE_STATUSES = ["pending","approved","confirmed","preparing","ready",
-                         "out-for-delivery","out_for_delivery","picked"];
+const ACTIVE_STATUSES = [
+  "pending","approved","confirmed","preparing",
+  "ready","out-for-delivery","out_for_delivery","picked"
+];
 
-function Navbar() {
-  const [userLocation, setUserLocation] = useState("Detecting...");
-  const [user, setUser]   = useState(null);
-  const [role, setRole]   = useState(null);
+export default function Navbar() {
+  const [userLocation, setUserLocation]   = useState("Detecting...");
+  const [user, setUser]                   = useState(null);
+  const [role, setRole]                   = useState(null);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
+  const [menuOpen, setMenuOpen]           = useState(false);
+  const [scrolled, setScrolled]           = useState(false);
+  const [scrollPct, setScrollPct]         = useState(0);
 
   const auth         = getAuth();
-  const currentRoute = useLocation().pathname;
+  const location     = useLocation();
+  const currentRoute = location.pathname;
   const navigate     = useNavigate();
   const { isVegOnly, toggleVegOnly } = useVegFilter();
 
-  // ── Location detector ──────────────────────────────────
+  // Close drawer on route change
+  useEffect(() => { setMenuOpen(false); }, [currentRoute]);
+
+  // Lock body scroll when drawer open
   useEffect(() => {
-    if (typeof window === "undefined" || !("geolocation" in navigator)) {
-      setUserLocation("Not supported");
-      return;
-    }
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  // Scroll effects: shadow + progress bar
+  useEffect(() => {
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docH = document.documentElement.scrollHeight - window.innerHeight;
+      setScrolled(scrollTop > 20);
+      setScrollPct(docH > 0 ? (scrollTop / docH) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Geolocation
+  useEffect(() => {
+    if (!("geolocation" in navigator)) { setUserLocation("Location unavailable"); return; }
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
+      async ({ coords: { latitude, longitude } }) => {
         try {
-          const { latitude, longitude } = position.coords;
-          const res  = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
+          const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
           const data = await res.json();
-          const address = `${data.address?.road || ""}, ${data.address?.suburb || ""}, ${data.address?.city || ""}`.trim();
-          setUserLocation(address || "Location unavailable");
-        } catch {
-          setUserLocation("Error fetching location");
-        }
+          const addr = [data.address?.road, data.address?.suburb, data.address?.city]
+            .filter(Boolean).join(", ");
+          setUserLocation(addr || "Hyderabad");
+        } catch { setUserLocation("Hyderabad"); }
       },
-      () => setUserLocation("Permission denied")
+      () => setUserLocation("Hyderabad")
     );
   }, []);
 
-  // ── Auth state ─────────────────────────────────────────
+  // Auth state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        const ref  = doc(db, "users", currentUser.uid);
-        const snap = await getDoc(ref);
+    return onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        const snap = await getDoc(doc(db, "users", u.uid));
         if (snap.exists()) setRole(snap.data().role);
-      } else {
-        setRole(null);
-        setHasActiveOrder(false);
-      }
+      } else { setRole(null); setHasActiveOrder(false); }
     });
-    return () => unsubscribe();
   }, [auth]);
 
-  // ── Watch for active order (desktop badge) ─────────────
+  // Live order watch
   useEffect(() => {
     if (!user) return;
     const q = query(
@@ -72,169 +91,226 @@ function Navbar() {
       orderBy("createdAt", "desc"),
       limit(10)
     );
-    const unsub = onSnapshot(q, (snap) => {
-      const active = snap.docs
-        .map(d => d.data())
-        .find(o => ACTIVE_STATUSES.includes(o.status));
-      setHasActiveOrder(!!active);
+    return onSnapshot(q, (snap) => {
+      setHasActiveOrder(!!snap.docs.map(d => d.data()).find(o => ACTIVE_STATUSES.includes(o.status)));
     }, () => {});
-    return () => unsub();
   }, [user]);
 
-  // ── Logout ─────────────────────────────────────────────
   const handleLogout = async () => {
     await signOut(auth);
-    setUser(null);
-    setRole(null);
-    navigate("/");
+    setUser(null); setRole(null); navigate("/");
   };
 
-  // ── Admin navbar ───────────────────────────────────────
+  // ── Admin navbar ──────────────────────────────────
   if (role === "admin") {
     return (
       <>
         <OfferBanner />
-        <nav className="navbar admin-navbar">
-          <div className="navbar-container">
-            <div className="navbar-left">
-              <Link to="/admin" className="logo">Admin Panel</Link>
-            </div>
-            <div className="navbar-right">
-              <button className="btn-cart" onClick={() => navigate("/admin")}>
-                📊 Dashboard
-              </button>
-              <span className="user-email">Admin ({user?.email})</span>
-              <button className="btn-logout" onClick={handleLogout}>Logout</button>
+        <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
+          <div className="navbar-inner">
+            <Link to="/admin" className="nav-logo">
+              <span className="logo-word">bluebliss</span>
+              <span className="logo-gem">✦</span>
+            </Link>
+            <div className="nav-right">
+              <button className="btn-primary" onClick={() => navigate("/admin")}>📊 Dashboard</button>
+              <span className="admin-email-badge">Admin</span>
+              <button className="btn-ghost" onClick={handleLogout}>Logout</button>
+              <ThemeToggle size="sm" />
             </div>
           </div>
+          <div className="nav-progress" style={{ width: `${scrollPct}%` }} />
         </nav>
         <AIChat />
       </>
     );
   }
 
-  // ── User navbar ────────────────────────────────────────
+  // ── User navbar ───────────────────────────────────
   return (
     <>
       <OfferBanner />
-      <nav className="navbar">
-        <div className="navbar-container">
 
-          {/* Logo */}
-          <div className="navbar-left">
-            <Link to="/" className="logo">bluebliss</Link>
+      <nav className={`navbar ${scrolled ? "scrolled" : ""}`} role="navigation">
+        <div className="navbar-inner">
+
+          {/* ── Logo ── */}
+          <Link to="/" className="nav-logo" aria-label="BlueBliss Home">
+            <span className="logo-word">bluebliss</span>
+            <span className="logo-gem">✦</span>
+          </Link>
+
+          {/* ── Location (desktop) ── */}
+          <div className="nav-location">
+            <span className="loc-pin">📍</span>
+            <span className="loc-text">{userLocation}</span>
+            <span className="loc-chevron">▾</span>
           </div>
 
-          {/* Location */}
-          <div className="navbar-center">
-            <div className="location-section">
-              <span className="location-icon">📍</span>
-              <span className="location-text">{userLocation}</span>
-              <span className="location-dropdown">▼</span>
-            </div>
-          </div>
+          {/* ── Desktop right ── */}
+          <div className="nav-right">
 
-          {/* Right */}
-          <div className="navbar-right">
-            <ul className="nav-links">
-              <li>
-                <Link to="/combo-builder"
-                  className={currentRoute === "/combo-builder" ? "active" : ""}
-                  title="Create your own combo!">
-                  🍕 Combo Builder
-                  <span className="new-badge">NEW</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className={currentRoute === "/about" ? "active" : ""}>
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="/contact" className={currentRoute === "/contact" ? "active" : ""}>
-                  Contact
-                </Link>
-              </li>
-
-              {/* ── Orders link — only shown when logged in ── */}
+            {/* Nav links */}
+            <div className="nav-links">
+              <Link to="/combo-builder" className={`nav-link ${currentRoute === "/combo-builder" ? "active" : ""}`}>
+                🍕 Combo
+                <span className="badge-new">NEW</span>
+              </Link>
+              <Link to="/about" className={`nav-link ${currentRoute === "/about" ? "active" : ""}`}>About</Link>
+              <Link to="/contact" className={`nav-link ${currentRoute === "/contact" ? "active" : ""}`}>Contact</Link>
               {user && (
-                <li>
-                  <Link
-                    to="/order-tracking"
-                    className={currentRoute === "/order-tracking" ? "active" : ""}
-                    style={{ position: "relative" }}
-                  >
-                    📦 Orders
-                    {/* Live badge when there's an active order */}
-                    {hasActiveOrder && (
-                      <span style={{
-                        position:   "absolute",
-                        top:        "-6px",
-                        right:      "-10px",
-                        background: "linear-gradient(135deg, #ff6b35, #ff9500)",
-                        color:      "#fff",
-                        fontSize:   "8px",
-                        fontWeight: "900",
-                        padding:    "2px 5px",
-                        borderRadius: "10px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.3px",
-                        animation:  "navBadgePulse 2s infinite",
-                        whiteSpace: "nowrap",
-                      }}>
-                        LIVE
-                      </span>
-                    )}
-                  </Link>
-                </li>
+                <Link to="/order-tracking" className={`nav-link ${currentRoute === "/order-tracking" ? "active" : ""}`}>
+                  📦 Orders
+                  {hasActiveOrder && <span className="badge-live">LIVE</span>}
+                </Link>
               )}
-            </ul>
+            </div>
 
-            {/* Veg only toggle */}
+            {/* Veg toggle */}
             <button
-              className={`veg-global-toggle ${isVegOnly ? "active" : ""}`}
+              className={`veg-pill ${isVegOnly ? "on" : ""}`}
               onClick={toggleVegOnly}
-              title="Show only veg items"
+              title="Show vegetarian items only"
             >
-              🟢 Veg Only
+              <span className="veg-dot-icon" />
+              Veg
             </button>
 
             {/* Cart */}
             <button className="btn-cart" onClick={() => navigate("/cart")}>
-              🛒 Cart
+              <span>🛒</span>
+              Cart
             </button>
 
-            {/* Auth / Profile */}
-            <div className="auth-buttons">
-              {!user ? (
-                <>
-                  <button className="btn-login"  onClick={() => navigate("/login")}>Log in</button>
-                  <button className="btn-signup" onClick={() => navigate("/signup")}>Sign up</button>
-                </>
-              ) : (
-                <div
-                  className="user-profile-btn"
-                  onClick={() => navigate("/profile")}
-                  title={user.email}
-                >
-                  <div className="user-avatar">{user.email.charAt(0).toUpperCase()}</div>
-                  <span className="user-greeting">Hi, {user.email.split("@")[0]}</span>
-                </div>
-              )}
-            </div>
+            {/* Auth */}
+            {!user ? (
+              <div className="nav-auth">
+                <button className="btn-ghost" onClick={() => navigate("/login")}>Log in</button>
+                <button className="btn-primary" onClick={() => navigate("/signup")}>Sign up</button>
+              </div>
+            ) : (
+              <button
+                className="nav-avatar"
+                onClick={() => navigate("/profile")}
+                title={user.email}
+                aria-label="Open profile"
+              >
+                <span className="avatar-letter">{user.email.charAt(0).toUpperCase()}</span>
+                <span className="avatar-name">Hi, {user.email.split("@")[0]}</span>
+              </button>
+            )}
+
+            {/* Theme toggle */}
+            <ThemeToggle size="sm" />
+          </div>
+
+          {/* ── Mobile right ── */}
+          <div className="nav-mobile-actions">
+            <ThemeToggle size="sm" />
+            <button
+              className={`hamburger ${menuOpen ? "open" : ""}`}
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+            >
+              <span className="ham-line" />
+              <span className="ham-line" />
+              <span className="ham-line" />
+            </button>
           </div>
         </div>
+
+        {/* Scroll progress line */}
+        <div className="nav-progress" style={{ width: `${scrollPct}%` }} />
       </nav>
 
-      {/* Animation for live badge */}
-      <style>{`
-        @keyframes navBadgePulse {
-          0%,100% { box-shadow: 0 0 4px rgba(255,107,53,0.5); }
-          50%      { box-shadow: 0 0 10px rgba(255,107,53,0.9); }
-        }
-      `}</style>
+      {/* ── Mobile Drawer Backdrop ── */}
+      <div
+        className={`drawer-backdrop ${menuOpen ? "open" : ""}`}
+        onClick={() => setMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* ── Mobile Drawer ── */}
+      <aside className={`mobile-drawer ${menuOpen ? "open" : ""}`} aria-label="Mobile navigation">
+
+        {/* Drawer header */}
+        <div className="drawer-header">
+          <Link to="/" className="drawer-logo" onClick={() => setMenuOpen(false)}>
+            <span className="logo-word">bluebliss</span>
+            <span className="logo-gem">✦</span>
+          </Link>
+          <button className="drawer-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
+        </div>
+
+        {/* Location */}
+        <div className="drawer-location">
+          <span className="loc-pin">📍</span>
+          <span>{userLocation}</span>
+        </div>
+
+        {/* Nav links */}
+        <nav className="drawer-links">
+          {[
+            { to: "/combo-builder", label: "🍕 Combo Builder", badge: "NEW" },
+            { to: "/about",         label: "About" },
+            { to: "/contact",       label: "Contact" },
+            ...(user ? [{ to: "/order-tracking", label: "📦 My Orders", badge: hasActiveOrder ? "LIVE" : null }] : []),
+            ...(user ? [{ to: "/profile",        label: "👤 Profile" }] : []),
+          ].map(({ to, label, badge }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`drawer-link ${currentRoute === to ? "active" : ""}`}
+              onClick={() => setMenuOpen(false)}
+            >
+              {label}
+              {badge === "NEW"  && <span className="badge-new">{badge}</span>}
+              {badge === "LIVE" && <span className="badge-live">{badge}</span>}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="drawer-divider" />
+
+        {/* Veg toggle */}
+        <button
+          className={`drawer-veg ${isVegOnly ? "on" : ""}`}
+          onClick={toggleVegOnly}
+        >
+          <span className="veg-dot-icon" />
+          Veg Only
+          <span className="drawer-veg-state">{isVegOnly ? "ON" : "OFF"}</span>
+        </button>
+
+        {/* Cart */}
+        <button className="drawer-cart" onClick={() => { navigate("/cart"); setMenuOpen(false); }}>
+          🛒 View Cart
+        </button>
+
+        {/* Auth */}
+        <div className="drawer-auth">
+          {!user ? (
+            <>
+              <button className="drawer-btn-login"  onClick={() => { navigate("/login");  setMenuOpen(false); }}>Log in</button>
+              <button className="drawer-btn-signup" onClick={() => { navigate("/signup"); setMenuOpen(false); }}>Sign up</button>
+            </>
+          ) : (
+            <>
+              <div className="drawer-user">
+                <div className="drawer-avatar">{user.email.charAt(0).toUpperCase()}</div>
+                <div>
+                  <p className="drawer-user-name">{user.email.split("@")[0]}</p>
+                  <p className="drawer-user-email">{user.email}</p>
+                </div>
+              </div>
+              <button className="drawer-logout" onClick={handleLogout}>Sign out</button>
+            </>
+          )}
+        </div>
+      </aside>
+
+      <AIChat />
     </>
   );
 }
-
-export default Navbar;

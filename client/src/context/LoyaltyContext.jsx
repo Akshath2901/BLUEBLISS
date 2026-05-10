@@ -1,211 +1,190 @@
+// src/context/LoyaltyContext.jsx
+// ✅ KEY BEHAVIOR:
+//   - Points stored as `currentPoints` (0–99), resets to 0 when reward unlocked
+//   - `totalPoints` kept only for display history (optional)
+//   - When voucher is used → currentPoints resets to 0
+
 import React, { createContext, useState, useCallback, useEffect } from "react";
 import { auth, db } from "../lib/firebase";
 import { doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
-import { calculatePoints, checkVoucherUnlock, VOUCHER_CONFIG } from "../utils/loyaltyPoints";
+import { calculatePoints, VOUCHER_CONFIG } from "../utils/loyaltyPoints";
 
 export const LoyaltyContext = createContext();
 
+const DEFAULT_LOYALTY = {
+  currentPoints:    0,   // ← the 0–100 cycle counter (resets on reward)
+  totalPoints:      0,   // ← lifetime points (never resets, just for history)
+  unlockedVouchers: [],
+  pointsHistory:    [],
+};
+
 export function LoyaltyProvider({ children }) {
   const [loyaltyData, setLoyaltyData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
 
-  // Load loyalty data on mount
   useEffect(() => {
-    const loadLoyaltyData = async () => {
+    const load = async () => {
       const user = auth.currentUser;
-      if (!user) {
-        setLoading(false);
-        return;
-      }
+      if (!user) { setLoading(false); return; }
 
       try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists() && userSnap.data().loyaltyData) {
-          setLoyaltyData(userSnap.data().loyaltyData);
+        const snap = await getDoc(doc(db, "users", user.uid));
+        if (snap.exists() && snap.data().loyaltyData) {
+          const data = snap.data().loyaltyData;
+          // Back-compat: if old data has no currentPoints, derive it
+          if (data.currentPoints === undefined) {
+            data.currentPoints = data.totalPoints % VOUCHER_CONFIG.pointsPerVoucher;
+          }
+          setLoyaltyData(data);
         } else {
-          // Initialize default loyalty data
-          setLoyaltyData({
-            totalPoints: 0,
-            unlockedVouchers: [],
-            pointsHistory: [],
-          });
+          setLoyaltyData({ ...DEFAULT_LOYALTY });
         }
       } catch (err) {
-        console.error("Error loading loyalty data:", err);
-        setLoyaltyData({
-          totalPoints: 0,
-          unlockedVouchers: [],
-          pointsHistory: [],
-        });
+        console.error("Loyalty load error:", err);
+        setLoyaltyData({ ...DEFAULT_LOYALTY });
       } finally {
         setLoading(false);
       }
     };
 
-    const unsubscribe = auth.onAuthStateChanged(() => {
-      loadLoyaltyData();
-    });
-
-    return () => unsubscribe();
+    const unsub = auth.onAuthStateChanged(load);
+    return () => unsub();
   }, []);
 
+  // ─── addPoints: called after every successful order ───────────────────────
   const addPoints = useCallback(
     async (orderId, orderAmount, orderDetails = {}, appliedVoucher = null) => {
       const user = auth.currentUser;
       if (!user) return null;
 
       try {
-        // 🔥 IF VOUCHER IS APPLIED, DON'T ADD POINTS
+        // ── Voucher/reward was used on this order ──
         if (appliedVoucher) {
-          console.log("Voucher used - Points not earned on this order");
-          
-          // Still mark the voucher as used
-          const updatedVouchers = loyaltyData?.unlockedVouchers?.map((v) =>
+          const updatedVouchers = (loyaltyData?.unlockedVouchers || []).map(v =>
             v.voucherId === appliedVoucher
               ? { ...v, status: "used", usedAt: Timestamp.now() }
               : v
-          ) || [];
+          );
 
-          const updatedLoyaltyData = {
+          // Points reset to 0 because reward was redeemed
+          const updated = {
             ...loyaltyData,
+            currentPoints:    0,
             unlockedVouchers: updatedVouchers,
             pointsHistory: [
               ...(loyaltyData?.pointsHistory || []),
               {
-                orderId,
-                type: "voucher_used",
-                points: 0,
+                orderId, type: "reward_used", points: 0,
                 date: Timestamp.now(),
                 details: { ...orderDetails, voucherId: appliedVoucher },
               },
             ],
           };
 
-          const userRef = doc(db, "users", user.uid);
-          await updateDoc(userRef, {
-            loyaltyData: updatedLoyaltyData,
+          await updateDoc(doc(db, "users", user.uid), { loyaltyData: updated });
+          setLoyaltyData(updated);
+          return { earnedPoints: 0, currentPoints: 0, message: "Reward redeemed — points reset to 0" };
+        }
+
+        // ── Normal order — earn points ──
+        const earned       = calculatePoints(orderAmount);
+        const prevCurrent  = loyaltyData?.currentPoints ?? 0;
+        const newCurrent   = prevCurrent + earned;
+        const newTotal     = (loyaltyData?.totalPoints || 0) + earned;
+
+        let finalCurrent   = newCurrent;
+        const newRewards   = [];
+
+        // Did they hit (or pass) 100?
+        if (newCurrent >= VOUCHER_CONFIG.pointsPerVoucher) {
+          // Unlock a reward
+          const expiry = new Date();
+          expiry.setDate(expiry.getDate() + VOUCHER_CONFIG.voucherValidity);
+
+          newRewards.push({
+            voucherId:   `REWARD-${Date.now()}`,
+            rewardType:  VOUCHER_CONFIG.rewardType,
+            rewardName:  VOUCHER_CONFIG.rewardName,
+            description: VOUCHER_CONFIG.rewardDescription,
+            amount:      0,
+            status:      "available",
+            expiryDate:  expiry.toISOString(),
+            usedAt:      null,
           });
 
-          setLoyaltyData(updatedLoyaltyData);
-
-          return {
-            earnedPoints: 0,
-            totalPoints: loyaltyData?.totalPoints || 0,
-            vouchersUnlocked: 0,
-            voucherAmount: 0,
-            message: "Voucher redeemed - No points earned on this order",
-          };
+          // Reset — carry over the remainder (e.g. earned 32 on 90pts → 122 → reset to 22)
+          finalCurrent = newCurrent % VOUCHER_CONFIG.pointsPerVoucher;
         }
 
-        // 🔥 NO VOUCHER - CALCULATE POINTS NORMALLY
-        const earnedPoints = calculatePoints(orderAmount);
-        const newTotalPoints = (loyaltyData?.totalPoints || 0) + earnedPoints;
-        const vouchersUnlocked = checkVoucherUnlock(newTotalPoints);
-        const previousVouchers = Math.floor(
-          (loyaltyData?.totalPoints || 0) / 100
-        );
-        const newVouchersCount = vouchersUnlocked - previousVouchers;
-
-        let newVouchers = [];
-        if (newVouchersCount > 0) {
-          for (let i = 0; i < newVouchersCount; i++) {
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + VOUCHER_CONFIG.voucherValidity);
-
-            newVouchers.push({
-              voucherId: `VOUCHER-${Date.now()}-${i}`,
-              amount: VOUCHER_CONFIG.voucherAmount,
-              status: "available",
-              expiryDate: expiryDate.toISOString(),
-              usedAt: null,
-            });
-          }
-        }
-
-        const updatedLoyaltyData = {
-          totalPoints: newTotalPoints,
+        const updated = {
+          currentPoints:    finalCurrent,
+          totalPoints:      newTotal,
           unlockedVouchers: [
             ...(loyaltyData?.unlockedVouchers || []),
-            ...newVouchers,
+            ...newRewards,
           ],
           pointsHistory: [
             ...(loyaltyData?.pointsHistory || []),
             {
-              orderId,
-              type: "earned",
-              points: earnedPoints,
-              date: Timestamp.now(),
-              details: orderDetails,
+              orderId, type: "earned", points: earned,
+              date: Timestamp.now(), details: orderDetails,
             },
           ],
         };
 
-        // Update Firestore
-        const userRef = doc(db, "users", user.uid);
-        await updateDoc(userRef, {
-          loyaltyData: updatedLoyaltyData,
-        });
-
-        // Update local state
-        setLoyaltyData(updatedLoyaltyData);
+        await updateDoc(doc(db, "users", user.uid), { loyaltyData: updated });
+        setLoyaltyData(updated);
 
         return {
-          earnedPoints,
-          totalPoints: newTotalPoints,
-          vouchersUnlocked: newVouchersCount,
-          voucherAmount: VOUCHER_CONFIG.voucherAmount,
+          earnedPoints:    earned,
+          currentPoints:   finalCurrent,
+          rewardsUnlocked: newRewards.length,
+          message: newRewards.length > 0
+            ? `🎉 You unlocked a Free Combo Meal! Points reset to ${finalCurrent}.`
+            : `+${earned} points earned (${finalCurrent}/100)`,
         };
+
       } catch (err) {
-        console.error("Error adding points:", err);
+        console.error("addPoints error:", err);
         return null;
       }
     },
     [loyaltyData]
   );
 
+  // ─── useVoucher: mark reward as used + reset points ───────────────────────
   const useVoucher = useCallback(
     async (voucherId) => {
       const user = auth.currentUser;
       if (!user) return false;
 
       try {
-        const updatedVouchers = loyaltyData.unlockedVouchers.map((v) =>
+        const updatedVouchers = loyaltyData.unlockedVouchers.map(v =>
           v.voucherId === voucherId
             ? { ...v, status: "used", usedAt: Timestamp.now() }
             : v
         );
 
-        const updatedLoyaltyData = {
+        // Reset currentPoints to 0 on redemption
+        const updated = {
           ...loyaltyData,
+          currentPoints:    0,
           unlockedVouchers: updatedVouchers,
         };
 
-        const userRef = doc(db, "users", user.uid);
-        await updateDoc(userRef, {
-          loyaltyData: updatedLoyaltyData,
-        });
-
-        setLoyaltyData(updatedLoyaltyData);
+        await updateDoc(doc(db, "users", user.uid), { loyaltyData: updated });
+        setLoyaltyData(updated);
         return true;
       } catch (err) {
-        console.error("Error using voucher:", err);
+        console.error("useVoucher error:", err);
         return false;
       }
     },
     [loyaltyData]
   );
 
-  const value = {
-    loyaltyData,
-    loading,
-    addPoints,
-    useVoucher,
-  };
-
   return (
-    <LoyaltyContext.Provider value={value}>
+    <LoyaltyContext.Provider value={{ loyaltyData, loading, addPoints, useVoucher }}>
       {children}
     </LoyaltyContext.Provider>
   );

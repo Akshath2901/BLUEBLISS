@@ -1,431 +1,502 @@
-// Update your Home.js with this code
-// Location: src/jsx/home.jsx
-
-import React, { useState, useEffect } from "react";
+// src/jsx/home.jsx — BlueBliss V2.0 International Premium
+import React, { useState, useEffect, useRef, useCallback, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { CartContext } from "../context/CartContext";
 import SearchBar from "./SearchBar";
-import GoogleReviewCard from "./GoogleReviewCard";
 import Footer from "./Footer";
 import "./home.css";
 
-// import img1 from "../assets/IMG_2054.JPG";
-// import img2 from "../assets/paneer tikka wrap.jpg";
+import image1 from "./pics/PHOTO-2026-01-21-19-58-28 9.jpg";
+import image2 from "./pics/PHOTO-2026-01-21-19-58-28 15.jpg";
+import image3 from "./pics/PHOTO-2026-01-21-20-05-16 8.jpg";
 
-// import Burgers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
-// import MilkShake from "/src/assets/brands/Biskoff.jpg";
+/* ─── Keyword routing ───────────────────────────────────── */
+const KEYWORD_ROUTES = {
+  burger:"/menu/shrimmers", burgers:"/menu/shrimmers", crispy:"/menu/shrimmers",
+  fries:"/menu/shrimmers", milkshake:"/menu/shrimmers", shake:"/menu/shrimmers",
+  "peri peri":"/menu/shrimmers", shrimmers:"/menu/shrimmers",
+  pizza:"/menu/peppanizze", pizzas:"/menu/peppanizze", paneer:"/menu/peppanizze",
+  peppanizze:"/menu/peppanizze", vegetarian:"/menu/peppanizze",
+  wrap:"/menu/urbanwrap", wraps:"/menu/urbanwrap", roll:"/menu/urbanwrap",
+  urbanwrap:"/menu/urbanwrap",
+};
 
-// ⭐ NEW IMPORTS FOR CATEGORY IMAGES
-// import AfricanPeri from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
-// import PeriChickenWrap from "/src/assets/brands/peri peri chicken wrap.jpg";
-// import PaneerFries from "/src/assets/paneer tikka wrap.jpg";
-// import VegetrianaPizza from "/src/assets/VEGETRIANA PIZZA.jpg";
-
-// Brand images
-// import shrimmers from "/src/assets/brands/PERI PERI CRISPY CHICKEN BURGER.jpg";
-// import peppanizzeLogo from "/src/assets/brands/AFRICAN PERI PERI VEG.jpg";
-// import urbanWrapLogo from "/src/assets/brands/peri peri chicken wrap.jpg";
-
-const img1 = "";
-const img2 = "";
-const Burgers = "";
-const MilkShake = "";
-const AfricanPeri = "";
-const PeriChickenWrap = "";
-const PaneerFries = "";
-const VegetrianaPizza = "";
-const shrimmers = "";
-const peppanizzeLogo = "";
-const urbanWrapLogo = "";
-
-function Home() {
-  const navigate = useNavigate();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [offers, setOffers] = useState([]);
-
-  // Hero Slider Images
-  const heroImages = [
-    "" + img1,
-    "" + img2,
-    "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1920&q=80",
-    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1920&q=80"
-  ];
-
-  // ⭐ DEFAULT OFFERS
-  const defaultOffers = [
-    {
-      id: 1,
-      title: "BUY 2 BURGERS FOR 99",
-      description: "Valid till 25th dec",
-      code: "BURGER99",
-      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80",
-      bgColor: "#d4af37",
-      bgColorAlt: "#ffd700",
-      icon: "🍔"
-    },
-    {
-      id: 2,
-      title: "GET 50% OFF ON PIZZA",
-      description: "Valid till 30th dec",
-      code: "PIZZA50",
-      image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80",
-      bgColor: "#d4af37",
-      bgColorAlt: "#ffd700",
-      icon: "🍕"
-    },
-    {
-      id: 3,
-      title: "FREE DELIVERY ABOVE 199",
-      description: "Valid till 28th dec",
-      code: "FREEDEL",
-      image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=800&q=80",
-      bgColor: "#d4af37",
-      bgColorAlt: "#ffd700",
-      icon: "🚚"
-    }
-  ];
-
-  // 🔥 FETCH OFFERS FROM FIREBASE
-  useEffect(() => {
-    const fetchOffers = async () => {
-      try {
-        const offersSnapshot = await getDocs(collection(db, "offers"));
-        const offersData = [];
-        
-        offersSnapshot.forEach((doc) => {
-          if (doc.data().isActive) {
-            offersData.push({
-              id: doc.id,
-              ...doc.data()
-            });
-          }
-        });
-        
-        setOffers(offersData.length > 0 ? offersData : defaultOffers);
-      } catch (e) {
-        console.log("Error fetching home offers:", e);
-        setOffers(defaultOffers);
-      }
-    };
-
-    fetchOffers();
-  }, []);
-
-  // ⭐ UPDATED FOOD CATEGORIES WITH REAL IMAGES
-  const foodCategories = [
-    { id: 1, name: "Burgers", image: Burgers, query: "burger" },
-    { id: 2, name: "Pizza", image: VegetrianaPizza, query: "pizza" },
-    { id: 3, name: "Fries", image: PaneerFries, query: "fries" },
-    { id: 4, name: "MilkShakes", image: MilkShake, query: "milkshake" },
-    { id: 5, name: "Wraps", image: PeriChickenWrap, query: "wrap" },
-    { id: 6, name: "Peri Peri", image: AfricanPeri, query: "peri peri" }
-  ];
-
-  const brands = [
-    {
-      id: 1,
-      name: "Shrimmers",
-      tagline: "Sparkle in Every Bite",
-      description: "Experience the shimmer of flavors with our premium selection",
-      icon: "✨",
-      image: shrimmers,
-      route: "/menu/shrimmers",
-    },
-    {
-      id: 2,
-      name: "Peppanizze",
-      tagline: "Spice Up Your Life",
-      description: "Bold flavors that ignite your taste buds",
-      icon: "🌶️",
-      image: peppanizzeLogo,
-      route: "/menu/peppanizze",
-    },
-    {
-      id: 3,
-      name: "UrbanWrap",
-      tagline: "Wrapped to Perfection",
-      description: "Modern wraps crafted for the urban lifestyle",
-      icon: "🌯",
-      image: urbanWrapLogo,
-      route: "/menu/urbanwrap",
-    },
-  ];
-
-  // Auto Slide Hero
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
-
-  // Auto Slide Offers
-
-
-  // ⭐ AI TOAST NOTIFICATION - Show on homepage
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      window.showAiToast("🔥 Trending Now: CHEEZY 7 PIZZA is selling like hotcakes! ₹229", 8000);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Handle Search
-  const handleSearch = (query) => navigate(`/search?q=${encodeURIComponent(query)}`);
-
-  // Category Click
-  const handleCategoryClick = (query) => navigate(`/search?q=${encodeURIComponent(query)}`);
-
-  // Brand Click
-  const handleBrandClick = (route) => navigate(route);
-
-  // Offer Slider Controls
-
-
-  return (
-    <div className="home-container">
-
-      {/* HERO SECTION */}
-      <section className="hero-slider">
-        <div className="slider-images">
-          {heroImages.map((image, index) => (
-            <div
-              key={index}
-              className={`slide ${index === currentSlide ? "active" : ""}`}
-              style={{ backgroundImage: `url(${image})` }}
-            />
-          ))}
-        </div>
-        <div className="hero-overlay" />
-        <div className="hero-content">
-          <h2>Welcome to <span>BlueBliss</span> </h2>
-          <p>Your one-stop destination for fresh, delicious, and soulful food.</p>
-          <div className="transparent-search">
-            <SearchBar onSearch={handleSearch} />
-          </div>
-          <button className="explore-btn" onClick={() => {
-  const brandsSection = document.querySelector(".brands-section");
-  if (brandsSection) {
-    brandsSection.scrollIntoView({ behavior: "smooth" });
+function getRouteForQuery(q) {
+  const query = q.toLowerCase().trim();
+  if (KEYWORD_ROUTES[query]) return KEYWORD_ROUTES[query];
+  const scores = { "/menu/shrimmers":0, "/menu/peppanizze":0, "/menu/urbanwrap":0 };
+  for (const [kw, route] of Object.entries(KEYWORD_ROUTES)) {
+    if (query.includes(kw)) scores[route] += kw.length;
   }
-}}>Explore Menu</button>
-        </div>
+  const best = Object.entries(scores).sort((a,b) => b[1]-a[1])[0];
+  return best[1] > 0 ? best[0] : "/menu/shrimmers";
+}
 
-        <div className="slide-indicators">
-          {heroImages.map((_, index) => (
-            <button
-              key={index}
-              className={`indicator ${index === currentSlide ? "active" : ""}`}
-              onClick={() => setCurrentSlide(index)}
-            />
+/* ─── Static data ───────────────────────────────────────── */
+const BRAND_CONFIG = [
+  { id:1, name:"Shrimmers",  icon:"✨", tagline:"Burgers · Shakes · Fries",   desc:"Premium burgers crafted to absolute perfection", route:"/menu/shrimmers",  col:"menu",  color:"#F2C35A" },
+  { id:2, name:"Peppanizze", icon:"🌶️", tagline:"Pizzas · Paneer · Spice",    desc:"Bold wood-fired flavours with an Indian twist",   route:"/menu/peppanizze", col:"Pmenu", color:"#FF6B5B" },
+  { id:3, name:"UrbanWrap",  icon:"🌯", tagline:"Wraps · Rolls · Fresh",      desc:"Fresh wraps packed with vibrant ingredients",     route:"/menu/urbanwrap",  col:"Umenu", color:"#00D4AA" },
+];
+
+const FOOD_CATEGORIES = [
+  { id:1, emoji:"🍔", name:"Burgers",    query:"burger"    },
+  { id:2, emoji:"🍕", name:"Pizza",      query:"pizza"     },
+  { id:3, emoji:"🍟", name:"Fries",      query:"fries"     },
+  { id:4, emoji:"🥤", name:"MilkShakes", query:"milkshake" },
+  { id:5, emoji:"🌯", name:"Wraps",      query:"wrap"      },
+  { id:6, emoji:"🌶️", name:"Peri Peri",  query:"peri peri" },
+];
+
+const STATS = [
+  { value:"4.2", suffix:"★", label:"Customer Rating", icon:"⭐" },
+  { value:"52",  suffix:"+", label:"Menu Items",      icon:"🍽️" },
+  { value:"3",   suffix:"",  label:"Premium Brands",  icon:"✨" },
+  { value:"45",  suffix:"m", label:"Avg Delivery",    icon:"⚡" },
+];
+
+const DEFAULT_OFFERS = [
+  { id:1, title:"BUY 2 BURGERS FOR ₹99",   description:"Valid till 25th Dec", code:"BURGER99", icon:"🍔" },
+  { id:2, title:"GET 50% OFF ON PIZZA",    description:"Valid till 30th Dec", code:"PIZZA50",  icon:"🍕" },
+  { id:3, title:"FREE DELIVERY ABOVE ₹199", description:"Valid till 28th Dec", code:"FREEDEL",  icon:"🚚" },
+];
+
+const REVIEWS = [
+  { name:"Akash R.",  text:"Best burgers in Hyderabad. Juicy, perfectly seasoned — I'm hooked.",     stars:5, city:"Banjara Hills"   },
+  { name:"Sneha K.",  text:"Loved the wraps. Packaging & taste both absolutely top notch.",           stars:5, city:"Jubilee Hills"   },
+  { name:"Rahul M.",  text:"Fast delivery and premium quality food. Never disappoints.",              stars:4, city:"Kondapur"        },
+  { name:"Priya S.",  text:"The peri peri fries are insane. Crispy, spicy, addictive. 10/10.",       stars:5, city:"Madhapur"        },
+  { name:"Arjun V.",  text:"UrbanWrap is my weekly go-to. Fresh ingredients every single time.",     stars:5, city:"Gachibowli"      },
+  { name:"Meera T.",  text:"Peppanizze pizza is a hidden gem. The crust is absolute perfection.",   stars:5, city:"Himayatnagar"    },
+  { name:"Kiran P.",  text:"Ordered for my office — 20 people, all loved it. Will order again!",    stars:5, city:"HITEC City"      },
+  { name:"Ananya D.", text:"The milkshakes alone are worth visiting. Rich, thick, incredible.",     stars:5, city:"Kukatpally"      },
+  // duplicates for infinite loop
+  { name:"Akash R.",  text:"Best burgers in Hyderabad. Juicy, perfectly seasoned — I'm hooked.",     stars:5, city:"Banjara Hills"   },
+  { name:"Sneha K.",  text:"Loved the wraps. Packaging & taste both absolutely top notch.",           stars:5, city:"Jubilee Hills"   },
+  { name:"Rahul M.",  text:"Fast delivery and premium quality food. Never disappoints.",              stars:4, city:"Kondapur"        },
+  { name:"Priya S.",  text:"The peri peri fries are insane. Crispy, spicy, addictive. 10/10.",       stars:5, city:"Madhapur"        },
+  { name:"Arjun V.",  text:"UrbanWrap is my weekly go-to. Fresh ingredients every single time.",     stars:5, city:"Gachibowli"      },
+  { name:"Meera T.",  text:"Peppanizze pizza is a hidden gem. The crust is absolute perfection.",   stars:5, city:"Himayatnagar"    },
+  { name:"Kiran P.",  text:"Ordered for my office — 20 people, all loved it. Will order again!",    stars:5, city:"HITEC City"      },
+  { name:"Ananya D.", text:"The milkshakes alone are worth visiting. Rich, thick, incredible.",     stars:5, city:"Kukatpally"      },
+];
+
+const HERO_PARTICLES = ["🍔","🍕","🌯","🥤","🍟","🌶️"];
+
+/* ─── Scroll reveal hook ─────────────────────────────────── */
+function useScrollReveal() {
+  const obs = useRef(null);
+  return useCallback((node) => {
+    if (!node) return;
+    obs.current?.disconnect();
+    obs.current = new IntersectionObserver(
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add("visible"); obs.current?.unobserve(e.target); }
+      }),
+      { threshold: 0.08, rootMargin: "0px 0px -60px 0px" }
+    );
+    node.querySelectorAll(".reveal").forEach(el => obs.current?.observe(el));
+  }, []);
+}
+
+/* ─── Home Component ─────────────────────────────────────── */
+export default function Home() {
+  const navigate    = useNavigate();
+  const revealRef   = useScrollReveal();
+
+  const [slide,    setSlide]    = useState(0);
+  const [offers,   setOffers]   = useState([]);
+  const [trending, setTrending] = useState([]);
+  const [loading,  setLoading]  = useState(true);
+
+  // Cart context — for ADD buttons in trending section
+  const cartCtx = useContext(CartContext);
+  const addToCart    = cartCtx?.addToCart    || (() => {});
+  const getItemQty   = cartCtx?.getItemQty   || (() => 0);
+  const increaseQty  = cartCtx?.increaseQty  || (() => {});
+  const decreaseQty  = cartCtx?.decreaseQty  || (() => {});
+
+  const heroImages = [image1, image2, image3];
+
+  /* ── Fetch offers ─────────────────────────────────────── */
+  useEffect(() => {
+    getDocs(collection(db, "offers"))
+      .then(snap => {
+        const data = [];
+        snap.forEach(doc => { if (doc.data().isActive) data.push({ id:doc.id, ...doc.data() }); });
+        setOffers(data.length > 0 ? data : DEFAULT_OFFERS);
+      })
+      .catch(() => setOffers(DEFAULT_OFFERS));
+  }, []);
+
+  /* ── Fetch trending from all 3 menu collections ───────── */
+useEffect(() => {
+    (async () => {
+      try {
+        const COLS = [
+          { col:"menu",  brand:"Shrimmers",  route:"/menu/shrimmers",  color:"#F2C35A" },
+          { col:"Pmenu", brand:"Peppanizze", route:"/menu/peppanizze", color:"#FF6B5B" },
+          { col:"Umenu", brand:"UrbanWrap",  route:"/menu/urbanwrap",  color:"#00D4AA" },
+        ];
+        let all = [];
+ 
+        for (const { col, brand, route, color } of COLS) {
+          try {
+            const snap = await getDocs(collection(db, col));
+            snap.forEach(doc => {
+              const d = doc.data();
+              (d.items || []).forEach(item => {
+                if (item.name && item.price && item.isAvailable !== false) {
+                  all.push({
+                    ...item,
+                    brand, route, color,
+                    itemId: `${col}-${item.name}`.replace(/\s+/g,"_").toLowerCase(),
+                    // Ensure rating is a usable number
+                    rating: parseFloat(item.rating) || 0,
+                  });
+                }
+              });
+            });
+          } catch (e) {
+            // Collection might not exist — skip silently
+            console.log(`Skipping collection ${col}:`, e.message);
+          }
+        }
+ 
+        // Sort by rating descending — NO minimum filter
+        // Take up to 12 items regardless of rating
+        const sorted = [...all]
+          .sort((a, b) => b.rating - a.rating)
+          .slice(0, 12);
+ 
+        setTrending(sorted);
+      } catch (e) {
+        console.log("Trending fetch error:", e);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  /* ── Hero auto-advance ────────────────────────────────── */
+  useEffect(() => {
+    const id = setInterval(() => setSlide(p => (p+1) % heroImages.length), 5500);
+    return () => clearInterval(id);
+  }, []);
+
+  /* ── AI toast ─────────────────────────────────────────── */
+  useEffect(() => {
+    const t = setTimeout(() => window.showAiToast?.("🔥 Trending: CHEEZY 7 PIZZA is selling fast! ₹229", 7000), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  const handleSearch   = q => { if (q?.trim()) navigate(getRouteForQuery(q)); };
+  const handleCategory = q => navigate(getRouteForQuery(q));
+
+  const handleAdd = item => addToCart({
+    id:   item.itemId,
+    name: item.name,
+    price:item.price,
+    img:  item.img || "",
+    qty:  1,
+    brand:item.brand,
+  });
+
+  /* ──────────────────────────────────────────────────────── */
+  return (
+    <div className="home-container" ref={revealRef}>
+
+      {/* ══ 1. HERO ══════════════════════════════════════ */}
+      <section className="hero-section">
+
+        {/* Slides */}
+        <div className="hero-slides">
+          {heroImages.map((img, i) => (
+            <div key={i} className={`hero-slide ${i === slide ? "active" : ""}`}
+              style={{ backgroundImage:`url(${img})` }} />
           ))}
         </div>
-      </section>
 
-      {/* Categories Slider */}
-      <section className="categories-section">
-        <div className="categories-container">
-          <h2 className="categories-title">What's on your mind?</h2>
+        {/* Overlay layers */}
+        <div className="hero-overlay" />
+        <div className="hero-noise" />
 
-          <div className="categories-slider-wrapper">
-            <button
-              className="cat-nav-btn"
-              onClick={() =>
-                document
-                  .querySelector(".categories-slider")
-                  .scrollBy({ left: -300, behavior: "smooth" })
-              }
-            >
-              ‹
-            </button>
-
-            <div className="categories-slider">
-              {foodCategories.map((category) => (
-                <div
-                  key={category.id}
-                  className="category-circle"
-                  onClick={() => handleCategoryClick(category.query)}
-                >
-                  <div 
-                    className="category-icon"
-                    style={{
-                      backgroundImage: `url(${category.image})`,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center'
-                    }}
-                  />
-                  <p className="category-name">{category.name}</p>
-                </div>
-              ))}
-            </div>
-
-            <button
-              className="cat-nav-btn"
-              onClick={() =>
-                document
-                  .querySelector(".categories-slider")
-                  .scrollBy({ left: 300, behavior: "smooth" })
-              }
-            >
-              ›
-            </button>
-          </div>
+        {/* Floating food particles */}
+        <div className="hero-particles" aria-hidden="true">
+          {HERO_PARTICLES.map((e, i) => (
+            <span key={i} className={`particle p${i+1}`}>{e}</span>
+          ))}
         </div>
-      </section>
 
-{/* ⭐ SPECIAL OFFERS SECTION - REDESIGNED */}
-      <section className="offers-section">
-        <div className="offers-container">
-          <h2 className="offers-title">🎉 Special Offers</h2>
-          <p className="offers-subtitle">Limited time deals you don't want to miss</p>
-
-          {offers.length > 0 && (
-            <div className="offers-grid">
-              {offers.map((offer, index) => (
-                <div key={offer.id} className={`offer-card-new offer-card-${index % 3}`}>
-                  <div className="offer-card-inner-new">
-                    <div className="offer-card-left">
-                      <span className="offer-badge-new">LIMITED OFFER</span>
-                      <h3 className="offer-title-new">
-                        {offer.icon && <span>{offer.icon} </span>}
-                        {offer.title}
-                      </h3>
-                      <p className="offer-desc-new">{offer.description}</p>
-                    </div>
-                    <div className="offer-card-right">
-                      <div className="offer-code-new">
-                        <span className="offer-code-label">USE CODE</span>
-                        <strong className="offer-code-value">{offer.code}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {/* Google Review Card inside offers */}
-              <GoogleReviewCard />
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* REVIEWS SECTION */}
-      <section className="reviews-section">
-        <h2 className="reviews-title">⭐ What Customers Say</h2>
-
-        <div className="reviews-slider">
-          <div className="reviews-track">
-            {[
-              {
-                name: "Akash R",
-                review: "Best burgers in Hyderabad. Super juicy and fresh!",
-                rating: "⭐⭐⭐⭐⭐"
-              },
-              {
-                name: "Sneha K",
-                review: "Loved the wraps. Packaging & taste both top notch.",
-                rating: "⭐⭐⭐⭐⭐"
-              },
-              {
-                name: "Rahul M",
-                review: "Fast delivery and premium quality food!",
-                rating: "⭐⭐⭐⭐"
-              },
-              {
-                name: "Priya S",
-                review: "Black & gold vibe + amazing food. 10/10.",
-                rating: "⭐⭐⭐⭐⭐"
-              },
-              {
-                name: "Akash R",
-                review: "Best burgers in Hyderabad. Super juicy and fresh!",
-                rating: "⭐⭐⭐⭐⭐"
-              },
-              {
-                name: "Sneha K",
-                review: "Loved the wraps. Packaging & taste both top notch.",
-                rating: "⭐⭐⭐⭐⭐"
-              },
-              {
-                name: "Rahul M",
-                review: "Fast delivery and premium quality food!",
-                rating: "⭐⭐⭐⭐"
-              },
-              {
-                name: "Priya S",
-                review: "Black & gold vibe + amazing food. 10/10.",
-                rating: "⭐⭐⭐⭐⭐"
-              }
-            ].map((item, index) => (
-              <div key={index} className="review-card">
-                <p className="review-text">"{item.review}"</p>
-                <div className="review-footer">
-                  <span className="review-name">{item.name}</span>
-                  <span className="review-rating">{item.rating}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* BRAND SECTION */}
-      <section className="brands-section">
-        <div className="brands-container">
-          <h2 className="brands-title">Discover Our Brands</h2>
-          <p className="brands-subtitle">Choose from our collection of culinary experiences</p>
-
-          <div className="brands-grid">
-            {brands.map((brand) => (
-              <div
-                key={brand.id}
-                className="brand-card"
-                onClick={() => handleBrandClick(brand.route)}
-                style={{
-                  backgroundImage: `url(${brand.image})`,
-                }}
-              >
-                <div className="brand-overlay" />
-                <div className="brand-card-inner">
-                  <div className="brand-icon">{brand.icon}</div>
-                  <h3 className="brand-name">{brand.name}</h3>
-                  <p className="brand-tagline">{brand.tagline}</p>
-                  <div className="brand-arrow">→</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-{/* CONNECT WITH US SECTION */}
-      <section className="connect-section">
-        <div className="connect-container">
-          <h2 className="connect-title">📱 Connect With Us</h2>
-          <p className="connect-subtitle">
-            Reach out for custom orders, bulk orders, or just say hi!
+        {/* Main content */}
+        <div className="hero-content">
+          <p className="hero-eyebrow">
+            <span className="eyebrow-line" />
+            Cloud Kitchen · Hyderabad
           </p>
 
-         <div className="connect-cards">
-            <a href={`https://wa.me/917569534271?text=${encodeURIComponent("Hi BlueBliss! 🌿 I'd like to place an order.")}`} target="_blank" rel="noopener noreferrer" className="connect-card whatsapp-card">
-              <span className="connect-card-icon">💬</span>
-              <h3 className="connect-card-name">WhatsApp</h3>
-              <p className="connect-card-desc">Order directly, ask questions, or get support</p>
-              <span className="connect-card-cta">Chat Now →</span>
-            </a>
+          <h1 className="hero-title">
+            Fresh Flavours,
+            <em>Delivered Fast.</em>
+          </h1>
 
-            <a href="https://www.instagram.com/shrimmers_/" target="_blank" rel="noopener noreferrer" className="connect-card instagram-card">
-              <span className="connect-card-icon">📸</span>
-              <h3 className="connect-card-name">Instagram</h3>
-              <p className="connect-card-desc">Follow us for offers, behind the scenes & more</p>
-              <span className="connect-card-cta">Follow Us →</span>
-            </a>
+          <p className="hero-sub">
+            Three premium brands. 52+ handcrafted dishes.
+            One obsession — perfection on every plate.
+          </p>
+
+          <div className="hero-search-wrap">
+            <SearchBar onSearch={handleSearch} />
+          </div>
+
+          <div className="hero-actions">
+            <button className="hero-btn-primary"
+              onClick={() => document.querySelector(".trending-section")?.scrollIntoView({ behavior:"smooth" })}>
+              🔥 See What's Trending
+            </button>
+            <button className="hero-btn-ghost"
+              onClick={() => document.querySelector(".brands-section")?.scrollIntoView({ behavior:"smooth" })}>
+              Explore Brands →
+            </button>
+          </div>
+        </div>
+
+        {/* Slide dots */}
+        <div className="hero-dots">
+          {heroImages.map((_, i) => (
+            <button key={i} className={`dot ${i === slide ? "active" : ""}`}
+              onClick={() => setSlide(i)} aria-label={`Slide ${i+1}`} />
+          ))}
+        </div>
+
+        {/* Scroll cue */}
+        <div className="scroll-cue" aria-hidden="true">
+          <div className="scroll-line" />
+          <span>SCROLL</span>
+        </div>
+      </section>
+
+      {/* ══ 2. STATS STRIP ═══════════════════════════════ */}
+      <section className="stats-strip">
+        <div className="stats-inner">
+          {STATS.map((s, i) => (
+            <div key={i} className="stat-item reveal" style={{ transitionDelay:`${i*0.1}s` }}>
+              <span className="stat-icon">{s.icon}</span>
+              <p className="stat-value">{s.value}<span className="stat-suffix">{s.suffix}</span></p>
+              <p className="stat-label">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ 3. TRENDING THIS WEEK ════════════════════════ */}
+      <section className="trending-section">
+        <div className="section-head reveal">
+          <p className="sec-eyebrow">🔥 Most Ordered</p>
+          <h2 className="sec-title">Trending This Week</h2>
+          <p className="sec-sub">Dishes your neighbourhood can't stop ordering</p>
+        </div>
+
+        {loading ? (
+          <div className="trending-skeletons">
+            {[1,2,3,4,5].map(i => <div key={i} className="skeleton" />)}
+          </div>
+        ) : trending.length === 0 ? null : (
+          <div className="trending-scroll">
+            {trending.map((item, i) => {
+              const qty = getItemQty(item.itemId);
+              return (
+                <div key={item.itemId} className="t-card reveal"
+                  style={{ transitionDelay:`${i * 0.06}s` }}>
+
+                  {/* Image */}
+                  <div className="t-img-wrap" onClick={() => navigate(item.route)}>
+                    {item.img
+                      ? <img src={item.img} alt={item.name} className="t-img" loading="lazy" />
+                      : <div className="t-img-fallback"><span>🍽️</span></div>
+                    }
+                    {/* Rank badge */}
+                    <span className="t-rank" style={{ background: item.color }}>
+                      #{i+1}
+                    </span>
+                    {/* Brand chip */}
+                    <span className="t-brand" style={{ color: item.color }}>
+                      {item.brand}
+                    </span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="t-info">
+                    <p className="t-name">{item.name}</p>
+                    <div className="t-meta">
+                      <span className="t-price">₹{item.price}</span>
+                      {item.rating && (
+                        <span className="t-rating">⭐ {item.rating}</span>
+                      )}
+                    </div>
+                    {/* Cart controls */}
+                    {qty === 0 ? (
+                      <button className="t-add" onClick={() => handleAdd(item)}>ADD +</button>
+                    ) : (
+                      <div className="t-qty">
+                        <button onClick={() => decreaseQty(item.itemId)}>−</button>
+                        <span>{qty}</span>
+                        <button onClick={() => increaseQty(item.itemId)}>+</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ══ 4. OUR BRANDS ════════════════════════════════ */}
+      <section className="brands-section">
+        <div className="section-head reveal">
+          <p className="sec-eyebrow">Our Kitchen</p>
+          <h2 className="sec-title">Three Brands,<em> One Standard</em></h2>
+          <p className="sec-sub">Each brand crafted for a distinct, unforgettable flavour experience</p>
+        </div>
+
+        <div className="brands-grid">
+          {BRAND_CONFIG.map((b, i) => (
+            <div key={b.id}
+              className="brand-card reveal"
+              style={{ "--bc": b.color, transitionDelay:`${i*0.15}s` }}
+              onClick={() => navigate(b.route)}
+              role="button" tabIndex={0}
+              onKeyDown={e => e.key === "Enter" && navigate(b.route)}
+            >
+              <div className="brand-glow" />
+              <div className="brand-top">
+                <span className="brand-icon">{b.icon}</span>
+                <h3 className="brand-name">{b.name}</h3>
+              </div>
+              <p className="brand-tagline">{b.tagline}</p>
+              <p className="brand-desc">{b.desc}</p>
+              <div className="brand-cta" style={{ color: b.color }}>
+                Explore Menu <span className="brand-arrow">→</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ 5. CATEGORIES ════════════════════════════════ */}
+      <section className="categories-section">
+        <div className="section-head reveal">
+          <p className="sec-eyebrow">Quick Browse</p>
+          <h2 className="sec-title">What's on<em> your mind?</em></h2>
+        </div>
+
+        <div className="categories-pills reveal">
+          {FOOD_CATEGORIES.map((cat, i) => (
+            <button key={cat.id}
+              className="cat-pill"
+              style={{ transitionDelay:`${i*0.07}s` }}
+              onClick={() => handleCategory(cat.query)}
+            >
+              <span className="cat-emoji">{cat.emoji}</span>
+              <span className="cat-name">{cat.name}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ══ 6. OFFERS ════════════════════════════════════ */}
+      {offers.length > 0 && (
+        <section className="offers-section">
+          <div className="section-head reveal">
+            <p className="sec-eyebrow">Limited Time</p>
+            <h2 className="sec-title">Exclusive Offers</h2>
+            <p className="sec-sub">Use codes at checkout — these won't last long</p>
+          </div>
+
+          <div className="offers-list">
+            {offers.map((offer, i) => (
+              <div key={offer.id}
+                className={`offer-card oc-${i % 3} reveal`}
+                style={{ transitionDelay:`${i*0.1}s` }}
+              >
+                <div className="offer-shine" />
+                <div className="offer-left">
+                  <span className="offer-tag">LIMITED OFFER</span>
+                  <h3 className="offer-title">
+                    {offer.icon && <span className="offer-icon">{offer.icon}</span>}
+                    {offer.title}
+                  </h3>
+                  <p className="offer-desc">{offer.description}</p>
+                </div>
+                <div className="offer-right">
+                  <p className="offer-use">USE CODE</p>
+                  <strong className="offer-code">{offer.code}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ══ 7. REVIEWS ═══════════════════════════════════ */}
+      <section className="reviews-section">
+        <div className="section-head reveal">
+          <p className="sec-eyebrow">Social Proof</p>
+          <h2 className="sec-title">What People Say</h2>
+          <p className="sec-sub">From Hyderabad foodies who order every week</p>
+        </div>
+
+        <div className="reviews-track-wrap">
+          <div className="reviews-track">
+            {REVIEWS.map((r, i) => (
+              <div key={i} className="review-card">
+                <div className="review-stars">
+                  {"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}
+                </div>
+                <p className="review-text">"{r.text}"</p>
+                <div className="review-footer">
+                  <span className="review-name">{r.name}</span>
+                  <span className="review-city">📍 {r.city}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
+
+      {/* ══ 8. CONNECT ═══════════════════════════════════ */}
+      <section className="connect-section">
+        <div className="section-head reveal">
+          <p className="sec-eyebrow">Get in Touch</p>
+          <h2 className="sec-title">Connect With Us</h2>
+          <p className="sec-sub">Custom orders, bulk enquiries, or just to say hi!</p>
+        </div>
+
+        <div className="connect-row reveal">
+          <a href={`https://wa.me/917569534271?text=${encodeURIComponent("Hi BlueBliss! 🌿 I'd like to place an order.")}`}
+            target="_blank" rel="noopener noreferrer"
+            className="connect-card whatsapp">
+            <span className="connect-icon">💬</span>
+            <h3>WhatsApp</h3>
+            <p>Order directly or get instant support</p>
+            <span className="connect-cta">CHAT NOW</span>
+          </a>
+
+          <a href="https://www.instagram.com/shrimmers_/"
+            target="_blank" rel="noopener noreferrer"
+            className="connect-card instagram">
+            <span className="connect-icon">📸</span>
+            <h3>Instagram</h3>
+            <p>Follow for drops, offers & behind-the-scenes</p>
+            <span className="connect-cta">FOLLOW US</span>
+          </a>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
 }
-
-export default Home;
