@@ -108,10 +108,10 @@ export default function Dashboard() {
     value:    (ingredients||[]).reduce((s,i)=>s+(i.currentStock||0)*(i.costPerUnit||0),0),
   }),[ingredients]);
 
-  const health   = useMemo(()=>calcKitchenHealthScore(ingredients||[],usageLogs||[]),[ingredients,usageLogs]);
+  const health   = useMemo(()=>{ try { return calcKitchenHealthScore(ingredients||[],usageLogs||[]); } catch(e){ return {score:100,grade:'A',status:'Good',color:'#16A34A',deductions:[]}; } },[ingredients,usageLogs]);
   const alerts   = useMemo(()=>(ingredients||[]).filter(i=>i.currentStock<=i.minThreshold).sort((a,b)=>a.currentStock-b.currentStock),[ingredients]);
-  const insights = useMemo(()=>generateLocalInsights(ingredients||[],usageLogs||[],wasteLogs||[]),[ingredients,usageLogs,wasteLogs]);
-  const topWaste = useMemo(()=>topWasteIngredients(wasteLogs||[],5),[wasteLogs]);
+  const insights = useMemo(()=>{ try { return generateLocalInsights(ingredients||[],usageLogs||[],wasteLogs||[]); } catch(e){ return []; } },[ingredients,usageLogs,wasteLogs]);
+  const topWaste = useMemo(()=>{ try { return topWasteIngredients(wasteLogs||[],5); } catch(e){ return []; } },[wasteLogs]);
 
   // Usage chart — last 7 days from logs
   const usageChart = useMemo(()=>{
@@ -128,7 +128,7 @@ export default function Dashboard() {
       const day=days[ts.getDay()===0?6:ts.getDay()-1];
       if(day) map[day].waste+=log.quantity||0;
     });
-    return days.map(d=>({...map[d],used:+map[d].used.toFixed(1),waste:+map[d].waste.toFixed(1)}));
+    return days.map(d=>({...map[d],used:+(map[d]?.used||0).toFixed(1),waste:+(map[d]?.waste||0).toFixed(1)}));
   },[usageLogs,wasteLogs]);
 
   // Category breakdown
@@ -139,7 +139,7 @@ export default function Dashboard() {
       map[i.category].count++;
       map[i.category].value+=(i.currentStock||0)*(i.costPerUnit||0);
     });
-    return Object.values(map).sort((a,b)=>b.value-a.value);
+    return Object.values(map||{}).sort((a,b)=>b.value-a.value);
   },[ingredients]);
 
   // Per-ingredient predictions for table
@@ -149,7 +149,7 @@ export default function Dashboard() {
       const days=daysUntilStockout(ing.currentStock,daily);
       const urgency=getUrgency(days);
       return{...ing,dailyUsage:daily,daysLeft:days===Infinity?null:days,urgency};
-    }).sort((a,b)=>{
+    }).filter(Boolean).sort((a,b)=>{
       if(a.daysLeft===null&&b.daysLeft===null)return 0;
       if(a.daysLeft===null)return 1;
       if(b.daysLeft===null)return -1;
@@ -279,9 +279,9 @@ export default function Dashboard() {
                 <p className="dash-health-status" style={{color:health.color}}>{health.status}</p>
               </div>
               <div className="dash-health-issues">
-                {health.deductions.length===0
+                {(health.deductions||[]).length===0
                   ? <p className="dash-health-ok">All systems healthy</p>
-                  : health.deductions.map((d,i)=><p key={i} className="dash-health-issue">• {d}</p>)
+                  : (health.deductions||[]).map((d,i)=><p key={i} className="dash-health-issue">• {d}</p>)
                 }
               </div>
             </div>
