@@ -165,7 +165,32 @@ export default function InvLayout() {
         </header>
 
         <main className="inv-content"><Outlet /></main>
-      </div>
+      
+      {/* ── Mobile Bottom Nav ── */}
+      {isMobile && (
+        <nav className="inv-mobile-nav">
+          {[
+            { label:'Home',   path:'/',                icon:'dashboard' },
+            { label:'Stock',  path:'/stock',           icon:'stock'     },
+            { label:'Orders', path:'/purchase-orders', icon:'orders'    },
+            { label:'Staff',  path:'/staff',           icon:'staff'     },
+            { label:'More',   path:'/reports',         icon:'more'      },
+          ].map(item => (
+            <button key={item.path}
+              className={'inv-mobile-nav-btn' + (isActive(item.path) ? ' active' : '')}
+              onClick={() => go(item.path)}>
+              <span className="inv-mobile-nav-icon">
+                {item.icon === 'dashboard' && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>}
+                {item.icon === 'stock'     && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>}
+                {item.icon === 'orders'    && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>}
+                {item.icon === 'staff'     && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>}
+                {item.icon === 'more'      && <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>}
+              </span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </div>
   );
 }

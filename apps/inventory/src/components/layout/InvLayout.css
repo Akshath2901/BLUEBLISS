@@ -179,3 +179,7 @@
 
 /* ══ Responsive ══ */
 @media (max-width:1024px) { .inv-sb.desk { display:none; } }
+@media (max-width: 768px) {
+  .inv-hamburger { display: none; }
+  .inv-topbar { padding: 0 12px; }
+}
