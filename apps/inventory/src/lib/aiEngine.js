@@ -8,7 +8,7 @@
 /* ─── STOCK PREDICTIONS ───────────────────────────────────── */
 
 // Calculate average daily usage from usage logs
-export const calcDailyUsage = (usageLogs, ingredientId, days = 14) => {
+export const calcDailyUsage = (usageLogs = [], ingredientId, days = 14) => {
   const since = new Date();
   since.setDate(since.getDate() - days);
 
@@ -76,7 +76,7 @@ export const detectAnomaly = (values, newValue, threshold = 2.0) => {
 };
 
 // Detect anomalies in recent usage logs
-export const detectUsageAnomalies = (usageLogs, ingredients) => {
+export const detectUsageAnomalies = (usageLogs = [], ingredients = []) => {
   const anomalies = [];
 
   ingredients.forEach(ingredient => {
@@ -113,7 +113,7 @@ export const detectUsageAnomalies = (usageLogs, ingredients) => {
 /* ─── WASTE INTELLIGENCE ──────────────────────────────────── */
 
 // Identify waste patterns by day of week
-export const wasteByDayOfWeek = (wasteLogs) => {
+export const wasteByDayOfWeek = (wasteLogs = []) => {
   const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const totals = Object.fromEntries(days.map(d => [d, { cost: 0, count: 0 }]));
 
@@ -128,7 +128,7 @@ export const wasteByDayOfWeek = (wasteLogs) => {
 };
 
 // Find worst waste offenders
-export const topWasteIngredients = (wasteLogs, limit = 5) => {
+export const topWasteIngredients = (wasteLogs = [], limit = 5) => {
   const map = {};
   wasteLogs.forEach(l => {
     if (!map[l.ingredientName]) map[l.ingredientName] = { name: l.ingredientName, cost: 0, qty: 0, count: 0 };
@@ -140,7 +140,7 @@ export const topWasteIngredients = (wasteLogs, limit = 5) => {
 };
 
 // Calculate waste rate (waste / total used)
-export const calcWasteRate = (usageLogs, wasteLogs, days = 30) => {
+export const calcWasteRate = (usageLogs = [], wasteLogs = [], days = 30) => {
   const since = new Date(); since.setDate(since.getDate() - days);
   const totalUsed  = usageLogs.filter(l => {
     const ts = l.timestamp?.toDate ? l.timestamp.toDate() : new Date(l.timestamp || 0);
@@ -158,7 +158,7 @@ export const calcWasteRate = (usageLogs, wasteLogs, days = 30) => {
 /* ─── STOCK HEALTH SCORING ────────────────────────────────── */
 
 // Overall kitchen health score (0-100)
-export const calcKitchenHealthScore = (ingredients, usageLogs) => {
+export const calcKitchenHealthScore = (ingredients = [], usageLogs = []) => {
   if (!ingredients.length) return 100;
 
   let score = 100;
@@ -205,7 +205,7 @@ export const calcKitchenHealthScore = (ingredients, usageLogs) => {
 /* ─── PURCHASE ORDER INTELLIGENCE ────────────────────────────*/
 
 // Generate smart reorder suggestions
-export const generateReorderSuggestions = (ingredients, usageLogs, suppliers = []) => {
+export const generateReorderSuggestions = (ingredients = [], usageLogs = [], suppliers = []) => {
   return ingredients
     .map(ingredient => {
       const dailyUsage = calcDailyUsage(usageLogs, ingredient.id, 14);
@@ -339,7 +339,7 @@ export const usageTrend = (usageLogs, ingredientId, days = 7) => {
 /* ─── SMART SUMMARY GENERATION ───────────────────────────────*/
 
 // Generate text insights without any API
-export const generateLocalInsights = (ingredients, usageLogs, wasteLogs) => {
+export const generateLocalInsights = (ingredients = [], usageLogs = [], wasteLogs = []) => {
   const insights = [];
 
   // Critical stock insight

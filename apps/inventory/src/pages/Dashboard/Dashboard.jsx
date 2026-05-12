@@ -31,11 +31,11 @@ function Counter({to,prefix='',suffix=''}) {
 function KPIModal({type, ingredients, usageLogs, onClose}) {
   const navigate = useNavigate();
   const filtered = useMemo(()=>{
-    if(type==='total')    return ingredients;
-    if(type==='healthy')  return ingredients.filter(i=>i.currentStock>i.minThreshold);
-    if(type==='low')      return ingredients.filter(i=>i.currentStock>0&&i.currentStock<=i.minThreshold);
-    if(type==='critical') return ingredients.filter(i=>i.currentStock<=0);
-    return ingredients;
+    if(type==='total')    return ingredients||[];
+    if(type==='healthy')  return (ingredients||[]).filter(i=>i.currentStock>i.minThreshold);
+    if(type==='low')      return (ingredients||[]).filter(i=>i.currentStock>0&&i.currentStock<=i.minThreshold);
+    if(type==='critical') return (ingredients||[]).filter(i=>i.currentStock<=0);
+    return ingredients||[];
   },[type,ingredients]);
 
   return (
@@ -101,29 +101,29 @@ export default function Dashboard() {
 
   // Derived stats
   const stats = useMemo(()=>({
-    total:    ingredients.length,
-    critical: ingredients.filter(i=>i.currentStock<=0).length,
-    low:      ingredients.filter(i=>i.currentStock>0&&i.currentStock<=i.minThreshold).length,
-    healthy:  ingredients.filter(i=>i.currentStock>i.minThreshold).length,
-    value:    ingredients.reduce((s,i)=>s+(i.currentStock||0)*(i.costPerUnit||0),0),
+    total:    (ingredients||[]).length,
+    critical: (ingredients||[]).filter(i=>i.currentStock<=0).length,
+    low:      (ingredients||[]).filter(i=>i.currentStock>0&&i.currentStock<=i.minThreshold).length,
+    healthy:  (ingredients||[]).filter(i=>i.currentStock>i.minThreshold).length,
+    value:    (ingredients||[]).reduce((s,i)=>s+(i.currentStock||0)*(i.costPerUnit||0),0),
   }),[ingredients]);
 
-  const health   = useMemo(()=>calcKitchenHealthScore(ingredients,usageLogs),[ingredients,usageLogs]);
-  const alerts   = useMemo(()=>ingredients.filter(i=>i.currentStock<=i.minThreshold).sort((a,b)=>a.currentStock-b.currentStock),[ingredients]);
-  const insights = useMemo(()=>generateLocalInsights(ingredients,usageLogs,wasteLogs),[ingredients,usageLogs,wasteLogs]);
-  const topWaste = useMemo(()=>topWasteIngredients(wasteLogs,5),[wasteLogs]);
+  const health   = useMemo(()=>calcKitchenHealthScore(ingredients||[],usageLogs||[]),[ingredients,usageLogs]);
+  const alerts   = useMemo(()=>(ingredients||[]).filter(i=>i.currentStock<=i.minThreshold).sort((a,b)=>a.currentStock-b.currentStock),[ingredients]);
+  const insights = useMemo(()=>generateLocalInsights(ingredients||[],usageLogs||[],wasteLogs||[]),[ingredients,usageLogs,wasteLogs]);
+  const topWaste = useMemo(()=>topWasteIngredients(wasteLogs||[],5),[wasteLogs]);
 
   // Usage chart — last 7 days from logs
   const usageChart = useMemo(()=>{
     const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const map={};
     days.forEach(d=>map[d]={day:d,used:0,waste:0});
-    usageLogs.slice(0,200).forEach(log=>{
+    (usageLogs||[]).slice(0,200).forEach(log=>{
       const ts=log.timestamp?.toDate?log.timestamp.toDate():new Date(log.timestamp||0);
       const day=days[ts.getDay()===0?6:ts.getDay()-1];
       if(day&&log.quantityChange<0) map[day].used+=Math.abs(log.quantityChange||0);
     });
-    wasteLogs.slice(0,100).forEach(log=>{
+    (wasteLogs||[]).slice(0,100).forEach(log=>{
       const ts=log.timestamp?.toDate?log.timestamp.toDate():new Date(log.timestamp||0);
       const day=days[ts.getDay()===0?6:ts.getDay()-1];
       if(day) map[day].waste+=log.quantity||0;
@@ -134,7 +134,7 @@ export default function Dashboard() {
   // Category breakdown
   const catBreakdown = useMemo(()=>{
     const map={};
-    ingredients.forEach(i=>{
+    (ingredients||[]).forEach(i=>{
       if(!map[i.category])map[i.category]={name:i.category,count:0,value:0};
       map[i.category].count++;
       map[i.category].value+=(i.currentStock||0)*(i.costPerUnit||0);
@@ -144,7 +144,7 @@ export default function Dashboard() {
 
   // Per-ingredient predictions for table
   const withPredictions = useMemo(()=>
-    ingredients.map(ing=>{
+    (ingredients||[]).map(ing=>{
       const daily=calcDailyUsage(usageLogs,ing.id,14);
       const days=daysUntilStockout(ing.currentStock,daily);
       const urgency=getUrgency(days);
