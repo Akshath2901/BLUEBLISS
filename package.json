@@ -1,0 +1,21 @@
+{
+  "name": "bluebliss",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web":         "npm run dev --workspace=apps/web",
+    "dev:inventory":   "npm run dev --workspace=apps/inventory",
+    "dev":             "npm run dev:web",
+    "build:web":       "npm run build --workspace=apps/web",
+    "build:inventory": "npm run build --workspace=apps/inventory",
+    "server":          "node server/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm":  ">=9.0.0"
+  }
+}
