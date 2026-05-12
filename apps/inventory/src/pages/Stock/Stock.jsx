@@ -119,6 +119,7 @@ export default function Stock() {
                 <th>Total Value</th>
                 <th>Status</th>
                 <th>Supplier</th>
+                <th>Days Left</th>
                 <th>Updated</th>
                 <th>Actions</th>
               </tr>

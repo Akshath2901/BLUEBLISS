@@ -119,4 +119,43 @@
 .ai-acc-icon{font-size:26px;}
 .ai-acc-title{font-size:13px;font-weight:700;color:var(--inv-primary);margin:0 0 2px;}
 .ai-acc-sub{font-size:11px;color:var(--inv-text-muted);margin:0;}
-@media(max-width:900px){.ai-page{padding:14px 12px 80px;}.ai-features-grid{grid-template-columns:repeat(2,1fr);}.ai-reorder-grid{grid-template-columns:1fr;}.ai-pred-left{min-width:120px;}.ai-header{flex-direction:column;align-items:flex-start;}.ai-loading-card{flex-direction:column;text-align:center;}.ai-summary-meta{flex-direction:column;gap:3px;}}
+@media(max-width:900px){.ai-page{padding:14px 12px 80px;}.ai-features-grid{grid-template-columns:repeat(2,1fr);}.ai-reorder-grid{grid-template-columns:1fr;}.ai-pred-left{min-width:120px;}.ai-header{flex-direction:column;align-items:flex-start;}.ai-loading-card{flex-direction:column;text-align:center;}.ai-summary-meta{flex-direction:column;gap:3px;}}/* AI page additions */
+.ai-health-banner{display:flex;justify-content:space-between;align-items:center;background:var(--inv-surface);border:1px solid var(--inv-border);border-radius:14px;padding:16px 20px;margin-bottom:16px;flex-wrap:wrap;gap:12px;animation:invSlideUp .4s ease both;}
+.ai-health-left{display:flex;align-items:center;gap:14px;}
+.ai-health-score{font-size:32px;font-weight:800;width:60px;height:60px;display:flex;align-items:center;justify-content:center;border-radius:14px;border:2px solid;letter-spacing:-1px;}
+.ai-health-grade{font-size:15px;font-weight:700;margin:0 0 3px;}
+.ai-health-sub{font-size:12px;color:var(--inv-text-muted);margin:0;}
+.ai-health-right{display:flex;gap:6px;flex-wrap:wrap;}
+.ai-health-issue{font-size:11px;font-weight:500;padding:4px 10px;border-radius:7px;background:var(--inv-red-bg);color:var(--inv-red);border:1px solid rgba(220,38,38,.15);}
+.ai-health-ok{font-size:11px;font-weight:500;padding:4px 10px;border-radius:7px;background:var(--inv-primary-bg);color:var(--inv-primary);border:1px solid rgba(22,163,74,.15);}
+.ai-insights-strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:16px;}
+.ai-insight-card{background:var(--inv-surface);border:1px solid var(--inv-border);border-radius:13px;padding:14px 16px;animation:invSlideUp .4s ease both;transition:all .2s;display:flex;flex-direction:column;gap:8px;}
+.ai-insight-card:hover{border-color:var(--inv-border-md);transform:translateY(-2px);}
+.ai-ins-critical{border-left:3px solid var(--inv-red);}
+.ai-ins-anomaly{border-left:3px solid var(--inv-orange);}
+.ai-ins-waste{border-left:3px solid var(--inv-gold);}
+.ai-ins-reorder{border-left:3px solid var(--inv-blue);}
+.ai-ins-head{display:flex;align-items:center;gap:8px;}
+.ai-ins-icon{font-size:16px;flex-shrink:0;}
+.ai-ins-title{font-size:13px;font-weight:600;color:var(--inv-text);margin:0;}
+.ai-ins-body{font-size:12px;color:var(--inv-text-dim);margin:0;line-height:1.5;}
+.ai-ins-action{background:none;border:none;color:var(--inv-primary);font-size:12px;font-weight:600;cursor:pointer;padding:0;font-family:var(--font-main);text-align:left;}
+.ai-ins-action:hover{text-decoration:underline;}
+.ai-overview-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px;}
+.ai-ov-card{background:var(--inv-surface);border:1px solid var(--inv-border);border-radius:12px;padding:14px;text-align:center;animation:invSlideUp .4s ease both;transition:all .2s;}
+.ai-ov-card:hover{transform:translateY(-2px);}
+.ai-ov-val{font-size:24px;font-weight:700;margin:0 0 4px;letter-spacing:-.5px;}
+.ai-ov-label{font-size:12px;font-weight:600;color:var(--inv-text-dim);margin:0 0 2px;}
+.ai-ov-sub{font-size:10px;color:var(--inv-text-muted);margin:0;}
+.ai-waste-list{display:flex;flex-direction:column;gap:9px;}
+.ai-waste-row{display:flex;align-items:center;gap:10px;}
+.ai-waste-rank{font-size:10px;font-weight:600;color:var(--inv-text-muted);min-width:22px;}
+.ai-waste-name{font-size:12px;font-weight:600;color:var(--inv-text-dim);min-width:110px;}
+.ai-waste-bar{flex:1;height:5px;background:var(--inv-border);border-radius:3px;overflow:hidden;}
+.ai-waste-fill{height:100%;background:var(--inv-red);border-radius:3px;animation:invBarGrow 1s ease both;}
+.ai-waste-cost{font-size:12px;font-weight:700;color:var(--inv-red);min-width:52px;text-align:right;}
+.ai-waste-count{font-size:10px;color:var(--inv-text-muted);min-width:60px;text-align:right;}
+.ai-rd-order-btn{width:100%;padding:9px;background:var(--inv-primary);border:none;border-radius:9px;color:#fff;font-family:var(--font-main);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:10px;}
+.ai-rd-order-btn:hover{opacity:.9;}
+@media(max-width:1000px){.ai-overview-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:768px){.ai-overview-grid{grid-template-columns:repeat(2,1fr);}.ai-reorder-grid{grid-template-columns:1fr;}.ai-health-banner{flex-direction:column;}}
